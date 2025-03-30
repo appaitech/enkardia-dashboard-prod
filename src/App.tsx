@@ -13,72 +13,75 @@ import UserDashboard from "./pages/user/UserDashboard";
 import ClientsList from "./pages/admin/ClientsList";
 import ClientDetail from "./pages/admin/ClientDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
+import { useState } from "react";
 
-// Configure React Query with default options
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      refetchOnWindowFocus: false,
-      retry: 1,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+const App = () => {
+  // Create a client instance inside component to ensure it's created during rendering
+  const [queryClient] = useState(() => new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+        retry: 1,
+        staleTime: 5 * 60 * 1000, // 5 minutes
+      },
     },
-  },
-});
+  }));
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<LoginPage />} />
-            
-            {/* Console (Admin) Routes */}
-            <Route 
-              path="/admin/dashboard" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/clients" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
-                  <ClientsList />
-                </ProtectedRoute>
-              } 
-            />
-            <Route 
-              path="/admin/clients/:clientId" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
-                  <ClientDetail />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Client (User) Routes */}
-            <Route 
-              path="/user/dashboard" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
-                  <UserDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            
-            {/* Catch-all route */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/login" element={<LoginPage />} />
+              
+              {/* Console (Admin) Routes */}
+              <Route 
+                path="/admin/dashboard" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/clients" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                    <ClientsList />
+                  </ProtectedRoute>
+                } 
+              />
+              <Route 
+                path="/admin/clients/:clientId" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                    <ClientDetail />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Client (User) Routes */}
+              <Route 
+                path="/user/dashboard" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                    <UserDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Catch-all route */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
