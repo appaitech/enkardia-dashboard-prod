@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -64,7 +63,14 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
         .eq("client_business_id", clientId);
         
       if (error) throw error;
-      return data.map(item => item.profiles) as AssignedUser[];
+      
+      // Map the profiles from the response to the AssignedUser type
+      return data.map(item => ({
+        id: item.profiles.id,
+        email: item.profiles.email,
+        name: item.profiles.name,
+        role: item.profiles.role
+      })) as AssignedUser[];
     }
   });
   

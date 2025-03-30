@@ -17,6 +17,7 @@ import {
   RefreshCcw,
   AlertTriangle
 } from "lucide-react";
+import { DbClientBusiness } from "@/types/client";
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -90,8 +91,8 @@ const UserDashboard = () => {
   }
 
   const selectedBusiness = selectedBusinessId 
-    ? clientBusinesses.find(b => b.id === selectedBusinessId) 
-    : clientBusinesses[0];
+    ? clientBusinesses?.find(b => b.id === selectedBusinessId) 
+    : clientBusinesses?.[0];
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -106,7 +107,7 @@ const UserDashboard = () => {
           </div>
           
           {/* Client Business Selector */}
-          {clientBusinesses.length > 1 && (
+          {clientBusinesses && clientBusinesses.length > 1 && (
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="text-lg">Your Client Businesses</CardTitle>
@@ -156,7 +157,7 @@ const UserDashboard = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    {selectedBusiness.xeroConnected ? (
+                    {selectedBusiness.xero_connected ? (
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                           <div className="p-4 bg-slate-50 rounded-md">
@@ -246,7 +247,7 @@ const UserDashboard = () => {
                     <div className="space-y-2">
                       <div>
                         <span className="text-xs text-slate-500">Contact Name</span>
-                        <p>{selectedBusiness.contactName}</p>
+                        <p>{selectedBusiness.contact_name}</p>
                       </div>
                       <div>
                         <span className="text-xs text-slate-500">Email</span>
