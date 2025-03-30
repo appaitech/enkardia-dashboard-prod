@@ -26,33 +26,49 @@ const LoginPage = () => {
   const [signupRole, setSignupRole] = useState<UserRole>("STANDARD");
   const [signupError, setSignupError] = useState("");
   
+  // Local loading states to manage button states independently from the global isLoading
+  const [isLoginLoading, setIsLoginLoading] = useState(false);
+  const [isSignupLoading, setIsSignupLoading] = useState(false);
+  
   const { login, signup, isLoading } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError("");
+    setIsLoginLoading(true);
+    
     if (!loginEmail || !loginPassword) {
       setLoginError("Email and password are required");
+      setIsLoginLoading(false);
       return;
     }
+    
     try {
       await login(loginEmail, loginPassword);
+      // If login succeeds, don't reset loading state as page will redirect
     } catch (error: any) {
       setLoginError(error.message || "Login failed");
+      setIsLoginLoading(false);
     }
   };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setSignupError("");
+    setIsSignupLoading(true);
+    
     if (!signupEmail || !signupPassword || !signupName) {
       setSignupError("All fields are required");
+      setIsSignupLoading(false);
       return;
     }
+    
     try {
       await signup(signupEmail, signupPassword, signupName, signupAccountType, signupRole);
+      // If signup succeeds, the page may not redirect immediately
     } catch (error: any) {
       setSignupError(error.message || "Signup failed");
+      setIsSignupLoading(false);
     }
   };
 
@@ -126,9 +142,9 @@ const LoginPage = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={isLoading}
+                      disabled={isLoginLoading}
                     >
-                      {isLoading ? (
+                      {isLoginLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
                           Signing in...
@@ -263,9 +279,9 @@ const LoginPage = () => {
                     <Button 
                       type="submit" 
                       className="w-full bg-blue-600 hover:bg-blue-700"
-                      disabled={isLoading}
+                      disabled={isSignupLoading}
                     >
-                      {isLoading ? (
+                      {isSignupLoading ? (
                         <>
                           <Loader2 className="mr-2 h-4 w-4 animate-spin" /> 
                           Creating Account...

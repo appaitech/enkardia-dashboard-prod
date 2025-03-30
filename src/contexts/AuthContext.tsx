@@ -125,7 +125,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         password
       });
       
-      if (error) throw error;
+      if (error) {
+        setIsLoading(false);
+        throw error;
+      }
 
       if (data.user) {
         toast.success("Login successful!");
@@ -137,7 +140,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('id', data.user.id)
           .single();
           
-        if (profileError) throw profileError;
+        if (profileError) {
+          setIsLoading(false);
+          throw profileError;
+        }
         
         if (profile.account_type === "CONSOLE") {
           navigate("/admin/dashboard");
@@ -148,8 +154,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "An error occurred during login");
-    } finally {
       setIsLoading(false);
+      throw error; // Re-throw so the LoginPage component can catch it
     }
   };
 
@@ -175,15 +181,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
       
-      if (error) throw error;
+      if (error) {
+        setIsLoading(false);
+        throw error;
+      }
       
       toast.success("Sign up successful! Please check your email for verification.");
       
     } catch (error: any) {
       console.error("Signup error:", error);
       toast.error(error.message || "An error occurred during signup");
-    } finally {
       setIsLoading(false);
+      throw error; // Re-throw so the LoginPage component can catch it
     }
   };
 
