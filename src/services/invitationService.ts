@@ -98,11 +98,38 @@ export const getInvitationDetails = async (
   token: string
 ): Promise<{ email: string; clientBusinessId: string } | null> => {
   try {
-    // Modified to use maybeSingle instead of single to handle case when no invitation is found
+    // Log that we're trying to get the invitation details with a specific token
+    console.log("Fetching invitation with token:", token);
+    
+    // First check if the invitation exists and print details about it
+    const { data: checkData, error: checkError } = await supabase
+      .from("invitations")
+      .select("id, email, client_business_id, accepted, expires_at")
+      .eq("token", token.trim());
+      
+    if (checkError) {
+      console.error("Error checking for invitation:", checkError);
+    } else {
+      console.log("Raw invitation query results:", checkData);
+      
+      if (checkData && checkData.length === 0) {
+        console.log("No invitation found with exact token. Checking case sensitivity...");
+        
+        // For debugging - let's get all invitations and check their tokens
+        const { data: allInvitations } = await supabase
+          .from("invitations")
+          .select("token")
+          .limit(10);
+          
+        console.log("Sample invitation tokens in database:", allInvitations);
+      }
+    }
+    
+    // Now perform the actual query to get the invitation details
     const { data, error } = await supabase
       .from("invitations")
-      .select("email, client_business_id")
-      .eq("token", token)
+      .select("email, client_business_id, accepted, expires_at")
+      .eq("token", token.trim())
       .maybeSingle();
 
     if (error) {
@@ -113,6 +140,26 @@ export const getInvitationDetails = async (
     // If no data was found, return null
     if (!data) {
       console.log("No invitation found with token:", token);
+      return null;
+    }
+    
+    // Log additional information about the invitation that was found
+    console.log("Found invitation:", {
+      email: data.email,
+      clientBusinessId: data.client_business_id,
+      accepted: data.accepted,
+      expiresAt: data.expires_at,
+      expiryStatus: new Date(data.expires_at) > new Date() ? "Valid" : "Expired"
+    });
+    
+    // Return the invitation details if it's not accepted and not expired
+    if (data.accepted) {
+      console.log("Invitation has already been accepted");
+      return null;
+    }
+    
+    if (new Date(data.expires_at) < new Date()) {
+      console.log("Invitation has expired");
       return null;
     }
 

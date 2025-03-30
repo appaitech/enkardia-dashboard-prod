@@ -85,7 +85,11 @@ const AcceptInvitationPage = () => {
           } else {
             console.error("Failed to get invitation details", details);
             setStatus("error");
-            setErrorMessage("Failed to retrieve invitation details");
+            if (details === null) {
+              setErrorMessage("This invitation link is no longer valid. It may have expired or already been accepted.");
+            } else {
+              setErrorMessage("Failed to retrieve invitation details");
+            }
           }
         } else {
           console.error("Invalid invitation token");
