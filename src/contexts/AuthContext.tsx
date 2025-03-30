@@ -198,6 +198,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
+      setIsLoading(true);
       await supabase.auth.signOut();
       setUser(null);
       toast.success("Logged out successfully");
@@ -205,6 +206,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error("Logout error:", error);
       toast.error("An error occurred during logout");
+    } finally {
+      // Always reset loading state after logout completes
+      setIsLoading(false);
     }
   };
 

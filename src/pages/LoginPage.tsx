@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,13 @@ const LoginPage = () => {
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [isSignupLoading, setIsSignupLoading] = useState(false);
   
-  const { login, signup, isLoading } = useAuth();
+  const { login, signup } = useAuth();
+  
+  // Reset loading states when component mounts
+  useEffect(() => {
+    setIsLoginLoading(false);
+    setIsSignupLoading(false);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
