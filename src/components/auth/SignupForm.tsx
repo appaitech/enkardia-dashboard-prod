@@ -10,6 +10,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { AccountType, UserRole } from "@/contexts/AuthContext";
+import { useLocation } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
@@ -21,6 +23,19 @@ const SignupForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   
   const { signup } = useAuth();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Check if we're coming from an invitation
+  const invitationToken = searchParams.get("token");
+  const invitationEmail = searchParams.get("email");
+  
+  // Pre-fill the email if it's coming from an invitation
+  React.useEffect(() => {
+    if (invitationEmail) {
+      setEmail(invitationEmail);
+    }
+  }, [invitationEmail]);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +68,9 @@ const SignupForm = () => {
       <CardHeader>
         <CardTitle className="text-xl">Create Account</CardTitle>
         <CardDescription>
-          Set up your new account with role and access type
+          {invitationToken ? 
+            "Complete your account setup to accept the invitation" : 
+            "Set up your new account with role and access type"}
         </CardDescription>
       </CardHeader>
       
@@ -78,6 +95,7 @@ const SignupForm = () => {
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
+                autoFocus
               />
             </div>
           </div>
@@ -94,6 +112,8 @@ const SignupForm = () => {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={!!invitationEmail}
+                readOnly={!!invitationEmail}
               />
             </div>
           </div>
@@ -114,49 +134,53 @@ const SignupForm = () => {
             </div>
           </div>
           
-          <div className="space-y-2">
-            <Label htmlFor="signup-account-type">Account Type</Label>
-            <div className="relative">
-              <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-              <Select
-                value={accountType}
-                onValueChange={(value) => setAccountType(value as AccountType)}
-              >
-                <SelectTrigger className="pl-10">
-                  <SelectValue placeholder="Select Account Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="CONSOLE">Console</SelectItem>
-                  <SelectItem value="CLIENT">Client</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <p className="text-xs text-slate-500">
-              Console users access the admin dashboard, Client users access the user dashboard
-            </p>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="signup-role">User Role</Label>
-            <div className="relative">
-              <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-              <Select
-                value={role}
-                onValueChange={(value) => setRole(value as UserRole)}
-              >
-                <SelectTrigger className="pl-10">
-                  <SelectValue placeholder="Select Role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ADMIN">Admin</SelectItem>
-                  <SelectItem value="STANDARD">Standard</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <p className="text-xs text-slate-500">
-              Admin roles have full access, Standard roles have limited access
-            </p>
-          </div>
+          {!invitationToken && (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="signup-account-type">Account Type</Label>
+                <div className="relative">
+                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <Select
+                    value={accountType}
+                    onValueChange={(value) => setAccountType(value as AccountType)}
+                  >
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="Select Account Type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="CONSOLE">Console</SelectItem>
+                      <SelectItem value="CLIENT">Client</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Console users access the admin dashboard, Client users access the user dashboard
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="signup-role">User Role</Label>
+                <div className="relative">
+                  <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <Select
+                    value={role}
+                    onValueChange={(value) => setRole(value as UserRole)}
+                  >
+                    <SelectTrigger className="pl-10">
+                      <SelectValue placeholder="Select Role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="ADMIN">Admin</SelectItem>
+                      <SelectItem value="STANDARD">Standard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Admin roles have full access, Standard roles have limited access
+                </p>
+              </div>
+            </>
+          )}
           
           <div className="pt-2">
             <Button 

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
@@ -75,14 +74,19 @@ export const isValidInvitationToken = async (
   token: string
 ): Promise<boolean> => {
   try {
-    console.log("Checking if token is valid:", token);
+    if (!token) {
+      console.log("Token is empty or undefined");
+      return false;
+    }
     
-    // Instead of using the RPC function, check directly to make sure we're using the same logic
-    // as in getInvitationDetails
+    const cleanToken = token.trim();
+    console.log("Checking if token is valid:", cleanToken);
+    
+    // Directly check for the invitation with the token
     const { data, error } = await supabase
       .from("invitations")
       .select("id")
-      .eq("token", token.trim())
+      .eq("token", cleanToken)
       .is("accepted", false)
       .gt("expires_at", new Date().toISOString());
     
@@ -111,54 +115,40 @@ export const getInvitationDetails = async (
   token: string
 ): Promise<{ email: string; clientBusinessId: string } | null> => {
   try {
-    // Log that we're trying to get the invitation details with a specific token
-    console.log("Fetching invitation with token:", token);
-    
-    // Get all invitations to check if there are any in the system
-    const { data: allInvitations, error: invitationsError } = await supabase
-      .from("invitations")
-      .select("id, token")
-      .limit(10);
-    
-    if (invitationsError) {
-      console.error("Error getting all invitations:", invitationsError);
-    } else {
-      console.log("Total invitations in database:", allInvitations ? allInvitations.length : 0);
-      console.log("Sample invitation tokens:", allInvitations);
-      
-      if (allInvitations && allInvitations.length > 0) {
-        // Check if the token exists in the database using exact match or with different case
-        const matchingInvitation = allInvitations.find(inv => 
-          inv.token === token || 
-          inv.token.toLowerCase() === token.toLowerCase()
-        );
-        
-        if (matchingInvitation) {
-          console.log("Found matching invitation by case-insensitive comparison:", matchingInvitation);
-        } else {
-          console.log("No matching invitation found, even with case-insensitive comparison");
-        }
-      }
+    if (!token) {
+      console.log("Token is empty or undefined");
+      return null;
     }
+    
+    const cleanToken = token.trim();
+    console.log("Fetching invitation with token:", cleanToken);
     
     // Perform the query to get the invitation details
     const { data, error } = await supabase
       .from("invitations")
       .select("email, client_business_id, accepted, expires_at")
-      .eq("token", token.trim())
-      .maybeSingle();
+      .eq("token", cleanToken)
+      .single();
 
     if (error) {
       console.error("Error getting invitation details:", error);
+      
+      // Check if it's a not found error
+      if (error.code === 'PGRST116') {
+        console.log("No invitation found with token:", cleanToken);
+        
+        // Try to get all invitations to see what's available
+        const { data: allInvitations } = await supabase
+          .from("invitations")
+          .select("token, email")
+          .limit(10);
+          
+        console.log("Sample invitation tokens in database:", allInvitations || []);
+      }
+      
       return null;
     }
 
-    // If no data was found, return null
-    if (!data) {
-      console.log("No invitation found with token:", token);
-      return null;
-    }
-    
     // Log additional information about the invitation that was found
     console.log("Found invitation:", {
       email: data.email,
@@ -198,15 +188,20 @@ export const acceptInvitation = async (
   userId: string
 ): Promise<boolean> => {
   try {
-    // Instead of using RPC, we'll implement the logic directly to ensure consistency
-    console.log(`Accepting invitation with token: ${token} for user: ${userId}`);
+    if (!token || !userId) {
+      console.error("Missing token or userId in acceptInvitation");
+      return false;
+    }
+    
+    const cleanToken = token.trim();
+    console.log(`Accepting invitation with token: ${cleanToken} for user: ${userId}`);
     
     // First, get the invitation details to make sure it exists and is valid
     const { data: invitation, error: fetchError } = await supabase
       .from("invitations")
       .select("client_business_id, accepted, expires_at")
-      .eq("token", token.trim())
-      .maybeSingle();
+      .eq("token", cleanToken)
+      .single();
     
     if (fetchError) {
       console.error("Error fetching invitation during accept:", fetchError);
@@ -214,7 +209,7 @@ export const acceptInvitation = async (
     }
     
     if (!invitation) {
-      console.error("No invitation found with token:", token);
+      console.error("No invitation found with token:", cleanToken);
       return false;
     }
     
@@ -232,7 +227,7 @@ export const acceptInvitation = async (
     const { error: updateError } = await supabase
       .from("invitations")
       .update({ accepted: true })
-      .eq("token", token.trim());
+      .eq("token", cleanToken);
     
     if (updateError) {
       console.error("Error updating invitation status:", updateError);

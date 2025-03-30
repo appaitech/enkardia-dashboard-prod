@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, AlertCircle, Mail, Lock } from "lucide-react";
+import { Loader2, CheckCircle, AlertCircle, Mail, Lock, User } from "lucide-react";
 import { isValidInvitationToken, acceptInvitation, getInvitationDetails } from "@/services/invitationService";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -16,6 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { supabase } from "@/integrations/supabase/client";
 
 const passwordSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters"),
   email: z.string().email("Please enter a valid email address"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
@@ -40,6 +41,7 @@ const AcceptInvitationPage = () => {
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
       confirmPassword: ""
@@ -164,13 +166,14 @@ const AcceptInvitationPage = () => {
     
     try {
       console.log("Creating new account for:", data.email);
-      await signup(data.email, data.password, data.email.split('@')[0], "CLIENT", "STANDARD");
+      await signup(data.email, data.password, data.name, "CLIENT", "STANDARD");
       
       toast.success("Account created successfully");
       console.log("Logging in with new account");
       
       await login(data.email, data.password);
       
+      // After login, we redirect back to the same page to handle the invitation acceptance
       navigate(`/accept-invitation?token=${token}`);
     } catch (error: any) {
       console.error("Error creating account:", error);
@@ -190,6 +193,7 @@ const AcceptInvitationPage = () => {
       await login(data.email, data.password);
       toast.success("Login successful");
       
+      // After login, redirect back to handle the invitation acceptance
       navigate(`/accept-invitation?token=${token}`);
     } catch (error: any) {
       console.error("Error logging in:", error);
@@ -257,6 +261,28 @@ const AcceptInvitationPage = () => {
           <p className="mb-6">Create an account to accept this invitation.</p>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(handleCreateAccount)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <div className="relative">
+                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className="pl-10" 
+                          placeholder="Enter your name"
+                          autoFocus
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
               <FormField
                 control={form.control}
                 name="email"
