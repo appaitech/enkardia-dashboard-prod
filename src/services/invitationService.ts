@@ -75,16 +75,29 @@ export const isValidInvitationToken = async (
   token: string
 ): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc("is_valid_invitation_token", {
-      token_input: token,
-    });
-
+    console.log("Checking if token is valid:", token);
+    
+    // Instead of using the RPC function, check directly to make sure we're using the same logic
+    // as in getInvitationDetails
+    const { data, error } = await supabase
+      .from("invitations")
+      .select("id")
+      .eq("token", token.trim())
+      .is("accepted", false)
+      .gt("expires_at", new Date().toISOString());
+    
     if (error) {
       console.error("Error checking invitation token:", error);
       return false;
     }
-
-    return !!data;
+    
+    if (data && data.length > 0) {
+      console.log("Token is valid, found invitation with id:", data[0].id);
+      return true;
+    }
+    
+    console.log("Token is invalid, no active invitations found");
+    return false;
   } catch (error) {
     console.error("Error in isValidInvitationToken:", error);
     return false;
@@ -101,31 +114,34 @@ export const getInvitationDetails = async (
     // Log that we're trying to get the invitation details with a specific token
     console.log("Fetching invitation with token:", token);
     
-    // First check if the invitation exists and print details about it
-    const { data: checkData, error: checkError } = await supabase
+    // Get all invitations to check if there are any in the system
+    const { data: allInvitations, error: invitationsError } = await supabase
       .from("invitations")
-      .select("id, email, client_business_id, accepted, expires_at")
-      .eq("token", token.trim());
-      
-    if (checkError) {
-      console.error("Error checking for invitation:", checkError);
+      .select("id, token")
+      .limit(10);
+    
+    if (invitationsError) {
+      console.error("Error getting all invitations:", invitationsError);
     } else {
-      console.log("Raw invitation query results:", checkData);
+      console.log("Total invitations in database:", allInvitations ? allInvitations.length : 0);
+      console.log("Sample invitation tokens:", allInvitations);
       
-      if (checkData && checkData.length === 0) {
-        console.log("No invitation found with exact token. Checking case sensitivity...");
+      if (allInvitations && allInvitations.length > 0) {
+        // Check if the token exists in the database using exact match or with different case
+        const matchingInvitation = allInvitations.find(inv => 
+          inv.token === token || 
+          inv.token.toLowerCase() === token.toLowerCase()
+        );
         
-        // For debugging - let's get all invitations and check their tokens
-        const { data: allInvitations } = await supabase
-          .from("invitations")
-          .select("token")
-          .limit(10);
-          
-        console.log("Sample invitation tokens in database:", allInvitations);
+        if (matchingInvitation) {
+          console.log("Found matching invitation by case-insensitive comparison:", matchingInvitation);
+        } else {
+          console.log("No matching invitation found, even with case-insensitive comparison");
+        }
       }
     }
     
-    // Now perform the actual query to get the invitation details
+    // Perform the query to get the invitation details
     const { data, error } = await supabase
       .from("invitations")
       .select("email, client_business_id, accepted, expires_at")
@@ -152,12 +168,13 @@ export const getInvitationDetails = async (
       expiryStatus: new Date(data.expires_at) > new Date() ? "Valid" : "Expired"
     });
     
-    // Return the invitation details if it's not accepted and not expired
+    // Check if invitation has been accepted
     if (data.accepted) {
       console.log("Invitation has already been accepted");
       return null;
     }
     
+    // Check if invitation has expired
     if (new Date(data.expires_at) < new Date()) {
       console.log("Invitation has expired");
       return null;
@@ -181,17 +198,62 @@ export const acceptInvitation = async (
   userId: string
 ): Promise<boolean> => {
   try {
-    const { data, error } = await supabase.rpc("accept_invitation", {
-      token_input: token,
-      user_id_input: userId,
-    });
-
-    if (error) {
-      console.error("Error accepting invitation:", error);
+    // Instead of using RPC, we'll implement the logic directly to ensure consistency
+    console.log(`Accepting invitation with token: ${token} for user: ${userId}`);
+    
+    // First, get the invitation details to make sure it exists and is valid
+    const { data: invitation, error: fetchError } = await supabase
+      .from("invitations")
+      .select("client_business_id, accepted, expires_at")
+      .eq("token", token.trim())
+      .maybeSingle();
+    
+    if (fetchError) {
+      console.error("Error fetching invitation during accept:", fetchError);
       return false;
     }
-
-    return !!data;
+    
+    if (!invitation) {
+      console.error("No invitation found with token:", token);
+      return false;
+    }
+    
+    if (invitation.accepted) {
+      console.error("Invitation has already been accepted");
+      return false;
+    }
+    
+    if (new Date(invitation.expires_at) < new Date()) {
+      console.error("Invitation has expired");
+      return false;
+    }
+    
+    // Mark the invitation as accepted
+    const { error: updateError } = await supabase
+      .from("invitations")
+      .update({ accepted: true })
+      .eq("token", token.trim());
+    
+    if (updateError) {
+      console.error("Error updating invitation status:", updateError);
+      return false;
+    }
+    
+    // Associate the user with the client business
+    const { error: associationError } = await supabase
+      .from("user_client_businesses")
+      .insert({
+        user_id: userId,
+        client_business_id: invitation.client_business_id,
+      });
+    
+    if (associationError) {
+      console.error("Error creating user-business association:", associationError);
+      return false;
+    }
+    
+    console.log("Invitation accepted successfully");
+    return true;
   } catch (error) {
     console.error("Error in acceptInvitation:", error);
     return false;
