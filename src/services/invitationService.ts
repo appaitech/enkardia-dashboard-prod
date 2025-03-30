@@ -98,14 +98,21 @@ export const getInvitationDetails = async (
   token: string
 ): Promise<{ email: string; clientBusinessId: string } | null> => {
   try {
+    // Modified to use maybeSingle instead of single to handle case when no invitation is found
     const { data, error } = await supabase
       .from("invitations")
       .select("email, client_business_id")
       .eq("token", token)
-      .single();
+      .maybeSingle();
 
-    if (error || !data) {
+    if (error) {
       console.error("Error getting invitation details:", error);
+      return null;
+    }
+
+    // If no data was found, return null
+    if (!data) {
+      console.log("No invitation found with token:", token);
       return null;
     }
 
