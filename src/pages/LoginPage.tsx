@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AccountType, UserRole } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
   // Login state
@@ -30,13 +31,27 @@ const LoginPage = () => {
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [isSignupLoading, setIsSignupLoading] = useState(false);
   
-  const { login, signup } = useAuth();
+  const { login, signup, user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   
   // Reset loading states when component mounts
   useEffect(() => {
+    console.log("Login page mounted, resetting loading states");
     setIsLoginLoading(false);
     setIsSignupLoading(false);
   }, []);
+  
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log("User is authenticated, redirecting to dashboard");
+      if (user.accountType === "CONSOLE") {
+        navigate("/admin/dashboard");
+      } else {
+        navigate("/user/dashboard");
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,9 +65,11 @@ const LoginPage = () => {
     }
     
     try {
+      console.log("Attempting to login with:", loginEmail);
       await login(loginEmail, loginPassword);
-      // If login succeeds, don't reset loading state as page will redirect
+      // Don't reset loading state here as the redirect will unmount this component
     } catch (error: any) {
+      console.error("Login error in component:", error);
       setLoginError(error.message || "Login failed");
       setIsLoginLoading(false);
     }
@@ -72,6 +89,7 @@ const LoginPage = () => {
     try {
       await signup(signupEmail, signupPassword, signupName, signupAccountType, signupRole);
       // If signup succeeds, the page may not redirect immediately
+      setIsSignupLoading(false);
     } catch (error: any) {
       setSignupError(error.message || "Signup failed");
       setIsSignupLoading(false);

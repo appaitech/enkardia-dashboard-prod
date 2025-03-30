@@ -41,6 +41,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
+        console.log("Auth state change event:", event);
         setSession(currentSession);
         
         if (currentSession && currentSession.user) {
@@ -77,39 +78,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     );
     
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      
-      if (currentSession && currentSession.user) {
-        // Fetch user profile from the profiles table
-        supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', currentSession.user.id)
-          .single()
-          .then(({ data: profile, error }) => {
-            if (error) {
-              console.error("Error fetching user profile:", error);
-              toast.error("Error loading user profile");
-              setIsLoading(false);
-              return;
-            }
+    const checkExistingSession = async () => {
+      try {
+        const { data: { session: currentSession } } = await supabase.auth.getSession();
+        
+        if (currentSession && currentSession.user) {
+          // Fetch user profile from the profiles table
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', currentSession.user.id)
+            .single();
             
-            if (profile) {
-              setUser({
-                id: currentSession.user.id,
-                email: currentSession.user.email || '',
-                name: profile.name || 'User',
-                accountType: profile.account_type as AccountType,
-                role: profile.role as UserRole
-              });
-            }
+          if (error) {
+            console.error("Error fetching user profile:", error);
+            toast.error("Error loading user profile");
             setIsLoading(false);
-          });
-      } else {
+            return;
+          }
+          
+          if (profile) {
+            setUser({
+              id: currentSession.user.id,
+              email: currentSession.user.email || '',
+              name: profile.name || 'User',
+              accountType: profile.account_type as AccountType,
+              role: profile.role as UserRole
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error checking existing session:", error);
+      } finally {
         setIsLoading(false);
       }
-    });
+    };
+    
+    checkExistingSession();
     
     return () => {
       subscription.unsubscribe();
@@ -145,12 +150,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           throw profileError;
         }
         
+        // The navigation will trigger auth state change which will update the user
         if (profile.account_type === "CONSOLE") {
           navigate("/admin/dashboard");
         } else {
           navigate("/user/dashboard");
         }
       }
+      
+      // Don't reset isLoading here - let the auth state change handler do it
+      
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "An error occurred during login");
@@ -187,6 +196,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       toast.success("Sign up successful! Please check your email for verification.");
+      setIsLoading(false);
       
     } catch (error: any) {
       console.error("Signup error:", error);
