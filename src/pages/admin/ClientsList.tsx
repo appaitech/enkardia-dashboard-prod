@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -49,7 +48,6 @@ const ClientsList = () => {
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const itemsPerPage = 5;
 
-  // Fetch clients using React Query
   const { data: clients, isLoading, isError, refetch } = useQuery({
     queryKey: ["clients", searchQuery],
     queryFn: () => searchQuery 
@@ -57,18 +55,15 @@ const ClientsList = () => {
       : getClientBusinesses(),
   });
 
-  // Handle search input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
     setCurrentPage(1);
   };
 
-  // View client details
   const handleViewClient = (clientId: string) => {
     navigate(`/admin/clients/${clientId}`);
   };
 
-  // Pagination logic
   const paginatedClients = clients ? clients.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -106,7 +101,6 @@ const ClientsList = () => {
             </div>
           </div>
 
-          {/* Search and filters */}
           <div className="flex justify-between mb-6">
             <div className="relative max-w-md w-full">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -134,7 +128,6 @@ const ClientsList = () => {
             </div>
           </div>
 
-          {/* Clients table */}
           <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
             <Table>
               <TableHeader>
@@ -243,7 +236,6 @@ const ClientsList = () => {
               </TableBody>
             </Table>
 
-            {/* Pagination */}
             {!isLoading && !isError && clients && clients.length > 0 && (
               <div className="border-t p-4">
                 <Pagination>
