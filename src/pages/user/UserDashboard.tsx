@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useLocation } from "react-router-dom";
 import UserSidebar from "@/components/UserSidebar";
@@ -15,7 +14,8 @@ import {
   Bell, 
   CheckCircle2,
   ShieldCheck,
-  Info
+  Info,
+  Users
 } from "lucide-react";
 
 const UserDashboard = () => {
