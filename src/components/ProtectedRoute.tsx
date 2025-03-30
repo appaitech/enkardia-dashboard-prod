@@ -1,16 +1,18 @@
 
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth, AccountType, UserRole } from "@/contexts/AuthContext";
 import { Loader2 } from "lucide-react";
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
-  allowedRoles?: Array<"admin" | "user">;
+  allowedAccountTypes?: AccountType[];
+  allowedRoles?: UserRole[];
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
+  allowedAccountTypes = [],
   allowedRoles = [],
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -27,9 +29,20 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     return <Navigate to="/login" replace />;
   }
 
+  // Check account type restrictions
+  if (allowedAccountTypes.length > 0 && user && !allowedAccountTypes.includes(user.accountType)) {
+    // Redirect to the appropriate dashboard based on account type
+    if (user.accountType === "CONSOLE") {
+      return <Navigate to="/admin/dashboard" replace />;
+    } else {
+      return <Navigate to="/user/dashboard" replace />;
+    }
+  }
+
+  // Check role restrictions
   if (allowedRoles.length > 0 && user && !allowedRoles.includes(user.role)) {
-    // Redirect to the appropriate dashboard based on role
-    if (user.role === "admin") {
+    // For now, we'll just redirect to their main dashboard based on account type
+    if (user.accountType === "CONSOLE") {
       return <Navigate to="/admin/dashboard" replace />;
     } else {
       return <Navigate to="/user/dashboard" replace />;

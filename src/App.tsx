@@ -25,21 +25,21 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/login" element={<LoginPage />} />
             
-            {/* Admin Routes */}
+            {/* Console (Admin) Routes */}
             <Route 
               path="/admin/dashboard" 
               element={
-                <ProtectedRoute allowedRoles={["admin"]}>
+                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
                   <AdminDashboard />
                 </ProtectedRoute>
               } 
             />
             
-            {/* User Routes */}
+            {/* Client (User) Routes */}
             <Route 
               path="/user/dashboard" 
               element={
-                <ProtectedRoute allowedRoles={["user"]}>
+                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
                   <UserDashboard />
                 </ProtectedRoute>
               } 

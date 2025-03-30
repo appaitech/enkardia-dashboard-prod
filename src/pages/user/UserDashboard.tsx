@@ -5,18 +5,23 @@ import UserSidebar from "@/components/UserSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   FileText, 
   Clock, 
   Calendar, 
   ChevronRight, 
   Bell, 
-  CheckCircle2 
+  CheckCircle2,
+  ShieldCheck,
+  Info
 } from "lucide-react";
 
 const UserDashboard = () => {
   const location = useLocation();
   const { user } = useAuth();
+  const isAdmin = user?.role === "ADMIN";
   
   return (
     <div className="flex h-screen bg-slate-50">
@@ -24,10 +29,27 @@ const UserDashboard = () => {
       
       <div className="flex-1 overflow-auto">
         <div className="p-8">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-slate-800">User Dashboard</h1>
-            <p className="text-slate-500">Welcome back, {user?.name}</p>
+          <div className="flex justify-between items-center mb-8">
+            <div>
+              <h1 className="text-3xl font-bold text-slate-800">Client Dashboard</h1>
+              <p className="text-slate-500">Welcome back, {user?.name}</p>
+            </div>
+            <div className="flex gap-2">
+              <Badge className="bg-green-500">{user?.accountType}</Badge>
+              <Badge className={user?.role === "ADMIN" ? "bg-purple-500" : "bg-slate-500"}>
+                {user?.role}
+              </Badge>
+            </div>
           </div>
+          
+          {isAdmin && (
+            <Alert className="mb-6 bg-purple-50 border-purple-200">
+              <ShieldCheck className="h-4 w-4 text-purple-600" />
+              <AlertDescription className="text-purple-700">
+                You have admin access. You can manage team members and settings.
+              </AlertDescription>
+            </Alert>
+          )}
           
           {/* Upcoming Items */}
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 mb-8">
@@ -81,9 +103,16 @@ const UserDashboard = () => {
             
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-lg font-medium flex items-center">
-                  <Bell className="h-5 w-5 mr-2 text-amber-600" />
-                  Notifications
+                <CardTitle className="text-lg font-medium flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Bell className="h-5 w-5 mr-2 text-amber-600" />
+                    Notifications
+                  </div>
+                  {isAdmin && (
+                    <Badge variant="outline" className="text-xs bg-purple-50 border-purple-200 text-purple-700">
+                      Admin
+                    </Badge>
+                  )}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -164,56 +193,134 @@ const UserDashboard = () => {
               </CardContent>
             </Card>
             
-            {/* Activity Summary */}
+            {/* Activity Summary or Admin Panel */}
             <Card>
               <CardHeader>
-                <CardTitle className="text-xl font-semibold">Recent Activity</CardTitle>
-                <CardDescription>Your activity from the past 7 days</CardDescription>
+                <CardTitle className="text-xl font-semibold flex items-center justify-between">
+                  {isAdmin ? "Team Overview" : "Recent Activity"}
+                  {isAdmin && (
+                    <Badge variant="outline" className="font-normal border-purple-200 bg-purple-50 text-purple-700">
+                      Admin Only
+                    </Badge>
+                  )}
+                </CardTitle>
+                <CardDescription>
+                  {isAdmin ? "Monitor your team's performance" : "Your activity from the past 7 days"}
+                </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-sm font-medium">Documents Viewed</p>
-                    <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: "65%" }}></div>
+                {isAdmin ? (
+                  // Admin-specific content
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-100 rounded-lg">
+                      <div>
+                        <p className="font-medium">Team Members</p>
+                        <p className="text-2xl font-bold text-blue-700">12</p>
+                      </div>
+                      <Users className="h-8 w-8 text-blue-500" />
                     </div>
-                    <div className="flex justify-between mt-1">
-                      <p className="text-xs text-slate-500">12 documents</p>
-                      <p className="text-xs text-slate-500">+18% from last week</p>
+                    
+                    <div className="flex items-center justify-between p-3 bg-green-50 border border-green-100 rounded-lg">
+                      <div>
+                        <p className="font-medium">Active Projects</p>
+                        <p className="text-2xl font-bold text-green-700">8</p>
+                      </div>
+                      <FileText className="h-8 w-8 text-green-500" />
+                    </div>
+                    
+                    <div className="flex items-center justify-between p-3 bg-amber-50 border border-amber-100 rounded-lg">
+                      <div>
+                        <p className="font-medium">Pending Tasks</p>
+                        <p className="text-2xl font-bold text-amber-700">24</p>
+                      </div>
+                      <Clock className="h-8 w-8 text-amber-500" />
+                    </div>
+                    
+                    <div className="pt-2 mt-2 border-t">
+                      <Button variant="outline" className="w-full text-sm">
+                        Manage Team
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div>
-                    <p className="text-sm font-medium">Tasks Completed</p>
-                    <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: "40%" }}></div>
+                ) : (
+                  // Regular user content
+                  <div className="space-y-4">
+                    <div>
+                      <p className="text-sm font-medium">Documents Viewed</p>
+                      <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+                        <div className="bg-blue-500 h-2 rounded-full" style={{ width: "65%" }}></div>
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <p className="text-xs text-slate-500">12 documents</p>
+                        <p className="text-xs text-slate-500">+18% from last week</p>
+                      </div>
                     </div>
-                    <div className="flex justify-between mt-1">
-                      <p className="text-xs text-slate-500">8 tasks</p>
-                      <p className="text-xs text-slate-500">+5% from last week</p>
+                    
+                    <div>
+                      <p className="text-sm font-medium">Tasks Completed</p>
+                      <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+                        <div className="bg-green-500 h-2 rounded-full" style={{ width: "40%" }}></div>
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <p className="text-xs text-slate-500">8 tasks</p>
+                        <p className="text-xs text-slate-500">+5% from last week</p>
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <p className="text-sm font-medium">Time Logged</p>
+                      <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
+                        <div className="bg-purple-500 h-2 rounded-full" style={{ width: "85%" }}></div>
+                      </div>
+                      <div className="flex justify-between mt-1">
+                        <p className="text-xs text-slate-500">36.5 hours</p>
+                        <p className="text-xs text-slate-500">+12% from last week</p>
+                      </div>
+                    </div>
+                    
+                    <div className="pt-2 mt-2 border-t">
+                      <Button variant="outline" className="w-full text-sm">
+                        View Full Activity Report
+                      </Button>
                     </div>
                   </div>
-                  
-                  <div>
-                    <p className="text-sm font-medium">Time Logged</p>
-                    <div className="w-full bg-slate-200 rounded-full h-2 mt-2">
-                      <div className="bg-purple-500 h-2 rounded-full" style={{ width: "85%" }}></div>
-                    </div>
-                    <div className="flex justify-between mt-1">
-                      <p className="text-xs text-slate-500">36.5 hours</p>
-                      <p className="text-xs text-slate-500">+12% from last week</p>
-                    </div>
-                  </div>
-                  
-                  <div className="pt-2 mt-2 border-t">
-                    <Button variant="outline" className="w-full text-sm">
-                      View Full Activity Report
-                    </Button>
-                  </div>
-                </div>
+                )}
               </CardContent>
             </Card>
           </div>
+          
+          {/* Admin-only section */}
+          {isAdmin && (
+            <div className="mt-6">
+              <Card className="border-purple-200">
+                <CardHeader className="bg-purple-50 border-b border-purple-100">
+                  <CardTitle className="text-xl font-semibold text-purple-800 flex items-center gap-2">
+                    <ShieldCheck className="h-5 w-5" /> Access Management
+                    <Badge className="ml-auto bg-purple-500">Admin Only</Badge>
+                  </CardTitle>
+                  <CardDescription className="text-purple-700">Manage team permissions and access</CardDescription>
+                </CardHeader>
+                <CardContent className="p-6">
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-white border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+                      <h3 className="font-medium mb-1">Team Members</h3>
+                      <p className="text-sm text-slate-500">Add, remove and manage team members</p>
+                    </div>
+                    
+                    <div className="p-4 bg-white border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+                      <h3 className="font-medium mb-1">Permission Groups</h3>
+                      <p className="text-sm text-slate-500">Configure access levels for your team</p>
+                    </div>
+                    
+                    <div className="p-4 bg-white border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
+                      <h3 className="font-medium mb-1">Access Logs</h3>
+                      <p className="text-sm text-slate-500">Review document and resource access</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </div>

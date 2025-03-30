@@ -2,7 +2,9 @@
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ShieldCheck, ArrowRight, ExternalLink } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 
 const Index = () => {
   const { user, isAuthenticated } = useAuth();
@@ -10,8 +12,8 @@ const Index = () => {
 
   const handleGetStarted = () => {
     if (isAuthenticated) {
-      // Redirect based on role
-      if (user?.role === "admin") {
+      // Redirect based on account type
+      if (user?.accountType === "CONSOLE") {
         navigate("/admin/dashboard");
       } else {
         navigate("/user/dashboard");
@@ -29,13 +31,35 @@ const Index = () => {
             <ShieldCheck className="h-8 w-8 text-blue-600 mr-2" />
             <h1 className="text-2xl font-bold text-slate-800">Secure Portal</h1>
           </div>
-          <Button 
-            onClick={() => navigate("/login")}
-            variant="outline" 
-            className="border-blue-600 text-blue-600 hover:bg-blue-50"
-          >
-            Sign In
-          </Button>
+          {isAuthenticated ? (
+            <div className="flex gap-4 items-center">
+              <div className="text-right hidden sm:block">
+                <p className="font-medium">{user?.name}</p>
+                <div className="flex gap-2 justify-end mt-1">
+                  <Badge variant="outline" className="text-xs">
+                    {user?.accountType}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    {user?.role}
+                  </Badge>
+                </div>
+              </div>
+              <Button 
+                onClick={() => user?.accountType === "CONSOLE" ? navigate("/admin/dashboard") : navigate("/user/dashboard")}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Dashboard <ExternalLink className="ml-2 h-4 w-4" />
+              </Button>
+            </div>
+          ) : (
+            <Button 
+              onClick={() => navigate("/login")}
+              variant="outline" 
+              className="border-blue-600 text-blue-600 hover:bg-blue-50"
+            >
+              Sign In
+            </Button>
+          )}
         </header>
 
         <main className="max-w-4xl mx-auto text-center mt-20">
@@ -43,7 +67,7 @@ const Index = () => {
             Secure Access Portal for <span className="text-blue-600">Teams</span>
           </h1>
           <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
-            A secure dashboard for your organization with role-based access. Separate interfaces for administrators and standard users.
+            A secure dashboard with role-based access. Separate interfaces for console and client users with different admin privileges.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
             <Button 
@@ -55,39 +79,53 @@ const Index = () => {
             </Button>
           </div>
           
-          <div className="mt-20 grid md:grid-cols-3 gap-8">
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 mx-auto mb-4">
-                <ShieldCheck className="h-6 w-6" />
+          <div className="mt-20 grid md:grid-cols-2 gap-8">
+            <Card className="text-left p-6 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+                    <rect width="18" height="18" x="3" y="3" rx="2" />
+                    <path d="M9 9h6v6H9z" />
+                    <path d="M14 14h1v4h-6v-1" />
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold">Console Portal</h3>
+                  <Badge className="bg-blue-500">CONSOLE</Badge>
+                </div>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Secure Access</h3>
-              <p className="text-slate-600">Role-based authentication ensures users only see what they're permitted to access.</p>
-            </div>
+              <p className="text-slate-600 mb-4">
+                Comprehensive admin control panel with advanced system management, user controls, and detailed analytics.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Badge variant="outline" className="bg-blue-50">ADMIN Role</Badge>
+                <Badge variant="outline" className="bg-slate-50">STANDARD Role</Badge>
+              </div>
+            </Card>
             
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-                  <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
-                  <path d="M19 3v4"></path>
-                  <path d="M23 7h-4"></path>
-                </svg>
+            <Card className="text-left p-6 shadow-md hover:shadow-lg transition-shadow">
+              <div className="flex items-center mb-4">
+                <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-semibold">Client Portal</h3>
+                  <Badge className="bg-green-500">CLIENT</Badge>
+                </div>
               </div>
-              <h3 className="text-lg font-semibold mb-2">User Dashboard</h3>
-              <p className="text-slate-600">Personalized user interface with relevant tools and information for standard users.</p>
-            </div>
-            
-            <div className="bg-white p-6 rounded-xl shadow-md">
-              <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 mx-auto mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
+              <p className="text-slate-600 mb-4">
+                Focused user interface with personalized dashboard, document management, and collaboration tools.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Badge variant="outline" className="bg-purple-50">ADMIN Role</Badge>
+                <Badge variant="outline" className="bg-slate-50">STANDARD Role</Badge>
               </div>
-              <h3 className="text-lg font-semibold mb-2">Admin Control</h3>
-              <p className="text-slate-600">Comprehensive admin panel with analytics, user management, and system settings.</p>
-            </div>
+            </Card>
           </div>
         </main>
         
