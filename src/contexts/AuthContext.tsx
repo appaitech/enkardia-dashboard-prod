@@ -36,40 +36,44 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Initialize authentication and set up listener
   useEffect(() => {
+    console.log("Auth provider initialized");
     setIsLoading(true);
     
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, currentSession) => {
+      (event, currentSession) => {
         console.log("Auth state change event:", event);
         setSession(currentSession);
         
         if (currentSession && currentSession.user) {
-          try {
-            // Fetch user profile from the profiles table
-            const { data: profile, error } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', currentSession.user.id)
-              .single();
+          // Defer fetching profile to avoid potential deadlocks
+          setTimeout(async () => {
+            try {
+              // Fetch user profile from the profiles table
+              const { data: profile, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentSession.user.id)
+                .single();
+                
+              if (error) throw error;
               
-            if (error) throw error;
-            
-            if (profile) {
-              setUser({
-                id: currentSession.user.id,
-                email: currentSession.user.email || '',
-                name: profile.name || 'User',
-                accountType: profile.account_type as AccountType,
-                role: profile.role as UserRole
-              });
+              if (profile) {
+                setUser({
+                  id: currentSession.user.id,
+                  email: currentSession.user.email || '',
+                  name: profile.name || 'User',
+                  accountType: profile.account_type as AccountType,
+                  role: profile.role as UserRole
+                });
+              }
+            } catch (error) {
+              console.error("Error fetching user profile:", error);
+              toast.error("Error loading user profile");
+            } finally {
+              setIsLoading(false);
             }
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
-            toast.error("Error loading user profile");
-          } finally {
-            setIsLoading(false);
-          }
+          }, 0);
         } else {
           setUser(null);
           setIsLoading(false);
@@ -80,9 +84,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Check for existing session
     const checkExistingSession = async () => {
       try {
+        console.log("Checking for existing session");
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         
         if (currentSession && currentSession.user) {
+          console.log("Found existing session for user:", currentSession.user.id);
           // Fetch user profile from the profiles table
           const { data: profile, error } = await supabase
             .from('profiles')
@@ -117,11 +123,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkExistingSession();
     
     return () => {
+      console.log("Cleaning up auth subscription");
       subscription.unsubscribe();
     };
   }, []);
 
   const login = async (email: string, password: string) => {
+    console.log("Login attempt for:", email);
     setIsLoading(true);
     
     try {
@@ -131,40 +139,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       if (error) {
+        console.error("Login error in AuthContext:", error);
         setIsLoading(false);
         throw error;
       }
 
       if (data.user) {
+        console.log("Login successful for:", data.user.id);
         toast.success("Login successful!");
         
-        // Redirect based on account type
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('account_type, role')
-          .eq('id', data.user.id)
-          .single();
-          
-        if (profileError) {
-          setIsLoading(false);
-          throw profileError;
-        }
-        
-        // The navigation will trigger auth state change which will update the user
-        if (profile.account_type === "CONSOLE") {
-          navigate("/admin/dashboard");
-        } else {
-          navigate("/user/dashboard");
-        }
+        // The auth state change handler will handle setting the user
+        // No need to manually update user state or navigate here
       }
-      
-      // Don't reset isLoading here - let the auth state change handler do it
       
     } catch (error: any) {
       console.error("Login error:", error);
       toast.error(error.message || "An error occurred during login");
       setIsLoading(false);
-      throw error; // Re-throw so the LoginPage component can catch it
+      throw error;
     }
   };
 
@@ -202,15 +194,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Signup error:", error);
       toast.error(error.message || "An error occurred during signup");
       setIsLoading(false);
-      throw error; // Re-throw so the LoginPage component can catch it
+      throw error;
     }
   };
 
   const logout = async () => {
     try {
       setIsLoading(true);
+      console.log("Logging out...");
       await supabase.auth.signOut();
       setUser(null);
+      setSession(null);
       toast.success("Logged out successfully");
       navigate("/login");
     } catch (error) {

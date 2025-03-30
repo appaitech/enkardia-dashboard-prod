@@ -31,7 +31,7 @@ const LoginPage = () => {
   const [isLoginLoading, setIsLoginLoading] = useState(false);
   const [isSignupLoading, setIsSignupLoading] = useState(false);
   
-  const { login, signup, user, isAuthenticated } = useAuth();
+  const { login, signup, user, isAuthenticated, isLoading } = useAuth();
   const navigate = useNavigate();
   
   // Reset loading states when component mounts
@@ -39,6 +39,8 @@ const LoginPage = () => {
     console.log("Login page mounted, resetting loading states");
     setIsLoginLoading(false);
     setIsSignupLoading(false);
+    setLoginError("");
+    setSignupError("");
   }, []);
   
   // Redirect if already authenticated
@@ -67,7 +69,9 @@ const LoginPage = () => {
     try {
       console.log("Attempting to login with:", loginEmail);
       await login(loginEmail, loginPassword);
-      // Don't reset loading state here as the redirect will unmount this component
+      // Loading state will be managed by auth state changes
+      // Don't reset isLoginLoading here, as we want the button to remain in loading state
+      // until we're redirected or an error occurs
     } catch (error: any) {
       console.error("Login error in component:", error);
       setLoginError(error.message || "Login failed");
@@ -88,13 +92,20 @@ const LoginPage = () => {
     
     try {
       await signup(signupEmail, signupPassword, signupName, signupAccountType, signupRole);
-      // If signup succeeds, the page may not redirect immediately
+      // If signup succeeds, reset the loading state
       setIsSignupLoading(false);
     } catch (error: any) {
       setSignupError(error.message || "Signup failed");
       setIsSignupLoading(false);
     }
   };
+
+  // Ensure we're not stuck with login button in loading state
+  useEffect(() => {
+    if (!isLoading) {
+      setIsLoginLoading(false);
+    }
+  }, [isLoading]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4">
