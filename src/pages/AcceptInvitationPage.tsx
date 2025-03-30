@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -34,6 +35,7 @@ const AcceptInvitationPage = () => {
   const [status, setStatus] = useState<"checking" | "invalid" | "valid" | "accepted" | "error" | "createAccount">("checking");
   const [isProcessing, setIsProcessing] = useState(false);
   const [invitationEmail, setInvitationEmail] = useState<string>("");
+  const [errorMessage, setErrorMessage] = useState<string>("");
   
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
@@ -48,47 +50,63 @@ const AcceptInvitationPage = () => {
     const validateToken = async () => {
       if (!token) {
         setStatus("invalid");
+        setErrorMessage("No invitation token provided");
         return;
       }
       
       try {
+        console.log("Validating token:", token);
         const isValid = await isValidInvitationToken(token);
         
         if (isValid) {
+          console.log("Token is valid, fetching invitation details");
           const details = await getInvitationDetails(token);
+          
           if (details && details.email) {
+            console.log("Invitation details found for email:", details.email);
             setInvitationEmail(details.email);
             form.setValue("email", details.email);
             
             if (isAuthenticated && user && user.email === details.email) {
+              console.log("User already authenticated with matching email");
               setStatus("valid");
             } else {
+              console.log("Checking if user exists with email:", details.email);
               const { userExists } = await checkUserExists(details.email);
+              
               if (userExists) {
+                console.log("User exists, showing login form");
                 setStatus("valid");
               } else {
+                console.log("User does not exist, showing account creation form");
                 setStatus("createAccount");
               }
             }
           } else {
+            console.error("Failed to get invitation details", details);
             setStatus("error");
+            setErrorMessage("Failed to retrieve invitation details");
           }
         } else {
+          console.error("Invalid invitation token");
           setStatus("invalid");
+          setErrorMessage("This invitation link is invalid or has expired");
         }
       } catch (error) {
         console.error("Error validating invitation token:", error);
         setStatus("error");
+        setErrorMessage("An unexpected error occurred while processing your invitation");
       }
     };
     
     if (!authLoading) {
       validateToken();
     }
-  }, [token, authLoading, isAuthenticated, user]);
+  }, [token, authLoading, isAuthenticated, user, form]);
   
   const checkUserExists = async (email: string) => {
     try {
+      console.log("Checking if user exists:", email);
       const { data, error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -97,9 +115,11 @@ const AcceptInvitationPage = () => {
       });
       
       const userExists = !error || (error.message?.includes('Email not confirmed'));
+      console.log("User exists check result:", userExists, error?.message);
       
       return { userExists };
-    } catch {
+    } catch (error) {
+      console.error("Error checking if user exists:", error);
       return { userExists: false };
     }
   };
@@ -110,6 +130,7 @@ const AcceptInvitationPage = () => {
     setIsProcessing(true);
     
     try {
+      console.log("Accepting invitation for user:", user.id);
       const success = await acceptInvitation(token, user.id);
       
       if (success) {
@@ -120,11 +141,13 @@ const AcceptInvitationPage = () => {
         }, 2000);
       } else {
         setStatus("error");
+        setErrorMessage("Failed to accept invitation");
         toast.error("Failed to accept invitation");
       }
     } catch (error) {
       console.error("Error accepting invitation:", error);
       setStatus("error");
+      setErrorMessage("An unexpected error occurred");
     } finally {
       setIsProcessing(false);
     }
@@ -136,16 +159,19 @@ const AcceptInvitationPage = () => {
     setIsProcessing(true);
     
     try {
+      console.log("Creating new account for:", data.email);
       await signup(data.email, data.password, data.email.split('@')[0], "CLIENT", "STANDARD");
+      
+      toast.success("Account created successfully");
+      console.log("Logging in with new account");
       
       await login(data.email, data.password);
       
-      toast.success("Account created successfully");
-      
       navigate(`/accept-invitation?token=${token}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error creating account:", error);
       toast.error(error.message || "Failed to create account");
+      setErrorMessage(error.message || "Failed to create account");
       setIsProcessing(false);
     }
   };
@@ -156,13 +182,15 @@ const AcceptInvitationPage = () => {
     setIsProcessing(true);
     
     try {
+      console.log("Logging in with existing account:", data.email);
       await login(data.email, data.password);
       toast.success("Login successful");
       
       navigate(`/accept-invitation?token=${token}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error logging in:", error);
       toast.error(error.message || "Failed to log in");
+      setErrorMessage(error.message || "Failed to log in");
       setIsProcessing(false);
     }
   };
@@ -191,7 +219,7 @@ const AcceptInvitationPage = () => {
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
           <h3 className="text-xl font-semibold mb-2">Invalid Invitation</h3>
-          <p className="text-slate-600 mb-4">This invitation link is invalid or has expired.</p>
+          <p className="text-slate-600 mb-4">{errorMessage || "This invitation link is invalid or has expired."}</p>
           <Button onClick={() => navigate("/login")}>Go to Login</Button>
         </div>
       );
@@ -202,7 +230,7 @@ const AcceptInvitationPage = () => {
         <div className="flex flex-col items-center justify-center py-8 text-center">
           <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
           <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
-          <p className="text-slate-600 mb-4">We couldn't process your invitation. Please try again later.</p>
+          <p className="text-slate-600 mb-4">{errorMessage || "We couldn't process your invitation. Please try again later."}</p>
           <Button onClick={() => navigate("/login")}>Go to Login</Button>
         </div>
       );
