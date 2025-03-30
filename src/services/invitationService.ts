@@ -149,3 +149,36 @@ export const getUserClientBusinesses = async (userId: string) => {
     return [];
   }
 };
+
+/**
+ * Delete an invitation
+ */
+export const deleteInvitation = async (
+  invitationId: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const { error } = await supabase
+      .from("invitations")
+      .delete()
+      .eq("id", invitationId);
+
+    if (error) {
+      console.error("Error deleting invitation:", error);
+      return {
+        success: false,
+        message: "Error deleting invitation"
+      };
+    }
+
+    return {
+      success: true,
+      message: "Invitation deleted successfully"
+    };
+  } catch (error) {
+    console.error("Error in deleteInvitation:", error);
+    return {
+      success: false,
+      message: "An unexpected error occurred"
+    };
+  }
+};

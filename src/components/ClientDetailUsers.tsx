@@ -12,9 +12,12 @@ import {
   UserPlus, 
   Mail, 
   AlertTriangle, 
-  Loader2 
+  Loader2,
+  Trash2,
 } from "lucide-react";
 import InviteUserForm from "./InviteUserForm";
+import { deleteInvitation } from "@/services/invitationService";
+import { toast } from "sonner";
 
 interface ClientDetailUsersProps {
   clientId: string;
@@ -40,6 +43,7 @@ interface Invitation {
 const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientName }) => {
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"users" | "invitations">("users");
+  const [deletingInvitation, setDeletingInvitation] = useState<string | null>(null);
   
   // Fetch users associated with this client business
   const { 
@@ -106,6 +110,26 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     setIsInviteDialogOpen(false);
     refetchUsers();
     refetchInvitations();
+  };
+
+  const handleDeleteInvitation = async (invitationId: string) => {
+    setDeletingInvitation(invitationId);
+    
+    try {
+      const result = await deleteInvitation(invitationId);
+      
+      if (result.success) {
+        toast.success(result.message);
+        refetchInvitations();
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error("Error deleting invitation:", error);
+      toast.error("An unexpected error occurred while deleting the invitation");
+    } finally {
+      setDeletingInvitation(null);
+    }
   };
   
   // Render users list
@@ -202,13 +226,27 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     return (
       <div className="divide-y">
         {invitations.map(invitation => (
-          <div key={invitation.id} className="py-3">
-            <div className="font-medium">{invitation.email}</div>
-            <div className="text-xs text-slate-500 mt-1">
-              Sent: {new Date(invitation.created_at).toLocaleDateString()}
-              <span className="mx-1">•</span>
-              Expires: {new Date(invitation.expires_at).toLocaleDateString()}
+          <div key={invitation.id} className="py-3 flex items-center justify-between">
+            <div>
+              <div className="font-medium">{invitation.email}</div>
+              <div className="text-xs text-slate-500 mt-1">
+                Sent: {new Date(invitation.created_at).toLocaleDateString()}
+                <span className="mx-1">•</span>
+                Expires: {new Date(invitation.expires_at).toLocaleDateString()}
+              </div>
             </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => handleDeleteInvitation(invitation.id)} 
+              disabled={deletingInvitation === invitation.id}
+              className="text-destructive hover:text-destructive hover:bg-destructive/10"
+            >
+              {deletingInvitation === invitation.id ? 
+                <Loader2 className="h-4 w-4 animate-spin" /> : 
+                <Trash2 className="h-4 w-4" />
+              }
+            </Button>
           </div>
         ))}
       </div>
