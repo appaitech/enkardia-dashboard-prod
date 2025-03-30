@@ -49,28 +49,33 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
   } = useQuery({
     queryKey: ["client-users", clientId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_client_businesses")
-        .select(`
-          user_id,
-          profiles:user_id (
-            id,
-            email,
-            name,
-            role
-          )
-        `)
-        .eq("client_business_id", clientId);
+      try {
+        // First, get the user_ids connected to this client business
+        const { data: userClientData, error: userClientError } = await supabase
+          .from("user_client_businesses")
+          .select("user_id")
+          .eq("client_business_id", clientId);
         
-      if (error) throw error;
-      
-      // Map the profiles from the response to the AssignedUser type
-      return data.map(item => ({
-        id: item.profiles.id,
-        email: item.profiles.email,
-        name: item.profiles.name,
-        role: item.profiles.role
-      })) as AssignedUser[];
+        if (userClientError) throw userClientError;
+        
+        if (!userClientData || userClientData.length === 0) {
+          return [] as AssignedUser[];
+        }
+        
+        // Then, get the profiles for these user IDs
+        const userIds = userClientData.map(item => item.user_id);
+        const { data: profilesData, error: profilesError } = await supabase
+          .from("profiles")
+          .select("id, email, name, role")
+          .in("id", userIds);
+          
+        if (profilesError) throw profilesError;
+        
+        return (profilesData || []) as AssignedUser[];
+      } catch (error) {
+        console.error("Error fetching client users:", error);
+        throw error;
+      }
     }
   });
   
