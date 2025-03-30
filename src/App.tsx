@@ -10,6 +10,8 @@ import NotFound from "./pages/NotFound";
 import LoginPage from "./pages/LoginPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
+import ClientsList from "./pages/admin/ClientsList";
+import ClientDetail from "./pages/admin/ClientDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
@@ -31,6 +33,22 @@ const App = () => (
               element={
                 <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
                   <AdminDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/clients" 
+              element={
+                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                  <ClientsList />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/clients/:clientId" 
+              element={
+                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                  <ClientDetail />
                 </ProtectedRoute>
               } 
             />

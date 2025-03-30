@@ -1,10 +1,10 @@
-
 import React from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import AdminSidebar from "@/components/AdminSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Users, 
@@ -15,14 +15,25 @@ import {
   ChevronDown, 
   ChevronUp,
   ShieldAlert,
-  Info
+  Info,
+  Building,
+  CheckCircle2,
+  XCircle
 } from "lucide-react";
 
 const AdminDashboard = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   
   const isAdmin = user?.role === "ADMIN";
+  
+  const clientStats = {
+    total: 24,
+    xeroConnected: 16,
+    notConnected: 8,
+    recentlyActive: 12
+  };
   
   return (
     <div className="flex h-screen bg-slate-50">
@@ -52,7 +63,113 @@ const AdminDashboard = () => {
             </Alert>
           )}
           
-          {/* Stats Cards */}
+          <Card className="mb-8">
+            <CardHeader className="pb-3">
+              <div className="flex justify-between items-start">
+                <div>
+                  <CardTitle className="text-xl font-semibold">Client Businesses</CardTitle>
+                  <CardDescription>Overview of your client businesses</CardDescription>
+                </div>
+                <Button onClick={() => navigate('/admin/clients')}>
+                  View All Clients
+                  <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-4 gap-6">
+                <div className="bg-white border rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-slate-500">Total Clients</div>
+                    <div className="text-2xl font-bold mt-1">{clientStats.total}</div>
+                  </div>
+                  <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
+                    <Building />
+                  </div>
+                </div>
+                
+                <div className="bg-white border rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-slate-500">Xero Connected</div>
+                    <div className="text-2xl font-bold mt-1">{clientStats.xeroConnected}</div>
+                    <div className="text-xs text-green-600 mt-1">
+                      {Math.round((clientStats.xeroConnected / clientStats.total) * 100)}% of total
+                    </div>
+                  </div>
+                  <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                    <CheckCircle2 />
+                  </div>
+                </div>
+                
+                <div className="bg-white border rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-slate-500">Not Connected</div>
+                    <div className="text-2xl font-bold mt-1">{clientStats.notConnected}</div>
+                    <div className="text-xs text-amber-600 mt-1">
+                      {Math.round((clientStats.notConnected / clientStats.total) * 100)}% of total
+                    </div>
+                  </div>
+                  <div className="h-12 w-12 bg-amber-100 rounded-full flex items-center justify-center text-amber-600">
+                    <XCircle />
+                  </div>
+                </div>
+                
+                <div className="bg-white border rounded-lg p-4 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm text-slate-500">Recently Active</div>
+                    <div className="text-2xl font-bold mt-1">{clientStats.recentlyActive}</div>
+                    <div className="text-xs text-blue-600 mt-1">
+                      Last 30 days
+                    </div>
+                  </div>
+                  <div className="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
+                    <Activity />
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-6 border-t pt-4">
+                <p className="text-sm text-slate-500">Recent Clients</p>
+                <div className="space-y-2 mt-2">
+                  {[
+                    { name: "Acme Corporation", industry: "Technology", xeroConnected: true },
+                    { name: "Globex Industries", industry: "Manufacturing", xeroConnected: false },
+                    { name: "Oceanic Airlines", industry: "Transportation", xeroConnected: true },
+                  ].map((client, i) => (
+                    <div key={i} 
+                      className="p-3 bg-slate-50 rounded-md flex items-center justify-between cursor-pointer hover:bg-slate-100"
+                      onClick={() => navigate(`/admin/clients/${i+1}`)}
+                    >
+                      <div>
+                        <div className="font-medium">{client.name}</div>
+                        <div className="text-sm text-slate-500">{client.industry}</div>
+                      </div>
+                      {client.xeroConnected ? (
+                        <Badge className="bg-green-100 text-green-800">
+                          <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
+                          Connected
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-amber-600 border-amber-200 bg-amber-50">
+                          <XCircle className="mr-1 h-3.5 w-3.5" />
+                          Not Connected
+                        </Badge>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <Button 
+                  variant="ghost" 
+                  className="w-full mt-4 text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                  onClick={() => navigate('/admin/clients')}
+                >
+                  View All Clients
+                  <ArrowUpRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+          
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
             <Card>
               <CardContent className="p-6 flex items-center justify-between">
@@ -116,7 +233,6 @@ const AdminDashboard = () => {
           </div>
           
           <div className="grid md:grid-cols-3 gap-6">
-            {/* Recent Activities */}
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold flex items-center justify-between">
@@ -149,7 +265,6 @@ const AdminDashboard = () => {
               </CardContent>
             </Card>
             
-            {/* System Stats or Admin-only content */}
             <Card>
               <CardHeader>
                 <CardTitle className="text-xl font-semibold flex items-center justify-between">
@@ -166,7 +281,6 @@ const AdminDashboard = () => {
               </CardHeader>
               <CardContent>
                 {isAdmin ? (
-                  // Admin-only content
                   <div className="space-y-4">
                     <div className="p-3 bg-red-50 border border-red-100 rounded-lg flex items-start gap-3">
                       <ShieldAlert className="h-5 w-5 text-red-500 mt-0.5" />
@@ -196,7 +310,6 @@ const AdminDashboard = () => {
                     </div>
                   </div>
                 ) : (
-                  // Standard user content
                   <div className="space-y-5">
                     <div>
                       <div className="flex justify-between mb-2">
@@ -236,7 +349,6 @@ const AdminDashboard = () => {
             </Card>
           </div>
           
-          {/* Admin-only section */}
           {isAdmin && (
             <div className="mt-6">
               <Card className="border-purple-200">

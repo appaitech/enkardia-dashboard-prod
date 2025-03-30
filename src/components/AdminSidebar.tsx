@@ -4,7 +4,16 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Users, Settings, FileText, BarChart3, LogOut, Shield } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  Users, 
+  Settings, 
+  FileText, 
+  BarChart3, 
+  LogOut, 
+  Shield, 
+  Building 
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface SidebarItemProps {
@@ -81,6 +90,12 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePath }) => {
           label="Dashboard" 
           href="/admin/dashboard"
           isActive={activePath === "/admin/dashboard"}
+        />
+        <SidebarItem 
+          icon={<Building size={18} />} 
+          label="Client Businesses" 
+          href="/admin/clients"
+          isActive={activePath.startsWith("/admin/clients")}
         />
         <SidebarItem 
           icon={<Users size={18} />} 
