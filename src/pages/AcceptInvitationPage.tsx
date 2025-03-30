@@ -169,12 +169,12 @@ const AcceptInvitationPage = () => {
       await signup(data.email, data.password, data.name, "CLIENT", "STANDARD");
       
       toast.success("Account created successfully");
-      console.log("Logging in with new account");
       
-      await login(data.email, data.password);
-      
-      // After login, we redirect back to the same page to handle the invitation acceptance
-      navigate(`/accept-invitation?token=${token}`);
+      // Instead of automatically logging in and redirecting back to this page,
+      // redirect directly to the login page
+      setIsProcessing(false);
+      toast.success("Please log in with your new account");
+      navigate("/login");
     } catch (error: any) {
       console.error("Error creating account:", error);
       toast.error(error.message || "Failed to create account");
