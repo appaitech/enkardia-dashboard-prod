@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { 
@@ -14,9 +15,10 @@ import {
   AlertTriangle, 
   Loader2,
   Trash2,
+  UserX
 } from "lucide-react";
 import InviteUserForm from "./InviteUserForm";
-import { deleteInvitation } from "@/services/invitationService";
+import { deleteInvitation, removeUserFromClientBusiness } from "@/services/invitationService";
 import { toast } from "sonner";
 
 interface ClientDetailUsersProps {
@@ -44,6 +46,9 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
   const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<"users" | "invitations">("users");
   const [deletingInvitation, setDeletingInvitation] = useState<string | null>(null);
+  const [removingUserId, setRemovingUserId] = useState<string | null>(null);
+  const [isRemoveUserDialogOpen, setIsRemoveUserDialogOpen] = useState(false);
+  const [userToRemove, setUserToRemove] = useState<AssignedUser | null>(null);
   
   // Fetch users associated with this client business
   const { 
@@ -132,6 +137,35 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     }
   };
   
+  const openRemoveUserDialog = (user: AssignedUser) => {
+    setUserToRemove(user);
+    setIsRemoveUserDialogOpen(true);
+  };
+  
+  const handleRemoveUser = async () => {
+    if (!userToRemove) return;
+    
+    setRemovingUserId(userToRemove.id);
+    
+    try {
+      const result = await removeUserFromClientBusiness(userToRemove.id, clientId);
+      
+      if (result.success) {
+        toast.success(result.message);
+        refetchUsers();
+        setIsRemoveUserDialogOpen(false);
+      } else {
+        toast.error(result.message);
+      }
+    } catch (error) {
+      console.error("Error removing user:", error);
+      toast.error("An unexpected error occurred while removing the user");
+    } finally {
+      setRemovingUserId(null);
+      setUserToRemove(null);
+    }
+  };
+  
   // Render users list
   const renderUsersList = () => {
     if (isLoadingUsers) {
@@ -184,7 +218,17 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
                 {user.email}
               </div>
             </div>
-            <Badge variant="outline">{user.role}</Badge>
+            <div className="flex items-center space-x-2">
+              <Badge variant="outline">{user.role}</Badge>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => openRemoveUserDialog(user)}
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <UserX className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         ))}
       </div>
@@ -314,6 +358,36 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
           />
         </DialogContent>
       </Dialog>
+      
+      {/* Remove User Dialog */}
+      <AlertDialog open={isRemoveUserDialogOpen} onOpenChange={setIsRemoveUserDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove User Access</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {userToRemove?.name}'s access to {clientName}?
+              This action will not delete the user account, but will revoke their access to this client.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleRemoveUser}
+              disabled={!!removingUserId}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {removingUserId ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Removing...
+                </>
+              ) : (
+                "Remove Access"
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 };

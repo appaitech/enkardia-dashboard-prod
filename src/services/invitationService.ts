@@ -210,3 +210,38 @@ export const deleteInvitation = async (
     };
   }
 };
+
+/**
+ * Remove a user's access to a client business
+ */
+export const removeUserFromClientBusiness = async (
+  userId: string,
+  clientBusinessId: string
+): Promise<{ success: boolean; message: string }> => {
+  try {
+    const { error } = await supabase
+      .from("user_client_businesses")
+      .delete()
+      .eq("user_id", userId)
+      .eq("client_business_id", clientBusinessId);
+
+    if (error) {
+      console.error("Error removing user from client business:", error);
+      return {
+        success: false,
+        message: "Error removing user from client business"
+      };
+    }
+
+    return {
+      success: true,
+      message: "User removed from client business successfully"
+    };
+  } catch (error) {
+    console.error("Error in removeUserFromClientBusiness:", error);
+    return {
+      success: false,
+      message: "An unexpected error occurred"
+    };
+  }
+};
