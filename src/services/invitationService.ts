@@ -92,6 +92,34 @@ export const isValidInvitationToken = async (
 };
 
 /**
+ * Get details about an invitation from its token
+ */
+export const getInvitationDetails = async (
+  token: string
+): Promise<{ email: string; clientBusinessId: string } | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("invitations")
+      .select("email, client_business_id")
+      .eq("token", token)
+      .single();
+
+    if (error || !data) {
+      console.error("Error getting invitation details:", error);
+      return null;
+    }
+
+    return {
+      email: data.email,
+      clientBusinessId: data.client_business_id,
+    };
+  } catch (error) {
+    console.error("Error in getInvitationDetails:", error);
+    return null;
+  }
+};
+
+/**
  * Accept an invitation and associate the user with the client business
  */
 export const acceptInvitation = async (

@@ -4,18 +4,45 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, AlertCircle } from "lucide-react";
-import { isValidInvitationToken, acceptInvitation } from "@/services/invitationService";
+import { Loader2, CheckCircle, AlertCircle, Mail, Lock } from "lucide-react";
+import { isValidInvitationToken, acceptInvitation, getInvitationDetails } from "@/services/invitationService";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { z } from "zod";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+const passwordSchema = z.object({
+  email: z.string().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  confirmPassword: z.string(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Passwords don't match",
+  path: ["confirmPassword"],
+});
+
+type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const AcceptInvitationPage = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading, signup, login } = useAuth();
   
-  const [status, setStatus] = useState<"checking" | "invalid" | "valid" | "accepted" | "error">("checking");
+  const [status, setStatus] = useState<"checking" | "invalid" | "valid" | "accepted" | "error" | "createAccount">("checking");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [invitationEmail, setInvitationEmail] = useState<string>("");
+  
+  const form = useForm<PasswordFormValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+      confirmPassword: ""
+    },
+  });
   
   // Check if the token is valid
   useEffect(() => {
@@ -27,15 +54,62 @@ const AcceptInvitationPage = () => {
       
       try {
         const isValid = await isValidInvitationToken(token);
-        setStatus(isValid ? "valid" : "invalid");
+        
+        if (isValid) {
+          // Get invitation details to pre-fill email
+          const details = await getInvitationDetails(token);
+          if (details && details.email) {
+            setInvitationEmail(details.email);
+            form.setValue("email", details.email);
+            
+            // If user is already authenticated and emails match, proceed to accept
+            if (isAuthenticated && user && user.email === details.email) {
+              setStatus("valid");
+            } else {
+              // Check if the user exists
+              const { userExists } = await checkUserExists(details.email);
+              if (userExists) {
+                setStatus("valid"); // Show login form
+              } else {
+                setStatus("createAccount"); // Show registration form
+              }
+            }
+          } else {
+            setStatus("error");
+          }
+        } else {
+          setStatus("invalid");
+        }
       } catch (error) {
         console.error("Error validating invitation token:", error);
         setStatus("error");
       }
     };
     
-    validateToken();
-  }, [token]);
+    if (!authLoading) {
+      validateToken();
+    }
+  }, [token, authLoading, isAuthenticated, user]);
+  
+  const checkUserExists = async (email: string) => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: false,
+        },
+      });
+      
+      // If error includes 'Email not confirmed', the user exists
+      // If the error is 'User not found', the user doesn't exist
+      const userExists = !error || (error.message?.includes('Email not confirmed'));
+      
+      return { userExists };
+    } catch {
+      // Default to assuming user doesn't exist if check fails
+      return { userExists: false };
+    }
+  };
   
   const handleAcceptInvitation = async () => {
     if (!user || !token) return;
@@ -63,8 +137,47 @@ const AcceptInvitationPage = () => {
     }
   };
   
-  const handleGoToLogin = () => {
-    navigate(`/login?invitation=${token}`);
+  const handleCreateAccount = async (data: PasswordFormValues) => {
+    if (!token) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      // Create new account
+      await signup(data.email, data.password, data.email.split('@')[0], "CLIENT", "STANDARD");
+      
+      // After account creation, we need to authenticate
+      await login(data.email, data.password);
+      
+      toast.success("Account created successfully");
+      
+      // After successful signup and login, user.id will be available
+      // The auth state change handler will handle updating the state
+      // We'll redirect to this page again with the token, and the accept flow will complete
+      navigate(`/accept-invitation?token=${token}`);
+    } catch (error) {
+      console.error("Error creating account:", error);
+      toast.error(error.message || "Failed to create account");
+      setIsProcessing(false);
+    }
+  };
+  
+  const handleLogin = async (data: PasswordFormValues) => {
+    if (!token) return;
+    
+    setIsProcessing(true);
+    
+    try {
+      await login(data.email, data.password);
+      toast.success("Login successful");
+      
+      // After successful login, the page will reload and handle the acceptance
+      navigate(`/accept-invitation?token=${token}`);
+    } catch (error) {
+      console.error("Error logging in:", error);
+      toast.error(error.message || "Failed to log in");
+      setIsProcessing(false);
+    }
   };
   
   // Render appropriate content based on status
@@ -120,7 +233,99 @@ const AcceptInvitationPage = () => {
       );
     }
     
-    // Valid invitation, show accept button or login prompt
+    if (status === "createAccount") {
+      return (
+        <div className="text-center">
+          <p className="mb-6">Create an account to accept this invitation.</p>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(handleCreateAccount)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          className="pl-10" 
+                          disabled={true} 
+                          readOnly
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password</FormLabel>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="password" 
+                          className="pl-10" 
+                          placeholder="Set a password"
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password</FormLabel>
+                    <div className="relative">
+                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                      <FormControl>
+                        <Input 
+                          {...field} 
+                          type="password" 
+                          className="pl-10" 
+                          placeholder="Confirm password"
+                        />
+                      </FormControl>
+                    </div>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <Button 
+                type="submit" 
+                className="w-full"
+                disabled={isProcessing}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating Account...
+                  </>
+                ) : (
+                  'Create Account & Accept'
+                )}
+              </Button>
+            </form>
+          </Form>
+        </div>
+      );
+    }
+    
+    // Valid invitation, show accept button or login form
     return (
       <div className="text-center">
         {isAuthenticated ? (
@@ -143,10 +348,69 @@ const AcceptInvitationPage = () => {
           </div>
         ) : (
           <div>
-            <p className="mb-6">Please log in or sign up to accept this invitation.</p>
-            <Button onClick={handleGoToLogin} className="w-full">
-              Log In or Sign Up
-            </Button>
+            <p className="mb-6">Please log in to accept this invitation.</p>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
+                <FormField
+                  control={form.control}
+                  name="email"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Email</FormLabel>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            className="pl-10" 
+                            disabled={!!invitationEmail} 
+                            readOnly={!!invitationEmail}
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password</FormLabel>
+                      <div className="relative">
+                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                        <FormControl>
+                          <Input 
+                            {...field} 
+                            type="password" 
+                            className="pl-10" 
+                            placeholder="Enter your password"
+                          />
+                        </FormControl>
+                      </div>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                
+                <Button 
+                  type="submit" 
+                  className="w-full"
+                  disabled={isProcessing}
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Logging in...
+                    </>
+                  ) : (
+                    'Log In & Accept'
+                  )}
+                </Button>
+              </form>
+            </Form>
           </div>
         )}
       </div>
