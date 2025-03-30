@@ -1,0 +1,111 @@
+
+import React, { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
+
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+
+interface UserData {
+  id: string;
+  name: string | null;
+  email: string | null;
+  account_type: string;
+  role: string;
+  created_at: string;
+}
+
+interface DeleteUserDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  user: UserData;
+  onUserDeleted: () => void;
+}
+
+const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
+  open,
+  onOpenChange,
+  user,
+  onUserDeleted,
+}) => {
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    setIsDeleting(true);
+    try {
+      // Delete the user from Auth
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (error) throw error;
+
+      toast.success(`User ${user.name || user.email} deleted successfully`);
+      onUserDeleted();
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      toast.error(error.message || "Failed to delete user");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-red-600">
+            <AlertTriangle className="h-5 w-5" />
+            Delete User
+          </DialogTitle>
+          <DialogDescription>
+            This action cannot be undone. This will permanently delete the user account and all associated data.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="bg-red-50 border border-red-100 rounded-md p-4 my-4">
+          <p className="font-medium">Are you sure you want to delete the following user?</p>
+          <ul className="mt-2 space-y-1 text-sm">
+            <li><span className="font-medium">Name:</span> {user.name || "Not specified"}</li>
+            <li><span className="font-medium">Email:</span> {user.email}</li>
+            <li><span className="font-medium">Role:</span> {user.role}</li>
+            <li><span className="font-medium">Account Type:</span> {user.account_type}</li>
+          </ul>
+        </div>
+
+        <DialogFooter>
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={() => onOpenChange(false)}
+            disabled={isDeleting}
+          >
+            Cancel
+          </Button>
+          <Button 
+            variant="destructive" 
+            onClick={handleDelete}
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
+                Deleting...
+              </>
+            ) : (
+              "Delete User"
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+export default DeleteUserDialog;

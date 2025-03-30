@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -24,6 +23,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   session: Session | null;
+  updateUserProfile: (userId: string, updates: { name?: string; role?: UserRole }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -216,6 +216,38 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Add new function to update user profile
+  const updateUserProfile = async (
+    userId: string,
+    updates: { name?: string; role?: UserRole }
+  ) => {
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          name: updates.name,
+          role: updates.role,
+        })
+        .eq("id", userId);
+        
+      if (error) throw error;
+      
+      // If updating the current user, also update the local state
+      if (user && userId === user.id) {
+        setUser(prev => prev ? {
+          ...prev,
+          name: updates.name || prev.name,
+          role: updates.role || prev.role
+        } : null);
+      }
+      
+      return;
+    } catch (error: any) {
+      console.error("Error updating user profile:", error);
+      throw error;
+    }
+  };
+
   const value = {
     user,
     isLoading,
@@ -223,7 +255,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signup,
     logout,
     isAuthenticated: !!user,
-    session
+    session,
+    updateUserProfile
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
