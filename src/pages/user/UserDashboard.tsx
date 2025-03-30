@@ -38,7 +38,11 @@ const UserDashboard = () => {
   // Set the first business as selected when data loads
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
-      setSelectedBusinessId(clientBusinesses[0].id);
+      // Filter out any null values before selecting first item
+      const validBusinesses = clientBusinesses.filter(business => business !== null);
+      if (validBusinesses.length > 0) {
+        setSelectedBusinessId(validBusinesses[0].id);
+      }
     }
   }, [clientBusinesses, selectedBusinessId]);
 
@@ -75,7 +79,10 @@ const UserDashboard = () => {
     );
   }
 
-  if (!clientBusinesses?.length) {
+  // Check for empty array or array with null values
+  const validBusinesses = clientBusinesses?.filter(business => business !== null) || [];
+  
+  if (validBusinesses.length === 0) {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/dashboard" />
@@ -90,9 +97,10 @@ const UserDashboard = () => {
     );
   }
 
+  // Find the selected business, defaulting to the first valid one if needed
   const selectedBusiness = selectedBusinessId 
-    ? clientBusinesses?.find(b => b.id === selectedBusinessId) 
-    : clientBusinesses?.[0];
+    ? validBusinesses.find(b => b && b.id === selectedBusinessId) || validBusinesses[0]
+    : validBusinesses[0];
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -107,7 +115,7 @@ const UserDashboard = () => {
           </div>
           
           {/* Client Business Selector */}
-          {clientBusinesses && clientBusinesses.length > 1 && (
+          {validBusinesses.length > 1 && (
             <Card className="mb-6">
               <CardHeader>
                 <CardTitle className="text-lg">Your Client Businesses</CardTitle>
@@ -117,7 +125,7 @@ const UserDashboard = () => {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-                  {clientBusinesses.map((business) => (
+                  {validBusinesses.map((business) => (
                     <Button
                       key={business.id}
                       variant={business.id === selectedBusinessId ? "default" : "outline"}
@@ -244,22 +252,24 @@ const UserDashboard = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <div className="space-y-2">
-                      <div>
-                        <span className="text-xs text-slate-500">Contact Name</span>
-                        <p>{selectedBusiness.contact_name}</p>
-                      </div>
-                      <div>
-                        <span className="text-xs text-slate-500">Email</span>
-                        <p>{selectedBusiness.email}</p>
-                      </div>
-                      {selectedBusiness.phone && (
+                    {selectedBusiness && (
+                      <div className="space-y-2">
                         <div>
-                          <span className="text-xs text-slate-500">Phone</span>
-                          <p>{selectedBusiness.phone}</p>
+                          <span className="text-xs text-slate-500">Contact Name</span>
+                          <p>{selectedBusiness.contact_name}</p>
                         </div>
-                      )}
-                    </div>
+                        <div>
+                          <span className="text-xs text-slate-500">Email</span>
+                          <p>{selectedBusiness.email}</p>
+                        </div>
+                        {selectedBusiness.phone && (
+                          <div>
+                            <span className="text-xs text-slate-500">Phone</span>
+                            <p>{selectedBusiness.phone}</p>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               </div>
