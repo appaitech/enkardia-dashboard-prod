@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -93,7 +94,7 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
         .select("id, email, created_at, expires_at")
         .eq("client_business_id", clientId)
         .eq("accepted", false)
-        .lt("expires_at", "now()")
+        .gt("expires_at", "now()") // Fixed: Changed from lt to gt to get unexpired invitations
         .order("created_at", { ascending: false });
         
       if (error) throw error;
