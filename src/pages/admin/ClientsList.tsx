@@ -1,15 +1,19 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "react-router-dom";
 import AdminSidebar from "@/components/AdminSidebar";
 import { useAuth } from "@/contexts/AuthContext";
 import { getClientBusinesses, searchClientBusinesses } from "@/services/clientService";
-import { ClientBusiness } from "@/types/client";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger
+} from "@/components/ui/dialog";
 import { 
   Table, 
   TableBody, 
@@ -32,10 +36,9 @@ import {
   CheckCircle2,
   XCircle,
   ArrowUpRight,
-  Building,
-  Users
+  Building
 } from "lucide-react";
-import { toast } from "sonner";
+import { AddClientForm } from "@/components/AddClientForm";
 
 const ClientsList = () => {
   const location = useLocation();
@@ -43,10 +46,11 @@ const ClientsList = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [isAddClientOpen, setIsAddClientOpen] = useState(false);
   const itemsPerPage = 5;
 
   // Fetch clients using React Query
-  const { data: clients, isLoading, isError } = useQuery({
+  const { data: clients, isLoading, isError, refetch } = useQuery({
     queryKey: ["clients", searchQuery],
     queryFn: () => searchQuery 
       ? searchClientBusinesses(searchQuery) 
@@ -85,12 +89,20 @@ const ClientsList = () => {
             </div>
             
             <div>
-              {user?.role === "ADMIN" && (
-                <Button className="gap-2">
-                  <Plus size={16} />
-                  Add New Client
-                </Button>
-              )}
+              <Dialog open={isAddClientOpen} onOpenChange={setIsAddClientOpen}>
+                <DialogTrigger asChild>
+                  <Button className="gap-2">
+                    <Plus size={16} />
+                    Add New Client
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <AddClientForm 
+                    onClose={() => setIsAddClientOpen(false)}
+                    onSuccess={() => refetch()}
+                  />
+                </DialogContent>
+              </Dialog>
             </div>
           </div>
 
@@ -154,7 +166,7 @@ const ClientsList = () => {
                           variant="outline" 
                           size="sm" 
                           className="mt-2"
-                          onClick={() => window.location.reload()}
+                          onClick={() => refetch()}
                         >
                           Try again
                         </Button>

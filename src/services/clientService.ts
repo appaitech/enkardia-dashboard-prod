@@ -1,121 +1,192 @@
 
-import { ClientBusiness } from "@/types/client";
-
-// Mock data for client businesses
-const mockClients: ClientBusiness[] = [
-  {
-    id: "1",
-    name: "Acme Corporation",
-    contactName: "John Doe",
-    email: "john@acme.com",
-    phone: "555-123-4567",
-    industry: "Technology",
-    xeroConnected: true,
-    createdAt: "2023-03-15T10:00:00Z",
-    updatedAt: "2023-09-20T14:30:00Z"
-  },
-  {
-    id: "2",
-    name: "Globex Industries",
-    contactName: "Jane Smith",
-    email: "jane@globex.com",
-    phone: "555-987-6543",
-    industry: "Manufacturing",
-    xeroConnected: false,
-    createdAt: "2023-04-22T09:15:00Z",
-    updatedAt: "2023-10-05T11:20:00Z"
-  },
-  {
-    id: "3",
-    name: "Oceanic Airlines",
-    contactName: "Robert Johnson",
-    email: "robert@oceanic.com",
-    phone: "555-555-5555",
-    industry: "Transportation",
-    xeroConnected: true,
-    createdAt: "2023-01-10T08:45:00Z",
-    updatedAt: "2023-08-15T16:10:00Z"
-  },
-  {
-    id: "4",
-    name: "Stark Industries",
-    contactName: "Tony Stark",
-    email: "tony@stark.com",
-    phone: "555-123-9876",
-    industry: "Defense",
-    xeroConnected: true,
-    createdAt: "2023-02-05T13:20:00Z",
-    updatedAt: "2023-11-01T09:30:00Z"
-  },
-  {
-    id: "5",
-    name: "Umbrella Corporation",
-    contactName: "Alice Wonder",
-    email: "alice@umbrella.com",
-    phone: "555-777-8888",
-    industry: "Pharmaceuticals",
-    xeroConnected: false,
-    createdAt: "2023-05-17T11:40:00Z",
-    updatedAt: "2023-09-30T15:15:00Z"
-  },
-  {
-    id: "6",
-    name: "Wayne Enterprises",
-    contactName: "Bruce Wayne",
-    email: "bruce@wayne.com",
-    phone: "555-888-9999",
-    industry: "Conglomerate",
-    xeroConnected: true,
-    createdAt: "2023-03-28T14:15:00Z",
-    updatedAt: "2023-10-12T10:45:00Z"
-  },
-  {
-    id: "7",
-    name: "LexCorp",
-    contactName: "Alexander Luthor",
-    email: "lex@lexcorp.com",
-    phone: "555-222-3333",
-    industry: "Research",
-    xeroConnected: false,
-    createdAt: "2023-06-05T09:30:00Z",
-    updatedAt: "2023-11-10T13:20:00Z"
-  },
-  {
-    id: "8",
-    name: "Cyberdyne Systems",
-    contactName: "Miles Dyson",
-    email: "miles@cyberdyne.com",
-    phone: "555-444-7777",
-    industry: "Artificial Intelligence",
-    xeroConnected: false,
-    createdAt: "2023-04-10T10:50:00Z",
-    updatedAt: "2023-08-22T09:10:00Z"
-  }
-];
+import { ClientBusiness, NewClientBusiness } from "@/types/client";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 // Service functions
 export const getClientBusinesses = async (): Promise<ClientBusiness[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 800));
-  return mockClients;
+  try {
+    const { data, error } = await supabase
+      .from("client_businesses")
+      .select("*")
+      .order("name");
+      
+    if (error) {
+      console.error("Error fetching clients:", error);
+      toast.error("Failed to load clients");
+      throw error;
+    }
+    
+    // Transform from snake_case to camelCase
+    return data.map((client) => ({
+      id: client.id,
+      name: client.name,
+      contactName: client.contact_name,
+      email: client.email,
+      phone: client.phone || undefined,
+      industry: client.industry || undefined,
+      xeroConnected: client.xero_connected,
+      createdAt: client.created_at,
+      updatedAt: client.updated_at,
+      createdBy: client.created_by || undefined
+    }));
+  } catch (error) {
+    console.error("Error in getClientBusinesses:", error);
+    return [];
+  }
 };
 
 export const getClientBusinessById = async (id: string): Promise<ClientBusiness | undefined> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  return mockClients.find(client => client.id === id);
+  try {
+    const { data, error } = await supabase
+      .from("client_businesses")
+      .select("*")
+      .eq("id", id)
+      .single();
+      
+    if (error) {
+      if (error.code !== 'PGRST116') { // Not found error code
+        console.error("Error fetching client:", error);
+        toast.error("Failed to load client details");
+      }
+      return undefined;
+    }
+    
+    return {
+      id: data.id,
+      name: data.name,
+      contactName: data.contact_name,
+      email: data.email,
+      phone: data.phone || undefined,
+      industry: data.industry || undefined,
+      xeroConnected: data.xero_connected,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      createdBy: data.created_by || undefined
+    };
+  } catch (error) {
+    console.error("Error in getClientBusinessById:", error);
+    return undefined;
+  }
 };
 
 export const searchClientBusinesses = async (query: string): Promise<ClientBusiness[]> => {
-  // Simulate API delay
-  await new Promise(resolve => setTimeout(resolve, 300));
-  
-  const lowercaseQuery = query.toLowerCase();
-  
-  return mockClients.filter(client => 
-    client.name.toLowerCase().includes(lowercaseQuery) ||
-    client.contactName.toLowerCase().includes(lowercaseQuery) ||
-    client.email.toLowerCase().includes(lowercaseQuery) ||
-    client.industry?.toLowerCase().includes(lowercaseQuery)
-  );
+  try {
+    const searchTerm = `%${query.toLowerCase()}%`;
+    
+    const { data, error } = await supabase
+      .from("client_businesses")
+      .select("*")
+      .or(`name.ilike.${searchTerm},contact_name.ilike.${searchTerm},email.ilike.${searchTerm},industry.ilike.${searchTerm}`);
+      
+    if (error) {
+      console.error("Error searching clients:", error);
+      toast.error("Failed to search clients");
+      throw error;
+    }
+    
+    // Transform from snake_case to camelCase
+    return data.map((client) => ({
+      id: client.id,
+      name: client.name,
+      contactName: client.contact_name,
+      email: client.email,
+      phone: client.phone || undefined,
+      industry: client.industry || undefined,
+      xeroConnected: client.xero_connected,
+      createdAt: client.created_at,
+      updatedAt: client.updated_at,
+      createdBy: client.created_by || undefined
+    }));
+  } catch (error) {
+    console.error("Error in searchClientBusinesses:", error);
+    return [];
+  }
+};
+
+export const createClientBusiness = async (client: NewClientBusiness): Promise<ClientBusiness | null> => {
+  try {
+    // Convert camelCase to snake_case for database
+    const { data, error } = await supabase
+      .from("client_businesses")
+      .insert({
+        name: client.name,
+        contact_name: client.contactName,
+        email: client.email,
+        phone: client.phone,
+        industry: client.industry,
+        xero_connected: client.xeroConnected,
+        created_by: supabase.auth.getUser().then(({ data }) => data?.user?.id)
+      })
+      .select()
+      .single();
+      
+    if (error) {
+      console.error("Error creating client:", error);
+      toast.error("Failed to create client");
+      throw error;
+    }
+    
+    // Transform from snake_case to camelCase
+    return {
+      id: data.id,
+      name: data.name,
+      contactName: data.contact_name,
+      email: data.email,
+      phone: data.phone || undefined,
+      industry: data.industry || undefined,
+      xeroConnected: data.xero_connected,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      createdBy: data.created_by || undefined
+    };
+  } catch (error) {
+    console.error("Error in createClientBusiness:", error);
+    return null;
+  }
+};
+
+// Add update functionality as well
+export const updateClientBusiness = async (id: string, updates: Partial<NewClientBusiness>): Promise<ClientBusiness | null> => {
+  try {
+    // Convert camelCase to snake_case for database
+    const dbUpdates: Record<string, any> = {};
+    
+    if ('name' in updates) dbUpdates.name = updates.name;
+    if ('contactName' in updates) dbUpdates.contact_name = updates.contactName;
+    if ('email' in updates) dbUpdates.email = updates.email;
+    if ('phone' in updates) dbUpdates.phone = updates.phone;
+    if ('industry' in updates) dbUpdates.industry = updates.industry;
+    if ('xeroConnected' in updates) dbUpdates.xero_connected = updates.xeroConnected;
+    
+    const { data, error } = await supabase
+      .from("client_businesses")
+      .update(dbUpdates)
+      .eq("id", id)
+      .select()
+      .single();
+      
+    if (error) {
+      console.error("Error updating client:", error);
+      toast.error("Failed to update client");
+      throw error;
+    }
+    
+    // Transform from snake_case to camelCase
+    return {
+      id: data.id,
+      name: data.name,
+      contactName: data.contact_name,
+      email: data.email,
+      phone: data.phone || undefined,
+      industry: data.industry || undefined,
+      xeroConnected: data.xero_connected,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at,
+      createdBy: data.created_by || undefined
+    };
+  } catch (error) {
+    console.error("Error in updateClientBusiness:", error);
+    return null;
+  }
 };
