@@ -1,3 +1,6 @@
 
 project_id = "itkpwdlqlfymxzjzymya"
 app_version = "v1"
+
+[env.RESEND_API_KEY]
+value = ""
