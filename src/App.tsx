@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,10 +12,10 @@ import UserDashboard from "./pages/user/UserDashboard";
 import ClientsList from "./pages/admin/ClientsList";
 import ClientDetail from "./pages/admin/ClientDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AcceptInvitationPage from "./pages/AcceptInvitationPage";
 import { useState } from "react";
 
 const App = () => {
-  // Create a client instance inside component to ensure it's created during rendering
   const [queryClient] = useState(() => new QueryClient({
     defaultOptions: {
       queries: {
@@ -37,8 +36,8 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
               
-              {/* Console (Admin) Routes */}
               <Route 
                 path="/admin/dashboard" 
                 element={
@@ -64,7 +63,6 @@ const App = () => {
                 } 
               />
               
-              {/* Client (User) Routes */}
               <Route 
                 path="/user/dashboard" 
                 element={
@@ -74,7 +72,6 @@ const App = () => {
                 } 
               />
               
-              {/* Catch-all route */}
               <Route path="*" element={<NotFound />} />
             </Routes>
           </AuthProvider>

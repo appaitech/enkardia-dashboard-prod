@@ -1,4 +1,3 @@
-
 import React from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -26,6 +25,7 @@ import {
   RefreshCcw
 } from "lucide-react";
 import { toast } from "sonner";
+import ClientDetailUsers from "@/components/ClientDetailUsers";
 
 const ClientDetail = () => {
   const { clientId } = useParams<{ clientId: string }>();
@@ -33,7 +33,6 @@ const ClientDetail = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   
-  // Fetch client details using React Query
   const { data: client, isLoading, isError } = useQuery({
     queryKey: ["client", clientId],
     queryFn: () => getClientBusinessById(clientId || ""),
@@ -246,9 +245,10 @@ const ClientDetail = () => {
           
           {/* Tabs Section */}
           <Tabs defaultValue="overview">
-            <TabsList className="grid w-full md:w-auto md:inline-grid grid-cols-4 md:grid-cols-4">
+            <TabsList className="grid w-full md:w-auto md:inline-grid grid-cols-4 md:grid-cols-5">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="documents">Documents</TabsTrigger>
+              <TabsTrigger value="users">Users</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
               <TabsTrigger value="settings">Settings</TabsTrigger>
             </TabsList>
@@ -372,6 +372,16 @@ const ClientDetail = () => {
                   </div>
                 </CardContent>
               </Card>
+            </TabsContent>
+            
+            {/* Users Tab - New Tab */}
+            <TabsContent value="users" className="mt-6">
+              {client && (
+                <ClientDetailUsers 
+                  clientId={client.id} 
+                  clientName={client.name} 
+                />
+              )}
             </TabsContent>
             
             {/* Activity Tab */}

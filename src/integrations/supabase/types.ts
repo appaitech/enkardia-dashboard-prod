@@ -48,6 +48,47 @@ export type Database = {
         }
         Relationships: []
       }
+      invitations: {
+        Row: {
+          accepted: boolean | null
+          client_business_id: string
+          created_at: string | null
+          created_by: string | null
+          email: string
+          expires_at: string | null
+          id: string
+          token: string
+        }
+        Insert: {
+          accepted?: boolean | null
+          client_business_id: string
+          created_at?: string | null
+          created_by?: string | null
+          email: string
+          expires_at?: string | null
+          id?: string
+          token: string
+        }
+        Update: {
+          accepted?: boolean | null
+          client_business_id?: string
+          created_at?: string | null
+          created_by?: string | null
+          email?: string
+          expires_at?: string | null
+          id?: string
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invitations_client_business_id_fkey"
+            columns: ["client_business_id"]
+            isOneToOne: false
+            referencedRelation: "client_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           account_type: string
@@ -78,12 +119,59 @@ export type Database = {
         }
         Relationships: []
       }
+      user_client_businesses: {
+        Row: {
+          client_business_id: string
+          created_at: string | null
+          id: string
+          user_id: string
+        }
+        Insert: {
+          client_business_id: string
+          created_at?: string | null
+          id?: string
+          user_id: string
+        }
+        Update: {
+          client_business_id?: string
+          created_at?: string | null
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_client_businesses_client_business_id_fkey"
+            columns: ["client_business_id"]
+            isOneToOne: false
+            referencedRelation: "client_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      accept_invitation: {
+        Args: {
+          token_input: string
+          user_id_input: string
+        }
+        Returns: boolean
+      }
+      get_client_business_from_token: {
+        Args: {
+          token_input: string
+        }
+        Returns: string
+      }
+      is_valid_invitation_token: {
+        Args: {
+          token_input: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
