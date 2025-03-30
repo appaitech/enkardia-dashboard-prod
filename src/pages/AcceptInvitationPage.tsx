@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +12,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { supabase } from "@/integrations/supabase/client";
 
 const passwordSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -44,7 +44,6 @@ const AcceptInvitationPage = () => {
     },
   });
   
-  // Check if the token is valid
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
@@ -56,22 +55,19 @@ const AcceptInvitationPage = () => {
         const isValid = await isValidInvitationToken(token);
         
         if (isValid) {
-          // Get invitation details to pre-fill email
           const details = await getInvitationDetails(token);
           if (details && details.email) {
             setInvitationEmail(details.email);
             form.setValue("email", details.email);
             
-            // If user is already authenticated and emails match, proceed to accept
             if (isAuthenticated && user && user.email === details.email) {
               setStatus("valid");
             } else {
-              // Check if the user exists
               const { userExists } = await checkUserExists(details.email);
               if (userExists) {
-                setStatus("valid"); // Show login form
+                setStatus("valid");
               } else {
-                setStatus("createAccount"); // Show registration form
+                setStatus("createAccount");
               }
             }
           } else {
@@ -100,13 +96,10 @@ const AcceptInvitationPage = () => {
         },
       });
       
-      // If error includes 'Email not confirmed', the user exists
-      // If the error is 'User not found', the user doesn't exist
       const userExists = !error || (error.message?.includes('Email not confirmed'));
       
       return { userExists };
     } catch {
-      // Default to assuming user doesn't exist if check fails
       return { userExists: false };
     }
   };
@@ -143,17 +136,12 @@ const AcceptInvitationPage = () => {
     setIsProcessing(true);
     
     try {
-      // Create new account
       await signup(data.email, data.password, data.email.split('@')[0], "CLIENT", "STANDARD");
       
-      // After account creation, we need to authenticate
       await login(data.email, data.password);
       
       toast.success("Account created successfully");
       
-      // After successful signup and login, user.id will be available
-      // The auth state change handler will handle updating the state
-      // We'll redirect to this page again with the token, and the accept flow will complete
       navigate(`/accept-invitation?token=${token}`);
     } catch (error) {
       console.error("Error creating account:", error);
@@ -171,7 +159,6 @@ const AcceptInvitationPage = () => {
       await login(data.email, data.password);
       toast.success("Login successful");
       
-      // After successful login, the page will reload and handle the acceptance
       navigate(`/accept-invitation?token=${token}`);
     } catch (error) {
       console.error("Error logging in:", error);
@@ -180,7 +167,6 @@ const AcceptInvitationPage = () => {
     }
   };
   
-  // Render appropriate content based on status
   const renderContent = () => {
     if (authLoading) {
       return (
@@ -325,7 +311,6 @@ const AcceptInvitationPage = () => {
       );
     }
     
-    // Valid invitation, show accept button or login form
     return (
       <div className="text-center">
         {isAuthenticated ? (
