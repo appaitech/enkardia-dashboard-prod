@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -12,6 +11,7 @@ import { AlertCircle } from "lucide-react";
 import { AccountType, UserRole } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
+import { acceptInvitation } from "@/services/invitationService";
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
@@ -49,8 +49,23 @@ const SignupForm = () => {
     }
     
     try {
-      await signup(email, password, name, accountType, role);
-      // If signup succeeds, reset the loading state
+      // Create user account
+      const userId = await signup(email, password, name, accountType, role);
+
+      // If we have an invitation token, accept it to associate user with client business
+      if (invitationToken && userId) {
+        console.log("Accepting invitation for new user:", userId, "with token:", invitationToken);
+        const success = await acceptInvitation(invitationToken, userId);
+        
+        if (!success) {
+          console.error("Failed to associate user with client business");
+          // Continue with signup even if association fails
+        } else {
+          console.log("Successfully associated user with client business");
+        }
+      }
+      
+      // Reset loading state
       setIsLoading(false);
     } catch (error: any) {
       setError(error.message || "Signup failed");

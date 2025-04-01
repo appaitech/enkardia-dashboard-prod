@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -138,7 +137,7 @@ const AcceptInvitationPage = () => {
     setIsProcessing(true);
     
     try {
-      console.log("Accepting invitation for user:", user.id);
+      console.log("Accepting invitation for user:", user.id, "with token:", token);
       const success = await acceptInvitation(token, user.id);
       
       if (success) {
@@ -162,7 +161,11 @@ const AcceptInvitationPage = () => {
   };
   
   const handleCreateAccount = async (data: PasswordFormValues) => {
-    if (!token) return;
+    if (!token || !clientBusinessId) {
+      console.error("Missing token or clientBusinessId");
+      setErrorMessage("Invalid invitation. Missing required information.");
+      return;
+    }
     
     setIsProcessing(true);
     
@@ -175,7 +178,7 @@ const AcceptInvitationPage = () => {
         console.log("User account created with ID:", userId);
         
         // Now accept the invitation using the newly created user ID
-        console.log("Accepting invitation for new user with token:", token);
+        console.log("Accepting invitation for new user:", userId, "with token:", token);
         const success = await acceptInvitation(token, userId);
         
         if (success) {
@@ -199,6 +202,7 @@ const AcceptInvitationPage = () => {
       console.error("Error creating account:", error);
       toast.error(error.message || "Failed to create account");
       setErrorMessage(error.message || "Failed to create account");
+    } finally {
       setIsProcessing(false);
     }
   };

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -35,22 +34,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Initialize authentication and set up listener
   useEffect(() => {
     console.log("Auth provider initialized");
     setIsLoading(true);
     
-    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
         console.log("Auth state change event:", event);
         setSession(currentSession);
         
         if (currentSession && currentSession.user) {
-          // Defer fetching profile to avoid potential deadlocks
           setTimeout(async () => {
             try {
-              // Fetch user profile from the profiles table
               const { data: profile, error } = await supabase
                 .from('profiles')
                 .select('*')
@@ -82,7 +77,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     );
     
-    // Check for existing session
     const checkExistingSession = async () => {
       try {
         console.log("Checking for existing session");
@@ -90,7 +84,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
         if (currentSession && currentSession.user) {
           console.log("Found existing session for user:", currentSession.user.id);
-          // Fetch user profile from the profiles table
           const { data: profile, error } = await supabase
             .from('profiles')
             .select('*')
@@ -149,8 +142,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.log("Login successful for:", data.user.id);
         toast.success("Login successful!");
         
-        // The auth state change handler will handle setting the user
-        // No need to manually update user state or navigate here
+        return;
       }
       
     } catch (error: any) {
@@ -189,10 +181,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       
       toast.success("Sign up successful! Please check your email for verification.");
-      setIsLoading(false);
       
-      // Return the user ID so it can be used to accept the invitation
-      return data.user?.id || null;
+      const userId = data.user?.id || null;
+      console.log("User created with ID:", userId);
+      setIsLoading(false);
+      return userId;
       
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -215,12 +208,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Logout error:", error);
       toast.error("An error occurred during logout");
     } finally {
-      // Always reset loading state after logout completes
       setIsLoading(false);
     }
   };
 
-  // Update user profile with improved error handling and logging
   const updateUserProfile = async (
     userId: string,
     updates: { name?: string; role?: UserRole }
@@ -230,7 +221,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       const updateData: { name?: string; role?: string } = {};
       
-      // Only include defined fields in the update
       if (updates.name !== undefined) {
         updateData.name = updates.name;
       }
@@ -239,7 +229,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateData.role = updates.role;
       }
       
-      // Check if there are any fields to update
       if (Object.keys(updateData).length === 0) {
         console.log("No fields to update");
         return;
@@ -257,7 +246,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         
       if (error) throw error;
       
-      // If updating the current user, also update the local state
       if (user && userId === user.id) {
         setUser(prev => prev ? {
           ...prev,

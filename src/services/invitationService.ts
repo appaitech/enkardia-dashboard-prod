@@ -235,6 +235,7 @@ export const acceptInvitation = async (
     }
     
     // Associate the user with the client business
+    console.log(`Associating user ${userId} with client business ${invitation.client_business_id}`);
     const { error: associationError } = await supabase
       .from("user_client_businesses")
       .insert({
