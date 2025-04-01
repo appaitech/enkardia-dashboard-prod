@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -15,7 +14,8 @@ import {
   ChevronRight,
   Loader2,
   RefreshCcw,
-  AlertTriangle
+  AlertTriangle,
+  UserCircle
 } from "lucide-react";
 import { DbClientBusiness } from "@/types/client";
 
@@ -23,7 +23,6 @@ const UserDashboard = () => {
   const { user } = useAuth();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
 
-  // Fetch client businesses associated with the user
   const { 
     data: clientBusinesses,
     isLoading,
@@ -35,10 +34,8 @@ const UserDashboard = () => {
     enabled: !!user?.id,
   });
 
-  // Set the first business as selected when data loads
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
-      // Filter out any null values before selecting first item
       const validBusinesses = clientBusinesses.filter(business => business !== null);
       if (validBusinesses.length > 0) {
         setSelectedBusinessId(validBusinesses[0].id);
@@ -79,7 +76,6 @@ const UserDashboard = () => {
     );
   }
 
-  // Check for empty array or array with null values
   const validBusinesses = clientBusinesses?.filter(business => business !== null) || [];
   
   if (validBusinesses.length === 0) {
@@ -97,7 +93,6 @@ const UserDashboard = () => {
     );
   }
 
-  // Find the selected business, defaulting to the first valid one if needed
   const selectedBusiness = selectedBusinessId 
     ? validBusinesses.find(b => b && b.id === selectedBusinessId) || validBusinesses[0]
     : validBusinesses[0];
@@ -108,13 +103,22 @@ const UserDashboard = () => {
       
       <div className="flex-1 overflow-auto">
         <div className="p-8">
-          {/* Header */}
-          <div className="mb-6">
-            <h1 className="text-3xl font-bold text-slate-800">Dashboard</h1>
-            <p className="text-slate-500">Welcome back, {user?.name || 'User'}</p>
+          <div className="mb-6 flex items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-3">
+                <UserCircle className="h-8 w-8 text-blue-600" />
+                <h1 className="text-3xl font-bold text-slate-800">
+                  Welcome, {user?.name || 'User'}
+                </h1>
+              </div>
+              <p className="text-slate-500 mt-2">
+                {user?.accountType === 'CONSOLE' 
+                  ? 'Console Administrator Dashboard' 
+                  : 'Your Client Business Dashboard'}
+              </p>
+            </div>
           </div>
           
-          {/* Client Business Selector */}
           {validBusinesses.length > 1 && (
             <Card className="mb-6">
               <CardHeader>
@@ -146,7 +150,6 @@ const UserDashboard = () => {
             </Card>
           )}
           
-          {/* Selected Business Dashboard */}
           {selectedBusiness && (
             <>
               <div className="mb-6">
