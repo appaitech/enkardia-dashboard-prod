@@ -114,7 +114,7 @@ const UserDashboard = () => {
               <p className="text-slate-500 mt-2">
                 {user?.accountType === 'CONSOLE' 
                   ? 'Console Administrator Dashboard' 
-                  : 'Your Client Business Dashboard'}
+                  : `${user?.role === 'ADMIN' ? 'Client Business Admin' : 'Client User'} Dashboard`}
               </p>
             </div>
           </div>
