@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ClientBusiness, NewClientBusiness } from "@/types/client";
 
@@ -78,6 +77,8 @@ export const searchClientBusinesses = async (query: string): Promise<ClientBusin
  * @returns A promise that resolves to a client business
  */
 export const getClientBusinessById = async (id: string): Promise<ClientBusiness> => {
+  console.log("Fetching client business with ID:", id); // Add logging to debug
+
   const { data, error } = await supabase
     .from("client_businesses")
     .select("*")
@@ -87,6 +88,11 @@ export const getClientBusinessById = async (id: string): Promise<ClientBusiness>
   if (error) {
     console.error("Error fetching client business:", error);
     throw new Error(error.message);
+  }
+
+  if (!data) {
+    console.error("Client business not found");
+    throw new Error("Client business not found");
   }
 
   return mapDbClientToClientBusiness(data);

@@ -1,3 +1,4 @@
+
 import React from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -28,15 +29,16 @@ import { toast } from "sonner";
 import ClientDetailUsers from "@/components/ClientDetailUsers";
 
 const ClientDetail = () => {
-  const { clientId } = useParams<{ clientId: string }>();
+  // Fix: Update parameter name to match the route parameter name in App.tsx
+  const { id } = useParams<{ id: string }>();
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
   
   const { data: client, isLoading, isError } = useQuery({
-    queryKey: ["client", clientId],
-    queryFn: () => getClientBusinessById(clientId || ""),
-    enabled: !!clientId,
+    queryKey: ["client", id],
+    queryFn: () => getClientBusinessById(id || ""),
+    enabled: !!id,
   });
 
   const handleGoBack = () => {
