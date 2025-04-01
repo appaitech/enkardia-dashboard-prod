@@ -57,7 +57,7 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
       }
       
       // Then delete the user from auth.users using a Supabase Edge Function
-      // This is necessary because client-side code doesn't have permission to delete users
+      // Fix the URL construction to use the correct domain
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
         method: 'POST',
         headers: {
