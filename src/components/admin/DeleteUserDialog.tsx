@@ -55,10 +55,8 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
       }
       
       // Then delete the user from auth.users using the auth API
-      const { error } = await supabase.auth.admin.deleteUser(user.id, {
-        // When deleting a user, we need to use the service_role key
-        shouldUseServiceKey: true
-      });
+      // Fix: Remove the object parameter and pass just the user ID
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
       
       if (error) throw error;
 
