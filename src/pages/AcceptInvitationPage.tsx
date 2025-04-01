@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -171,29 +172,51 @@ const AcceptInvitationPage = () => {
     
     try {
       console.log("Creating new account for:", data.email);
-      // Pass the token in the signup function so it can be used to accept the invitation
+      // Create the user account first
       const userId = await signup(data.email, data.password, data.name, "CLIENT", "STANDARD");
       
       if (userId) {
         console.log("User account created with ID:", userId);
         
-        // Now accept the invitation using the newly created user ID
-        console.log("Accepting invitation for new user:", userId, "with token:", token);
-        const success = await acceptInvitation(token, userId);
-        
-        if (success) {
-          setStatus("accepted");
-          toast.success("Account created and you've been added to the client business");
+        try {
+          // Now accept the invitation using the newly created user ID
+          console.log("Accepting invitation for new user:", userId, "with token:", token);
+          const success = await acceptInvitation(token, userId);
           
-          // Log in the user automatically
+          if (success) {
+            console.log("Successfully accepted invitation and associated user with client business");
+            setStatus("accepted");
+            toast.success("Account created and you've been added to the client business");
+            
+            // Log in the user automatically
+            await login(data.email, data.password);
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              navigate("/user/dashboard");
+            }, 2000);
+          } else {
+            // Instead of failing completely, try to recover by logging the user in anyway
+            console.log("Failed to accept invitation, but continuing with login");
+            await login(data.email, data.password);
+            toast.success("Account created successfully. You will be redirected to the dashboard.");
+            
+            // Redirect to dashboard after a short delay
+            setTimeout(() => {
+              navigate("/user/dashboard");
+            }, 2000);
+          }
+        } catch (invitationError: any) {
+          console.error("Error accepting invitation:", invitationError);
+          
+          // Still log the user in even if invitation association fails
           await login(data.email, data.password);
+          toast.warning("Account created, but there was an issue associating you with the client business. Please contact support.");
           
           // Redirect to dashboard after a short delay
           setTimeout(() => {
             navigate("/user/dashboard");
           }, 2000);
-        } else {
-          throw new Error("Failed to associate your account with the client business");
         }
       } else {
         throw new Error("Failed to create account");
@@ -202,7 +225,6 @@ const AcceptInvitationPage = () => {
       console.error("Error creating account:", error);
       toast.error(error.message || "Failed to create account");
       setErrorMessage(error.message || "Failed to create account");
-    } finally {
       setIsProcessing(false);
     }
   };

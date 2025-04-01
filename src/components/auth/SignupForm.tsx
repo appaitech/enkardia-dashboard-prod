@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { AccountType, UserRole } from "@/contexts/AuthContext";
 import { useLocation } from "react-router-dom";
 import { useSearchParams } from "react-router-dom";
 import { acceptInvitation } from "@/services/invitationService";
+import { toast } from "sonner";
 
 const SignupForm = () => {
   const [email, setEmail] = useState("");
@@ -55,13 +57,19 @@ const SignupForm = () => {
       // If we have an invitation token, accept it to associate user with client business
       if (invitationToken && userId) {
         console.log("Accepting invitation for new user:", userId, "with token:", invitationToken);
-        const success = await acceptInvitation(invitationToken, userId);
-        
-        if (!success) {
-          console.error("Failed to associate user with client business");
-          // Continue with signup even if association fails
-        } else {
-          console.log("Successfully associated user with client business");
+        try {
+          const success = await acceptInvitation(invitationToken, userId);
+          
+          if (success) {
+            console.log("Successfully associated user with client business");
+            toast.success("Account created and you've been added to the client business!");
+          } else {
+            console.warn("Failed to associate user with client business, but account was created");
+            toast.warning("Account created, but there was an issue associating you with the client business.");
+          }
+        } catch (invitationError) {
+          console.error("Error accepting invitation:", invitationError);
+          toast.warning("Account created, but could not complete the invitation process.");
         }
       }
       

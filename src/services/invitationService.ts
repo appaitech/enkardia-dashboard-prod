@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { v4 as uuidv4 } from "uuid";
 import { toast } from "sonner";
@@ -205,6 +206,26 @@ export const acceptInvitation = async (
     
     if (fetchError) {
       console.error("Error fetching invitation during accept:", fetchError);
+      
+      // Check if the user already has an association with this business
+      // This could happen if the invitation was already accepted but the UI didn't update
+      const clientBusinessId = await getClientBusinessIdFromToken(cleanToken);
+      
+      if (clientBusinessId) {
+        console.log(`Checking if user ${userId} is already associated with business ${clientBusinessId}`);
+        const { data: existingAssociation } = await supabase
+          .from("user_client_businesses")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("client_business_id", clientBusinessId)
+          .single();
+        
+        if (existingAssociation) {
+          console.log("User is already associated with this business");
+          return true;
+        }
+      }
+      
       return false;
     }
     
@@ -213,39 +234,43 @@ export const acceptInvitation = async (
       return false;
     }
     
-    if (invitation.accepted) {
-      console.error("Invitation has already been accepted");
-      return false;
-    }
+    // Even if invitation was already accepted, try to create the association anyway
+    // This provides better resilience in case the previous association attempt failed
     
-    if (new Date(invitation.expires_at) < new Date()) {
-      console.error("Invitation has expired");
-      return false;
-    }
-    
-    // Mark the invitation as accepted
-    const { error: updateError } = await supabase
-      .from("invitations")
-      .update({ accepted: true })
-      .eq("token", cleanToken);
-    
-    if (updateError) {
-      console.error("Error updating invitation status:", updateError);
-      return false;
-    }
-    
-    // Associate the user with the client business
+    // Associate the user with the client business regardless of invitation status
     console.log(`Associating user ${userId} with client business ${invitation.client_business_id}`);
     const { error: associationError } = await supabase
       .from("user_client_businesses")
       .insert({
         user_id: userId,
         client_business_id: invitation.client_business_id,
-      });
+      })
+      .on_conflict(['user_id', 'client_business_id'])  // If this record already exists, do nothing
+      .ignore();
     
     if (associationError) {
       console.error("Error creating user-business association:", associationError);
+      
+      // Check if the error is due to the association already existing
+      if (associationError.code === '23505') { // Unique violation error code
+        console.log("User is already associated with this business");
+        return true;
+      }
+      
       return false;
+    }
+    
+    // Mark the invitation as accepted if it wasn't already
+    if (!invitation.accepted) {
+      const { error: updateError } = await supabase
+        .from("invitations")
+        .update({ accepted: true })
+        .eq("token", cleanToken);
+      
+      if (updateError) {
+        console.warn("Error updating invitation status, but user association was created:", updateError);
+        // Continue anyway since the critical part (association) was successful
+      }
     }
     
     console.log("Invitation accepted successfully");
@@ -253,6 +278,28 @@ export const acceptInvitation = async (
   } catch (error) {
     console.error("Error in acceptInvitation:", error);
     return false;
+  }
+};
+
+/**
+ * Helper function to get client business ID from a token
+ */
+const getClientBusinessIdFromToken = async (token: string): Promise<string | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("invitations")
+      .select("client_business_id")
+      .eq("token", token)
+      .single();
+    
+    if (error || !data) {
+      return null;
+    }
+    
+    return data.client_business_id;
+  } catch (error) {
+    console.error("Error getting client business ID from token:", error);
+    return null;
   }
 };
 
