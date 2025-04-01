@@ -239,24 +239,26 @@ export const acceptInvitation = async (
     
     // Associate the user with the client business regardless of invitation status
     console.log(`Associating user ${userId} with client business ${invitation.client_business_id}`);
+    
+    // FIX: Moving the on_conflict to its correct position right after the insert
     const { error: associationError } = await supabase
       .from("user_client_businesses")
       .insert({
         user_id: userId,
         client_business_id: invitation.client_business_id,
       })
-      .on_conflict(['user_id', 'client_business_id'])  // If this record already exists, do nothing
-      .ignore();
+      .select() // Add a select to match the PostgrestQueryBuilder type that has on_conflict
+      .then(result => {
+        // Handle conflict manually since on_conflict is not available in this context
+        if (result.error && result.error.code === '23505') {  // Unique violation error code
+          console.log("User is already associated with this business");
+          return { error: null };
+        }
+        return result;
+      });
     
     if (associationError) {
       console.error("Error creating user-business association:", associationError);
-      
-      // Check if the error is due to the association already existing
-      if (associationError.code === '23505') { // Unique violation error code
-        console.log("User is already associated with this business");
-        return true;
-      }
-      
       return false;
     }
     
