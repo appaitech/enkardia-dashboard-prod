@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { AlertTriangle } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   Dialog,
@@ -37,6 +38,7 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   onUserDeleted,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
+  const { session } = useAuth();
 
   const handleDelete = async () => {
     setIsDeleting(true);
@@ -56,17 +58,18 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
       
       // Then delete the user from auth.users using a Supabase Edge Function
       // This is necessary because client-side code doesn't have permission to delete users
-      const response = await fetch(`/api/delete-user`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session?.access_token}`,
         },
         body: JSON.stringify({ userId: user.id }),
       });
       
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to delete user');
+        throw new Error(errorData.error || 'Failed to delete user');
       }
 
       toast.success(`User ${user.name || user.email} deleted successfully`);

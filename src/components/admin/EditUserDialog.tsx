@@ -90,15 +90,29 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const onSubmit = async (data: FormValues) => {
     try {
-      console.log("Updating user profile:", user.id, data);
+      console.log("Updating user profile with data:", data);
       
-      // Use the updateUserProfile function from AuthContext
-      await updateUserProfile(user.id, {
-        name: data.name,
-        role: isAdmin ? data.role : user.role as "ADMIN" | "STANDARD",
-      });
+      // Create updates object with only the fields that should be updated
+      const updates: { name?: string; role?: "ADMIN" | "STANDARD" } = {};
       
-      toast.success(`User ${data.name} updated successfully`);
+      // Only include name if it's different from current
+      if (data.name !== user.name) {
+        updates.name = data.name;
+      }
+      
+      // Only include role if admin and role is different
+      if (isAdmin && data.role !== user.role) {
+        updates.role = data.role;
+      }
+      
+      // Only update if there are changes
+      if (Object.keys(updates).length > 0) {
+        await updateUserProfile(user.id, updates);
+        toast.success(`User ${data.name} updated successfully`);
+      } else {
+        toast.info("No changes detected");
+      }
+      
       onUserEdited();
       onOpenChange(false);
     } catch (error: any) {

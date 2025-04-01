@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -244,12 +245,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      const { error } = await supabase
+      console.log("Sending update to Supabase:", updateData);
+      
+      const { data, error } = await supabase
         .from("profiles")
         .update(updateData)
-        .eq("id", userId);
+        .eq("id", userId)
+        .select();
       
-      console.log("Profile update result:", { error });
+      console.log("Profile update result:", { data, error });
         
       if (error) throw error;
       
@@ -257,8 +261,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (user && userId === user.id) {
         setUser(prev => prev ? {
           ...prev,
-          name: updates.name || prev.name,
-          role: updates.role || prev.role
+          name: updates.name !== undefined ? updates.name : prev.name,
+          role: updates.role !== undefined ? updates.role : prev.role
         } : null);
       }
       

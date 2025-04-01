@@ -7,15 +7,18 @@ const supabaseAdmin = createClient(
   Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
 );
 
+// Define CORS headers
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
+
 Deno.serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', {
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Access-Control-Allow-Methods': 'POST',
-        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-      }
+      headers: corsHeaders
     });
   }
 
@@ -25,7 +28,7 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(
         JSON.stringify({ error: 'No authorization header provided' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -34,23 +37,35 @@ Deno.serve(async (req) => {
     const { data: { user: authenticatedUser }, error: verifyError } = await supabaseAdmin.auth.getUser(jwt);
 
     if (verifyError || !authenticatedUser) {
+      console.error("JWT verification error:", verifyError);
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
-        { status: 401, headers: { 'Content-Type': 'application/json' } }
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log("Authenticated user:", authenticatedUser.id);
+
     // Check if the authenticated user has admin privileges
-    const { data: adminCheck } = await supabaseAdmin
+    const { data: adminCheck, error: roleCheckError } = await supabaseAdmin
       .from('profiles')
       .select('role')
       .eq('id', authenticatedUser.id)
       .single();
 
+    if (roleCheckError) {
+      console.error("Error checking admin role:", roleCheckError);
+      return new Response(
+        JSON.stringify({ error: 'Error verifying admin privileges' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     if (!adminCheck || adminCheck.role !== 'ADMIN') {
+      console.log("Non-admin attempted deletion, role:", adminCheck?.role);
       return new Response(
         JSON.stringify({ error: 'Only administrators can delete users' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -59,9 +74,11 @@ Deno.serve(async (req) => {
     if (!userId) {
       return new Response(
         JSON.stringify({ error: 'Missing userId in request body' }),
-        { status: 400, headers: { 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log("Attempting to delete user:", userId);
 
     // Delete the user using the admin API
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(
@@ -72,19 +89,18 @@ Deno.serve(async (req) => {
       console.error("Error deleting user:", deleteError);
       return new Response(
         JSON.stringify({ error: deleteError.message }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    console.log("User deleted successfully:", userId);
 
     // Return a success response
     return new Response(
       JSON.stringify({ success: true, message: 'User deleted successfully' }),
       { 
         status: 200, 
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   } catch (error) {
@@ -93,10 +109,7 @@ Deno.serve(async (req) => {
       JSON.stringify({ error: 'An unexpected error occurred' }),
       { 
         status: 500, 
-        headers: { 
-          'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
-        } 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );
   }
