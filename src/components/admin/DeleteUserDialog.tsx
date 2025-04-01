@@ -41,13 +41,30 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   const handleDelete = async () => {
     setIsDeleting(true);
     try {
-      // Delete the user from Auth
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      console.log("Attempting to delete user with ID:", user.id);
+      
+      // First, delete the user's profile from the profiles table
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', user.id);
+      
+      if (profileError) {
+        console.error("Error deleting user profile:", profileError);
+        throw profileError;
+      }
+      
+      // Then delete the user from auth.users using the auth API
+      const { error } = await supabase.auth.admin.deleteUser(user.id, {
+        // When deleting a user, we need to use the service_role key
+        shouldUseServiceKey: true
+      });
       
       if (error) throw error;
 
       toast.success(`User ${user.name || user.email} deleted successfully`);
       onUserDeleted();
+      onOpenChange(false);
     } catch (error: any) {
       console.error("Error deleting user:", error);
       toast.error(error.message || "Failed to delete user");

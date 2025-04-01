@@ -220,19 +220,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Add new function to update user profile
+  // Update user profile with improved error handling and logging
   const updateUserProfile = async (
     userId: string,
     updates: { name?: string; role?: UserRole }
   ) => {
     try {
-      const { error } = await supabase
+      console.log("Updating user profile:", userId, updates);
+      
+      const updateData: { name?: string; role?: string } = {};
+      
+      // Only include defined fields in the update
+      if (updates.name !== undefined) {
+        updateData.name = updates.name;
+      }
+      
+      if (updates.role !== undefined) {
+        updateData.role = updates.role;
+      }
+      
+      // Check if there are any fields to update
+      if (Object.keys(updateData).length === 0) {
+        console.log("No fields to update");
+        return;
+      }
+      
+      const { error, data } = await supabase
         .from("profiles")
-        .update({
-          name: updates.name,
-          role: updates.role,
-        })
+        .update(updateData)
         .eq("id", userId);
+      
+      console.log("Profile update result:", { error, data });
         
       if (error) throw error;
       

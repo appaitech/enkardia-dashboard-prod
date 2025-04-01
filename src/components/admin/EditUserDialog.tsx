@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { User, Mail, Shield, Building } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   Dialog,
@@ -67,6 +68,8 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   onUserEdited,
   isAdmin,
 }) => {
+  const { updateUserProfile } = useAuth();
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -88,19 +91,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 
   const onSubmit = async (data: FormValues) => {
     try {
-      // Update profile in the profiles table
-      const { error } = await supabase
-        .from("profiles")
-        .update({
-          name: data.name,
-          role: isAdmin ? data.role : user.role, // Only allow admins to update role
-        })
-        .eq("id", user.id);
-
-      if (error) throw error;
+      console.log("Updating user profile:", user.id, data);
+      
+      // Use the updateUserProfile function from AuthContext
+      await updateUserProfile(user.id, {
+        name: data.name,
+        role: isAdmin ? data.role : user.role as "ADMIN" | "STANDARD",
+      });
       
       toast.success(`User ${data.name} updated successfully`);
       onUserEdited();
+      onOpenChange(false);
     } catch (error: any) {
       console.error("Error updating user:", error);
       toast.error(error.message || "Failed to update user");

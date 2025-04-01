@@ -76,12 +76,14 @@ const UsersManagement = () => {
   const fetchUsers = async () => {
     setIsLoading(true);
     try {
+      console.log("Fetching users from profiles table");
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
+      console.log("Fetched users:", data);
       setUsers(data);
       setFilteredUsers(data);
     } catch (error: any) {
@@ -101,6 +103,7 @@ const UsersManagement = () => {
   };
 
   const handleEditUser = (user: UserData) => {
+    console.log("Editing user:", user);
     setSelectedUser(user);
     setEditDialogOpen(true);
   };
@@ -110,6 +113,7 @@ const UsersManagement = () => {
       toast.error("Only administrators can delete users");
       return;
     }
+    console.log("Attempting to delete user:", user);
     setSelectedUser(user);
     setDeleteDialogOpen(true);
   };
