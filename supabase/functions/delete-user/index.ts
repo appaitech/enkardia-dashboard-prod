@@ -80,7 +80,7 @@ Deno.serve(async (req) => {
 
     console.log("Attempting to delete user:", userId);
 
-    // Delete the user using the admin API
+    // First, delete the user using the admin API which should cascade to the profile
     const { error: deleteError } = await supabaseAdmin.auth.admin.deleteUser(
       userId
     );
@@ -91,6 +91,19 @@ Deno.serve(async (req) => {
         JSON.stringify({ error: deleteError.message }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
+    }
+
+    // In case the profile wasn't deleted by the cascade, try to delete it explicitly
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .delete()
+      .eq('id', userId);
+      
+    if (profileError) {
+      console.error("Error deleting user profile:", profileError);
+      // We don't want to fail the entire operation if just the profile deletion failed
+      // The auth user has been deleted which is the main goal
+      console.log("Auth user deleted successfully, but there was an issue with the profile deletion");
     }
 
     console.log("User deleted successfully:", userId);
