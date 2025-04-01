@@ -41,16 +41,17 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   const { session } = useAuth();
 
   const handleDelete = async () => {
+    if (isDeleting) return; // Prevent multiple clicks
+    
     setIsDeleting(true);
     try {
       console.log("Attempting to delete user with ID:", user.id);
       
       // Get the absolute Supabase URL from environment variable
-      // Use a new URL to ensure we're getting the base domain without any paths
-      const supabaseUrl = new URL(import.meta.env.VITE_SUPABASE_URL).origin;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       console.log("Using Supabase URL:", supabaseUrl);
       
-      // Call the edge function to delete the auth user first, which will cascade to the profile
+      // Call the edge function to delete the auth user
       const response = await fetch(`${supabaseUrl}/functions/v1/delete-user`, {
         method: 'POST',
         headers: {
