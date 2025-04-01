@@ -54,11 +54,20 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
         throw profileError;
       }
       
-      // Then delete the user from auth.users using the auth API
-      // Fix: Remove the object parameter and pass just the user ID
-      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      // Then delete the user from auth.users using a Supabase Edge Function
+      // This is necessary because client-side code doesn't have permission to delete users
+      const response = await fetch(`/api/delete-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
       
-      if (error) throw error;
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to delete user');
+      }
 
       toast.success(`User ${user.name || user.email} deleted successfully`);
       onUserDeleted();

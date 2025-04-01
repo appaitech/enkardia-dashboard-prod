@@ -3,9 +3,8 @@ import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { User, Mail, Shield, Building } from "lucide-react";
+import { User, Shield } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 import {

@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -245,12 +244,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      const { error, data } = await supabase
+      const { error } = await supabase
         .from("profiles")
         .update(updateData)
         .eq("id", userId);
       
-      console.log("Profile update result:", { error, data });
+      console.log("Profile update result:", { error });
         
       if (error) throw error;
       
