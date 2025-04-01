@@ -37,6 +37,7 @@ const AcceptInvitationPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [invitationEmail, setInvitationEmail] = useState<string>("");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [clientBusinessId, setClientBusinessId] = useState<string>("");
   
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
@@ -67,6 +68,7 @@ const AcceptInvitationPage = () => {
           if (details && details.email) {
             console.log("Invitation details found for email:", details.email);
             setInvitationEmail(details.email);
+            setClientBusinessId(details.clientBusinessId);
             form.setValue("email", details.email);
             
             if (isAuthenticated && user && user.email === details.email) {
@@ -166,15 +168,33 @@ const AcceptInvitationPage = () => {
     
     try {
       console.log("Creating new account for:", data.email);
-      await signup(data.email, data.password, data.name, "CLIENT", "STANDARD");
+      // Pass the token in the signup function so it can be used to accept the invitation
+      const userId = await signup(data.email, data.password, data.name, "CLIENT", "STANDARD");
       
-      toast.success("Account created successfully");
-      
-      // Instead of automatically logging in and redirecting back to this page,
-      // redirect directly to the login page
-      setIsProcessing(false);
-      toast.success("Please log in with your new account");
-      navigate("/login");
+      if (userId) {
+        console.log("User account created with ID:", userId);
+        
+        // Now accept the invitation using the newly created user ID
+        console.log("Accepting invitation for new user with token:", token);
+        const success = await acceptInvitation(token, userId);
+        
+        if (success) {
+          setStatus("accepted");
+          toast.success("Account created and you've been added to the client business");
+          
+          // Log in the user automatically
+          await login(data.email, data.password);
+          
+          // Redirect to dashboard after a short delay
+          setTimeout(() => {
+            navigate("/user/dashboard");
+          }, 2000);
+        } else {
+          throw new Error("Failed to associate your account with the client business");
+        }
+      } else {
+        throw new Error("Failed to create account");
+      }
     } catch (error: any) {
       console.error("Error creating account:", error);
       toast.error(error.message || "Failed to create account");
