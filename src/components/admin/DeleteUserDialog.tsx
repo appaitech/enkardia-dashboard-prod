@@ -47,27 +47,18 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
     try {
       console.log("Attempting to delete user with ID:", user.id);
       
-      // Get the absolute Supabase URL from environment variable
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      
-      // Fix: Ensure we're using a clean URL without any path components
-      // by creating a new URL object and taking just the origin
-      const baseUrl = new URL(supabaseUrl).origin;
-      console.log("Using Supabase URL:", baseUrl);
-      
-      // Call the edge function to delete the auth user
-      const response = await fetch(`${baseUrl}/functions/v1/delete-user`, {
-        method: 'POST',
+      // Call the edge function using Supabase's functions.invoke method
+      const { data, error } = await supabase.functions.invoke("delete-user", {
+        body: { userId: user.id },
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${session?.access_token}`,
         },
-        body: JSON.stringify({ userId: user.id }),
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to delete user');
+      console.log("Delete user response:", data);
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to delete user');
       }
 
       toast.success(`User ${user.name || user.email} deleted successfully`);
