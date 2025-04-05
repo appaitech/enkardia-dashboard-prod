@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -23,7 +24,7 @@ interface AuthContextType {
   logout: () => Promise<void>;
   isAuthenticated: boolean;
   session: Session | null;
-  updateUserProfile: (userId: string, updates: { name?: string; role?: UserRole }) => Promise<void>;
+  updateUserProfile: (userId: string, updates: { name?: string; role?: UserRole; account_type?: AccountType }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -214,12 +215,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const updateUserProfile = async (
     userId: string,
-    updates: { name?: string; role?: UserRole }
+    updates: { name?: string; role?: UserRole; account_type?: AccountType }
   ) => {
     try {
       console.log("Updating user profile:", userId, updates);
       
-      const updateData: { name?: string; role?: string } = {};
+      const updateData: { name?: string; role?: string; account_type?: string } = {};
       
       if (updates.name !== undefined) {
         updateData.name = updates.name;
@@ -227,6 +228,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
       if (updates.role !== undefined) {
         updateData.role = updates.role;
+      }
+      
+      if (updates.account_type !== undefined) {
+        updateData.account_type = updates.account_type;
       }
       
       if (Object.keys(updateData).length === 0) {
@@ -250,7 +255,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(prev => prev ? {
           ...prev,
           name: updates.name !== undefined ? updates.name : prev.name,
-          role: updates.role !== undefined ? updates.role : prev.role
+          role: updates.role !== undefined ? updates.role : prev.role,
+          accountType: updates.account_type !== undefined ? updates.account_type : prev.accountType
         } : null);
       }
       
