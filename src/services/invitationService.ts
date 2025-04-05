@@ -1,408 +1,224 @@
 
 import { supabase } from "@/integrations/supabase/client";
-import { v4 as uuidv4 } from "uuid";
-import { toast } from "sonner";
+
+export interface Invitation {
+  id: string;
+  email: string;
+  token: string;
+  clientBusinessId: string;
+  clientBusinessName?: string;
+  expiresAt: string;
+  createdAt: string;
+  accepted: boolean;
+}
 
 /**
- * Create an invitation for a user to join a client business
+ * Send an invitation to a user for a client business
+ * 
+ * @param email The email of the user to invite
+ * @param clientBusinessId The ID of the client business
+ * @returns A promise that resolves when the invitation is sent
  */
-export const createInvitation = async (
-  email: string,
-  clientBusinessId: string
-): Promise<{ success: boolean; message: string; token?: string }> => {
+export const sendInvitation = async (email: string, clientBusinessId: string): Promise<void> => {
   try {
-    // Check if the user already exists
-    const { data: existingUser } = await supabase
-      .from("profiles")
-      .select("id")
-      .eq("email", email)
-      .single();
-
-    if (existingUser) {
-      // User exists, associate them with the client business directly
-      const { error: associationError } = await supabase
-        .from("user_client_businesses")
-        .insert({
-          user_id: existingUser.id,
-          client_business_id: clientBusinessId,
-        });
-
-      if (associationError) {
-        console.error("Error associating existing user:", associationError);
-        return {
-          success: false,
-          message: "Error associating user to client business",
-        };
-      }
-
-      return {
-        success: true,
-        message: "User already exists and has been associated with this business",
-      };
-    }
-
-    // User doesn't exist, create an invitation
-    const token = uuidv4();
-    
-    const { error: invitationError } = await supabase.from("invitations").insert({
-      email,
-      client_business_id: clientBusinessId,
-      token,
-      created_by: (await supabase.auth.getUser()).data.user?.id,
+    const { error } = await supabase.functions.invoke("send-invitation", {
+      body: { email, clientBusinessId },
     });
 
-    if (invitationError) {
-      console.error("Error creating invitation:", invitationError);
-      return { success: false, message: "Error creating invitation" };
-    }
-
-    // Return the token so it can be used in the invitation email
-    return {
-      success: true,
-      message: "Invitation created successfully",
-      token,
-    };
-  } catch (error) {
-    console.error("Error in createInvitation:", error);
-    return { success: false, message: "An unexpected error occurred" };
-  }
-};
-
-/**
- * Check if an invitation token is valid
- */
-export const isValidInvitationToken = async (
-  token: string
-): Promise<boolean> => {
-  try {
-    if (!token) {
-      console.log("Token is empty or undefined");
-      return false;
-    }
-    
-    const cleanToken = token.trim();
-    console.log("Checking if token is valid:", cleanToken);
-    
-    // Directly check for the invitation with the token
-    const { data, error } = await supabase
-      .from("invitations")
-      .select("id")
-      .eq("token", cleanToken)
-      .is("accepted", false)
-      .gt("expires_at", new Date().toISOString());
-    
     if (error) {
-      console.error("Error checking invitation token:", error);
-      return false;
+      console.error("Error sending invitation:", error);
+      throw new Error(error.message);
     }
-    
-    if (data && data.length > 0) {
-      console.log("Token is valid, found invitation with id:", data[0].id);
-      return true;
-    }
-    
-    console.log("Token is invalid, no active invitations found");
-    return false;
-  } catch (error) {
-    console.error("Error in isValidInvitationToken:", error);
-    return false;
+  } catch (error: any) {
+    console.error("Error invoking send-invitation function:", error);
+    throw new Error(error.message || "Failed to send invitation");
   }
 };
 
 /**
- * Get details about an invitation from its token
+ * Get all invitations for a client business
+ * 
+ * @param clientBusinessId The ID of the client business
+ * @returns A promise that resolves to an array of invitations
  */
-export const getInvitationDetails = async (
-  token: string
-): Promise<{ email: string; clientBusinessId: string } | null> => {
-  try {
-    if (!token) {
-      console.log("Token is empty or undefined");
-      return null;
-    }
-    
-    const cleanToken = token.trim();
-    console.log("Fetching invitation with token:", cleanToken);
-    
-    // Perform the query to get the invitation details
-    const { data, error } = await supabase
-      .from("invitations")
-      .select("email, client_business_id, accepted, expires_at")
-      .eq("token", cleanToken)
-      .single();
+export const getClientBusinessInvitations = async (clientBusinessId: string): Promise<Invitation[]> => {
+  const { data, error } = await supabase
+    .from("invitations")
+    .select("*")
+    .eq("client_business_id", clientBusinessId)
+    .eq("accepted", false);
 
-    if (error) {
-      console.error("Error getting invitation details:", error);
-      
-      // Check if it's a not found error
-      if (error.code === 'PGRST116') {
-        console.log("No invitation found with token:", cleanToken);
-        
-        // Try to get all invitations to see what's available
-        const { data: allInvitations } = await supabase
-          .from("invitations")
-          .select("token, email")
-          .limit(10);
-          
-        console.log("Sample invitation tokens in database:", allInvitations || []);
-      }
-      
-      return null;
-    }
-
-    // Log additional information about the invitation that was found
-    console.log("Found invitation:", {
-      email: data.email,
-      clientBusinessId: data.client_business_id,
-      accepted: data.accepted,
-      expiresAt: data.expires_at,
-      expiryStatus: new Date(data.expires_at) > new Date() ? "Valid" : "Expired"
-    });
-    
-    // Check if invitation has been accepted
-    if (data.accepted) {
-      console.log("Invitation has already been accepted");
-      return null;
-    }
-    
-    // Check if invitation has expired
-    if (new Date(data.expires_at) < new Date()) {
-      console.log("Invitation has expired");
-      return null;
-    }
-
-    return {
-      email: data.email,
-      clientBusinessId: data.client_business_id,
-    };
-  } catch (error) {
-    console.error("Error in getInvitationDetails:", error);
-    return null;
+  if (error) {
+    console.error("Error fetching invitations:", error);
+    throw new Error(error.message);
   }
+
+  return data.map(invitation => ({
+    id: invitation.id,
+    email: invitation.email,
+    token: invitation.token,
+    clientBusinessId: invitation.client_business_id,
+    expiresAt: invitation.expires_at,
+    createdAt: invitation.created_at,
+    accepted: invitation.accepted
+  }));
 };
 
 /**
- * Accept an invitation and associate the user with the client business
+ * Accept an invitation
+ * 
+ * @param token The invitation token
+ * @returns A promise that resolves to a boolean indicating if the acceptance was successful
  */
-export const acceptInvitation = async (
-  token: string,
-  userId: string
-): Promise<boolean> => {
+export const acceptInvitation = async (token: string): Promise<boolean> => {
   try {
-    if (!token || !userId) {
-      console.error("Missing token or userId in acceptInvitation");
+    // Verify token is valid
+    const { data: isValid, error: validationError } = await supabase
+      .rpc("is_valid_invitation_token", { token_input: token });
+
+    if (validationError || !isValid) {
+      console.error("Invalid or expired invitation token:", validationError);
       return false;
     }
-    
-    const cleanToken = token.trim();
-    console.log(`Accepting invitation with token: ${cleanToken} for user: ${userId}`);
-    
-    // First, get the invitation details to make sure it exists and is valid
-    const { data: invitation, error: fetchError } = await supabase
-      .from("invitations")
-      .select("client_business_id, accepted, expires_at")
-      .eq("token", cleanToken)
-      .single();
-    
-    if (fetchError) {
-      console.error("Error fetching invitation during accept:", fetchError);
-      
-      // Check if the user already has an association with this business
-      // This could happen if the invitation was already accepted but the UI didn't update
-      const clientBusinessId = await getClientBusinessIdFromToken(cleanToken);
-      
-      if (clientBusinessId) {
-        console.log(`Checking if user ${userId} is already associated with business ${clientBusinessId}`);
-        const { data: existingAssociation } = await supabase
-          .from("user_client_businesses")
-          .select("id")
-          .eq("user_id", userId)
-          .eq("client_business_id", clientBusinessId)
-          .single();
-        
-        if (existingAssociation) {
-          console.log("User is already associated with this business");
-          return true;
-        }
-      }
-      
+
+    // Get user ID from session
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session?.user) {
+      console.error("No authenticated user found");
       return false;
     }
-    
-    if (!invitation) {
-      console.error("No invitation found with token:", cleanToken);
+
+    const userId = sessionData.session.user.id;
+
+    // Accept invitation
+    const { data: acceptResult, error: acceptError } = await supabase
+      .rpc("accept_invitation", { token_input: token, user_id_input: userId });
+
+    if (acceptError || !acceptResult) {
+      console.error("Error accepting invitation:", acceptError);
       return false;
     }
-    
-    // Even if invitation was already accepted, try to create the association anyway
-    // This provides better resilience in case the previous association attempt failed
-    
-    // Associate the user with the client business regardless of invitation status
-    console.log(`Associating user ${userId} with client business ${invitation.client_business_id}`);
-    
-    // FIX: Moving the on_conflict to its correct position right after the insert
-    const { error: associationError } = await supabase
-      .from("user_client_businesses")
-      .insert({
-        user_id: userId,
-        client_business_id: invitation.client_business_id,
-      })
-      .select() // Add a select to match the PostgrestQueryBuilder type that has on_conflict
-      .then(result => {
-        // Handle conflict manually since on_conflict is not available in this context
-        if (result.error && result.error.code === '23505') {  // Unique violation error code
-          console.log("User is already associated with this business");
-          return { error: null };
-        }
-        return result;
-      });
-    
-    if (associationError) {
-      console.error("Error creating user-business association:", associationError);
-      return false;
-    }
-    
-    // Mark the invitation as accepted if it wasn't already
-    if (!invitation.accepted) {
-      const { error: updateError } = await supabase
-        .from("invitations")
-        .update({ accepted: true })
-        .eq("token", cleanToken);
-      
-      if (updateError) {
-        console.warn("Error updating invitation status, but user association was created:", updateError);
-        // Continue anyway since the critical part (association) was successful
-      }
-    }
-    
-    console.log("Invitation accepted successfully");
+
     return true;
   } catch (error) {
-    console.error("Error in acceptInvitation:", error);
+    console.error("Error accepting invitation:", error);
     return false;
   }
 };
 
 /**
- * Helper function to get client business ID from a token
+ * Get details about a client business from an invitation token
+ * 
+ * @param token The invitation token
+ * @returns A promise that resolves to the client business name or null if not found
  */
-const getClientBusinessIdFromToken = async (token: string): Promise<string | null> => {
+export const getClientBusinessFromToken = async (token: string): Promise<{id: string, name: string} | null> => {
   try {
-    const { data, error } = await supabase
-      .from("invitations")
-      .select("client_business_id")
-      .eq("token", token)
-      .single();
-    
-    if (error || !data) {
+    // Get business ID from token
+    const { data: businessId, error: idError } = await supabase
+      .rpc("get_client_business_from_token", { token_input: token });
+
+    if (idError || !businessId) {
+      console.error("Error getting business ID from token:", idError);
       return null;
     }
-    
-    return data.client_business_id;
+
+    // Get business details
+    const { data: business, error: businessError } = await supabase
+      .from("client_businesses")
+      .select("id, name")
+      .eq("id", businessId)
+      .single();
+
+    if (businessError || !business) {
+      console.error("Error getting business details:", businessError);
+      return null;
+    }
+
+    return { id: business.id, name: business.name };
   } catch (error) {
-    console.error("Error getting client business ID from token:", error);
+    console.error("Error getting client business from token:", error);
     return null;
   }
 };
 
 /**
- * Get all client businesses associated with a user
+ * Assign a user to a client business directly
+ * 
+ * @param userId The ID of the user to assign
+ * @param clientBusinessId The ID of the client business
+ * @returns A promise that resolves when the user is assigned
  */
-export const getUserClientBusinesses = async (userId: string) => {
+export const assignUserToClientBusiness = async (userId: string, clientBusinessId: string): Promise<void> => {
   try {
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("user_client_businesses")
-      .select(`
-        client_business_id,
-        client_businesses:client_business_id (
-          id,
-          name,
-          industry,
-          email,
-          contact_name,
-          phone,
-          xero_connected,
-          created_at
-        )
-      `)
-      .eq("user_id", userId);
+      .insert({ user_id: userId, client_business_id: clientBusinessId })
+      .single();
 
     if (error) {
-      console.error("Error fetching user client businesses:", error);
-      return [];
+      if (error.code === '23505') { // Unique violation
+        console.log("User is already assigned to this client business");
+        return;
+      }
+      console.error("Error assigning user to client business:", error);
+      throw new Error(error.message);
     }
-
-    return data?.map(item => item.client_businesses) || [];
-  } catch (error) {
-    console.error("Error in getUserClientBusinesses:", error);
-    return [];
+  } catch (error: any) {
+    console.error("Error assigning user to client business:", error);
+    throw new Error(error.message || "Failed to assign user to client business");
   }
 };
 
 /**
- * Delete an invitation
+ * Remove a user from a client business
+ * 
+ * @param userId The ID of the user to remove
+ * @param clientBusinessId The ID of the client business
+ * @returns A promise that resolves when the user is removed
  */
-export const deleteInvitation = async (
-  invitationId: string
-): Promise<{ success: boolean; message: string }> => {
-  try {
-    const { error } = await supabase
-      .from("invitations")
-      .delete()
-      .eq("id", invitationId);
-
-    if (error) {
-      console.error("Error deleting invitation:", error);
-      return {
-        success: false,
-        message: "Error deleting invitation"
-      };
-    }
-
-    return {
-      success: true,
-      message: "Invitation deleted successfully"
-    };
-  } catch (error) {
-    console.error("Error in deleteInvitation:", error);
-    return {
-      success: false,
-      message: "An unexpected error occurred"
-    };
-  }
-};
-
-/**
- * Remove a user's access to a client business
- */
-export const removeUserFromClientBusiness = async (
-  userId: string,
-  clientBusinessId: string
-): Promise<{ success: boolean; message: string }> => {
+export const removeUserFromClientBusiness = async (userId: string, clientBusinessId: string): Promise<void> => {
   try {
     const { error } = await supabase
       .from("user_client_businesses")
       .delete()
-      .eq("user_id", userId)
-      .eq("client_business_id", clientBusinessId);
+      .match({ user_id: userId, client_business_id: clientBusinessId });
 
     if (error) {
       console.error("Error removing user from client business:", error);
-      return {
-        success: false,
-        message: "Error removing user from client business"
-      };
+      throw new Error(error.message);
     }
-
-    return {
-      success: true,
-      message: "User removed from client business successfully"
-    };
-  } catch (error) {
-    console.error("Error in removeUserFromClientBusiness:", error);
-    return {
-      success: false,
-      message: "An unexpected error occurred"
-    };
+  } catch (error: any) {
+    console.error("Error removing user from client business:", error);
+    throw new Error(error.message || "Failed to remove user from client business");
   }
+};
+
+/**
+ * Get users assigned to a client business
+ * 
+ * @param clientBusinessId The ID of the client business
+ * @returns A promise that resolves to an array of users
+ */
+export const getClientBusinessUsers = async (clientBusinessId: string) => {
+  const { data, error } = await supabase
+    .from("user_client_businesses")
+    .select(`
+      user_id,
+      profiles:user_id (
+        id,
+        name,
+        email,
+        role,
+        account_type
+      )
+    `)
+    .eq("client_business_id", clientBusinessId);
+
+  if (error) {
+    console.error("Error fetching client business users:", error);
+    throw new Error(error.message);
+  }
+
+  return data.map(item => item.profiles);
 };

@@ -1,10 +1,11 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "@/components/UserSidebar";
-import { getUserClientBusinesses } from "@/services/invitationService";
+import { getUserClientBusinesses } from "@/services/userService";
 import { 
   Building, 
   Boxes, 
