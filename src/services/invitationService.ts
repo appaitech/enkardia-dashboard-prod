@@ -13,6 +13,73 @@ export interface Invitation {
 }
 
 /**
+ * Create an invitation for a user to join a client business
+ * 
+ * @param email The email of the user to invite
+ * @param clientBusinessId The ID of the client business
+ * @returns A promise that resolves with the status of the invitation creation
+ */
+export const createInvitation = async (email: string, clientBusinessId: string): Promise<{success: boolean, message: string, token?: string}> => {
+  try {
+    // Check if user already exists
+    const { data: existingUsers } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("email", email);
+    
+    if (existingUsers && existingUsers.length > 0) {
+      const userId = existingUsers[0].id;
+      
+      // Check if the user is already associated with this client business
+      const { data: existingAssociation } = await supabase
+        .from("user_client_businesses")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("client_business_id", clientBusinessId);
+      
+      if (existingAssociation && existingAssociation.length > 0) {
+        return { success: false, message: "User is already associated with this client business" };
+      }
+      
+      // Associate existing user with the client business
+      const { error: associationError } = await supabase
+        .from("user_client_businesses")
+        .insert({ user_id: userId, client_business_id: clientBusinessId });
+      
+      if (associationError) {
+        console.error("Error associating user with client business:", associationError);
+        return { success: false, message: "Failed to associate user with client business" };
+      }
+      
+      return { success: true, message: "Existing user has been associated with the client business" };
+    }
+    
+    // Generate a unique token
+    const token = crypto.randomUUID();
+    
+    // Create new invitation
+    const { error } = await supabase
+      .from("invitations")
+      .insert({
+        email,
+        client_business_id: clientBusinessId,
+        token,
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+      });
+    
+    if (error) {
+      console.error("Error creating invitation:", error);
+      return { success: false, message: "Failed to create invitation" };
+    }
+    
+    return { success: true, message: "Invitation created successfully", token };
+  } catch (error: any) {
+    console.error("Error in createInvitation:", error);
+    return { success: false, message: error.message || "An unexpected error occurred" };
+  }
+};
+
+/**
  * Send an invitation to a user for a client business
  * 
  * @param email The email of the user to invite
@@ -65,12 +132,68 @@ export const getClientBusinessInvitations = async (clientBusinessId: string): Pr
 };
 
 /**
+ * Check if an invitation token is valid
+ * 
+ * @param token The invitation token
+ * @returns A promise that resolves to a boolean indicating if the token is valid
+ */
+export const isValidInvitationToken = async (token: string): Promise<boolean> => {
+  try {
+    // Verify token is valid
+    const { data: isValid, error: validationError } = await supabase
+      .rpc("is_valid_invitation_token", { token_input: token });
+
+    if (validationError) {
+      console.error("Error validating invitation token:", validationError);
+      return false;
+    }
+
+    return isValid || false;
+  } catch (error) {
+    console.error("Error checking invitation token validity:", error);
+    return false;
+  }
+};
+
+/**
+ * Get details about an invitation from a token
+ * 
+ * @param token The invitation token
+ * @returns A promise that resolves to invitation details or null if not found
+ */
+export const getInvitationDetails = async (token: string): Promise<{email: string, clientBusinessId: string} | null> => {
+  try {
+    const { data, error } = await supabase
+      .from("invitations")
+      .select("email, client_business_id")
+      .eq("token", token)
+      .eq("accepted", false)
+      .gt("expires_at", new Date().toISOString())
+      .single();
+
+    if (error || !data) {
+      console.error("Error getting invitation details:", error);
+      return null;
+    }
+
+    return {
+      email: data.email,
+      clientBusinessId: data.client_business_id
+    };
+  } catch (error) {
+    console.error("Error getting invitation details:", error);
+    return null;
+  }
+};
+
+/**
  * Accept an invitation
  * 
  * @param token The invitation token
+ * @param userId The ID of the user accepting the invitation
  * @returns A promise that resolves to a boolean indicating if the acceptance was successful
  */
-export const acceptInvitation = async (token: string): Promise<boolean> => {
+export const acceptInvitation = async (token: string, userId: string): Promise<boolean> => {
   try {
     // Verify token is valid
     const { data: isValid, error: validationError } = await supabase
@@ -80,15 +203,6 @@ export const acceptInvitation = async (token: string): Promise<boolean> => {
       console.error("Invalid or expired invitation token:", validationError);
       return false;
     }
-
-    // Get user ID from session
-    const { data: sessionData } = await supabase.auth.getSession();
-    if (!sessionData.session?.user) {
-      console.error("No authenticated user found");
-      return false;
-    }
-
-    const userId = sessionData.session.user.id;
 
     // Accept invitation
     const { data: acceptResult, error: acceptError } = await supabase
@@ -175,9 +289,9 @@ export const assignUserToClientBusiness = async (userId: string, clientBusinessI
  * 
  * @param userId The ID of the user to remove
  * @param clientBusinessId The ID of the client business
- * @returns A promise that resolves when the user is removed
+ * @returns A promise that resolves with information about the removal operation
  */
-export const removeUserFromClientBusiness = async (userId: string, clientBusinessId: string): Promise<void> => {
+export const removeUserFromClientBusiness = async (userId: string, clientBusinessId: string): Promise<{success: boolean, message: string}> => {
   try {
     const { error } = await supabase
       .from("user_client_businesses")
@@ -186,11 +300,13 @@ export const removeUserFromClientBusiness = async (userId: string, clientBusines
 
     if (error) {
       console.error("Error removing user from client business:", error);
-      throw new Error(error.message);
+      return { success: false, message: error.message };
     }
+    
+    return { success: true, message: "User removed successfully" };
   } catch (error: any) {
     console.error("Error removing user from client business:", error);
-    throw new Error(error.message || "Failed to remove user from client business");
+    return { success: false, message: error.message || "Failed to remove user from client business" };
   }
 };
 

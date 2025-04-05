@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
@@ -78,7 +79,7 @@ const InviteUserForm = ({
       reset();
       if (onSuccess) onSuccess();
       
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error inviting user:", err);
       setError(err.message || "Failed to invite user");
       toast.error("Failed to invite user");
