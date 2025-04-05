@@ -11,10 +11,11 @@ import ClientDetail from './pages/admin/ClientDetail';
 import UserDashboard from './pages/user/UserDashboard';
 import ProfitAndLossPage from './pages/user/ProfitAndLossPage';
 import NotFound from './pages/NotFound';
-import { Toaster } from "@/components/ui/toaster"
+import { Toaster } from "@/components/ui/toaster";
 import ProtectedRoute from './components/ProtectedRoute';
 import UsersManagement from "./pages/admin/UsersManagement";
 
+// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
