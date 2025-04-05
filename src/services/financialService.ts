@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ProfitAndLossRow {
@@ -53,15 +52,12 @@ export interface MonthlyProfitAndLoss {
 }
 
 export interface VisualDashboardData {
-  // Define the structure of visual dashboard data
+  // Updated to match the actual structure of the visual dashboard data
   Id: string;
   Status: string;
   ProviderName: string;
   DateTimeUTC: string;
-  ReportData: {
-    // Any dashboard-specific data structure
-    [key: string]: any;
-  };
+  Reports: ProfitAndLossReport[]; // Same structure as other reports
 }
 
 export enum FinancialDataType {

@@ -13,7 +13,8 @@ import {
   ResponsiveContainer,
   PieChart,
   Pie,
-  Cell
+  Cell,
+  TooltipProps
 } from 'recharts';
 
 interface VisualDashboardProps {
@@ -68,6 +69,20 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#8DD1E1', '#A4DE6C', '#D0ED57'];
 
+  // Custom label formatter for the pie charts
+  const renderCustomizedLabel = (props: any) => {
+    const { name, percent } = props;
+    return `${name}: ${(percent * 100).toFixed(0)}%`;
+  };
+
+  // Custom tooltip formatter that handles number values
+  const customTooltipFormatter = (value: number | string) => {
+    if (typeof value === 'number') {
+      return `$${value.toFixed(2)}`;
+    }
+    return value;
+  };
+
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
@@ -98,7 +113,9 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis type="number" />
             <YAxis type="category" dataKey="name" width={100} />
-            <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+            <Tooltip formatter={(value) => {
+              return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
+            }} />
             <Legend />
             <Bar dataKey="value" fill="#FF8042" name="Amount" />
           </BarChart>
@@ -119,13 +136,17 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
               fill="#8884d8"
               dataKey="value"
               nameKey="name"
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              label={({ name, percent }) => {
+                return `${name}: ${(typeof percent === 'number' ? (percent * 100).toFixed(0) : '0')}%`;
+              }}
             >
               {incomeData.map((entry, index) => (
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+            <Tooltip formatter={(value) => {
+              return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
+            }} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
@@ -150,7 +171,9 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                 <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
               ))}
             </Pie>
-            <Tooltip formatter={(value) => `$${value.toFixed(2)}`} />
+            <Tooltip formatter={(value) => {
+              return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
+            }} />
             <Legend />
           </PieChart>
         </ResponsiveContainer>
