@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ProfitAndLossRow {
@@ -57,10 +58,22 @@ export enum FinancialDataType {
   VISUAL_DASHBOARD = "visualFriendlyPnlDashboardDisplay"
 }
 
+/**
+ * Constructs the file path for various financial data types
+ * @param businessId The client business ID
+ * @param dataType The type of financial data to retrieve
+ * @returns The constructed file path
+ */
 const getFinancialDataPath = (businessId: string, dataType: FinancialDataType): string => {
   return `/client_businesses/${businessId}/${dataType}.json`;
 };
 
+/**
+ * Fetches the current financial year profit and loss data
+ * @param businessId The client business ID
+ * @returns Promise with the profit and loss data
+ * @throws Error if businessId is null or if fetching fails
+ */
 export async function getProfitAndLossData(businessId: string | null): Promise<ProfitAndLossResponse> {
   if (!businessId) {
     throw new Error('No business ID provided');
@@ -70,7 +83,7 @@ export async function getProfitAndLossData(businessId: string | null): Promise<P
     const response = await fetch(getFinancialDataPath(businessId, FinancialDataType.BASIC_CURRENT_YEAR));
     
     if (!response.ok) {
-      throw new Error(`Failed to load profit and loss data for business ${businessId}`);
+      throw new Error(`Failed to load profit and loss data for business ${businessId}: ${response.status} ${response.statusText}`);
     }
     
     return await response.json();
@@ -80,6 +93,12 @@ export async function getProfitAndLossData(businessId: string | null): Promise<P
   }
 }
 
+/**
+ * Fetches monthly profit and loss data for the past 12 months
+ * @param businessId The client business ID
+ * @returns Promise with the monthly profit and loss data
+ * @throws Error if businessId is null or if fetching fails
+ */
 export async function getMonthlyProfitAndLossData(businessId: string | null): Promise<MonthlyProfitAndLoss> {
   if (!businessId) {
     throw new Error('No business ID provided');
@@ -89,7 +108,7 @@ export async function getMonthlyProfitAndLossData(businessId: string | null): Pr
     const response = await fetch(getFinancialDataPath(businessId, FinancialDataType.MONTHLY_BREAKDOWN));
     
     if (!response.ok) {
-      throw new Error(`Failed to load monthly profit and loss data for business ${businessId}`);
+      throw new Error(`Failed to load monthly profit and loss data for business ${businessId}: ${response.status} ${response.statusText}`);
     }
     
     return await response.json();
@@ -99,6 +118,12 @@ export async function getMonthlyProfitAndLossData(businessId: string | null): Pr
   }
 }
 
+/**
+ * Fetches data for the visual dashboard display
+ * @param businessId The client business ID
+ * @returns Promise with the visual dashboard data
+ * @throws Error if businessId is null or if fetching fails
+ */
 export async function getVisualDashboardData(businessId: string | null): Promise<VisualDashboardData> {
   if (!businessId) {
     throw new Error('No business ID provided');
@@ -108,7 +133,7 @@ export async function getVisualDashboardData(businessId: string | null): Promise
     const response = await fetch(getFinancialDataPath(businessId, FinancialDataType.VISUAL_DASHBOARD));
     
     if (!response.ok) {
-      throw new Error(`Failed to load visual dashboard data for business ${businessId}`);
+      throw new Error(`Failed to load visual dashboard data for business ${businessId}: ${response.status} ${response.statusText}`);
     }
     
     return await response.json();
