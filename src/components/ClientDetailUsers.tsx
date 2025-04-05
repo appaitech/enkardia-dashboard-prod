@@ -4,21 +4,22 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
   Users, 
   UserPlus, 
   Mail, 
   AlertTriangle, 
   Loader2,
-  Trash2,
-  UserX
+  UserX,
+  Search,
+  Check
 } from "lucide-react";
-import InviteUserForm from "./InviteUserForm";
-import { deleteInvitation, removeUserFromClientBusiness } from "@/services/invitationService";
+import { removeUserFromClientBusiness } from "@/services/invitationService";
 import { toast } from "sonner";
 
 interface ClientDetailUsersProps {
@@ -34,21 +35,21 @@ interface AssignedUser {
   role: string;
 }
 
-// Interface for pending invitations
-interface Invitation {
+// Interface for available users that can be assigned
+interface AvailableUser {
   id: string;
   email: string;
-  created_at: string;
-  expires_at: string;
+  name: string;
+  role: string;
 }
 
 const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientName }) => {
-  const [isInviteDialogOpen, setIsInviteDialogOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"users" | "invitations">("users");
-  const [deletingInvitation, setDeletingInvitation] = useState<string | null>(null);
+  const [isAssignUserDialogOpen, setIsAssignUserDialogOpen] = useState(false);
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const [isRemoveUserDialogOpen, setIsRemoveUserDialogOpen] = useState(false);
   const [userToRemove, setUserToRemove] = useState<AssignedUser | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [assigningUserId, setAssigningUserId] = useState<string | null>(null);
   
   // Fetch users associated with this client business
   const { 
@@ -89,53 +90,54 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     }
   });
   
-  // Fetch pending invitations for this client business
+  // Fetch all users that could be assigned to this client
   const {
-    data: invitations,
-    isLoading: isLoadingInvitations,
-    isError: isErrorInvitations,
-    refetch: refetchInvitations
+    data: availableUsers,
+    isLoading: isLoadingAvailableUsers,
+    isError: isErrorAvailableUsers,
+    refetch: refetchAvailableUsers
   } = useQuery({
-    queryKey: ["client-invitations", clientId],
+    queryKey: ["available-users", clientId, searchQuery],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invitations")
-        .select("id, email, created_at, expires_at")
-        .eq("client_business_id", clientId)
-        .eq("accepted", false)
-        .gt("expires_at", "now()") // Fixed: Changed from lt to gt to get unexpired invitations
-        .order("created_at", { ascending: false });
+      try {
+        // Get user_ids already assigned to this client business
+        const { data: userClientData, error: userClientError } = await supabase
+          .from("user_client_businesses")
+          .select("user_id")
+          .eq("client_business_id", clientId);
         
-      if (error) throw error;
-      return data as Invitation[];
-    }
-  });
-  
-  const handleInviteSuccess = () => {
-    setIsInviteDialogOpen(false);
-    refetchUsers();
-    refetchInvitations();
-  };
-
-  const handleDeleteInvitation = async (invitationId: string) => {
-    setDeletingInvitation(invitationId);
-    
-    try {
-      const result = await deleteInvitation(invitationId);
-      
-      if (result.success) {
-        toast.success(result.message);
-        refetchInvitations();
-      } else {
-        toast.error(result.message);
+        if (userClientError) throw userClientError;
+        
+        const assignedUserIds = userClientData?.map(item => item.user_id) || [];
+        
+        // Get all users that are not already assigned
+        let query = supabase
+          .from("profiles")
+          .select("id, email, name, role")
+          .neq("account_type", "CONSOLE"); // Only show CLIENT users
+          
+        // Only exclude already assigned users if there are any
+        if (assignedUserIds.length > 0) {
+          query = query.not("id", "in", `(${assignedUserIds.join(",")})`);
+        }
+          
+        // Add search filter if search query exists
+        if (searchQuery) {
+          query = query.or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
+        }
+        
+        const { data: availableUsersData, error: availableUsersError } = await query;
+        
+        if (availableUsersError) throw availableUsersError;
+        
+        return (availableUsersData || []) as AvailableUser[];
+      } catch (error) {
+        console.error("Error fetching available users:", error);
+        throw error;
       }
-    } catch (error) {
-      console.error("Error deleting invitation:", error);
-      toast.error("An unexpected error occurred while deleting the invitation");
-    } finally {
-      setDeletingInvitation(null);
-    }
-  };
+    },
+    enabled: isAssignUserDialogOpen // Only run this query when the dialog is open
+  });
   
   const openRemoveUserDialog = (user: AssignedUser) => {
     setUserToRemove(user);
@@ -165,6 +167,37 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
       setUserToRemove(null);
     }
   };
+  
+  const handleAssignUser = async (userId: string) => {
+    setAssigningUserId(userId);
+    
+    try {
+      // Create association between user and business
+      const { error } = await supabase
+        .from("user_client_businesses")
+        .insert({
+          user_id: userId,
+          client_business_id: clientId
+        });
+      
+      if (error) {
+        throw error;
+      }
+      
+      toast.success("User successfully assigned to client");
+      refetchUsers();
+      refetchAvailableUsers();
+      setIsAssignUserDialogOpen(false);
+    } catch (error) {
+      console.error("Error assigning user:", error);
+      toast.error("An unexpected error occurred while assigning the user");
+    } finally {
+      setAssigningUserId(null);
+    }
+  };
+  
+  // Filter available users based on search query
+  const filteredAvailableUsers = availableUsers || [];
   
   // Render users list
   const renderUsersList = () => {
@@ -198,101 +231,53 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
             variant="outline" 
             size="sm" 
             className="mt-4"
-            onClick={() => setIsInviteDialogOpen(true)}
+            onClick={() => setIsAssignUserDialogOpen(true)}
           >
             <UserPlus className="h-4 w-4 mr-2" />
-            Invite User
+            Assign User
           </Button>
         </div>
       );
     }
     
     return (
-      <div className="divide-y">
-        {assignedUsers.map(user => (
-          <div key={user.id} className="py-3 flex items-center justify-between">
-            <div>
-              <div className="font-medium">{user.name}</div>
-              <div className="text-sm text-slate-500 flex items-center">
-                <Mail className="h-3 w-3 mr-1" />
-                {user.email}
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <Badge variant="outline">{user.role}</Badge>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={() => openRemoveUserDialog(user)}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-              >
-                <UserX className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        ))}
-      </div>
-    );
-  };
-  
-  // Render invitations list
-  const renderInvitationsList = () => {
-    if (isLoadingInvitations) {
-      return (
-        <div className="flex flex-col items-center justify-center p-6">
-          <Loader2 className="h-6 w-6 animate-spin text-slate-400 mb-2" />
-          <p className="text-slate-500">Loading invitations...</p>
-        </div>
-      );
-    }
-    
-    if (isErrorInvitations) {
-      return (
-        <div className="flex flex-col items-center justify-center p-6">
-          <AlertTriangle className="h-6 w-6 text-amber-500 mb-2" />
-          <p className="text-slate-500">Error loading invitations</p>
-          <Button variant="outline" size="sm" className="mt-2" onClick={() => refetchInvitations()}>
-            Try again
-          </Button>
-        </div>
-      );
-    }
-    
-    if (!invitations || invitations.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center p-6">
-          <Mail className="h-8 w-8 text-slate-300 mb-2" />
-          <p className="text-slate-500">No pending invitations</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="divide-y">
-        {invitations.map(invitation => (
-          <div key={invitation.id} className="py-3 flex items-center justify-between">
-            <div>
-              <div className="font-medium">{invitation.email}</div>
-              <div className="text-xs text-slate-500 mt-1">
-                Sent: {new Date(invitation.created_at).toLocaleDateString()}
-                <span className="mx-1">•</span>
-                Expires: {new Date(invitation.expires_at).toLocaleDateString()}
-              </div>
-            </div>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={() => handleDeleteInvitation(invitation.id)} 
-              disabled={deletingInvitation === invitation.id}
-              className="text-destructive hover:text-destructive hover:bg-destructive/10"
-            >
-              {deletingInvitation === invitation.id ? 
-                <Loader2 className="h-4 w-4 animate-spin" /> : 
-                <Trash2 className="h-4 w-4" />
-              }
-            </Button>
-          </div>
-        ))}
+      <div className="overflow-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead className="w-[100px]">Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {assignedUsers.map(user => (
+              <TableRow key={user.id}>
+                <TableCell className="font-medium">{user.name}</TableCell>
+                <TableCell>
+                  <div className="flex items-center">
+                    <Mail className="h-3 w-3 mr-1 text-slate-400" />
+                    {user.email}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge variant="outline">{user.role}</Badge>
+                </TableCell>
+                <TableCell>
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={() => openRemoveUserDialog(user)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <UserX className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
     );
   };
@@ -304,58 +289,100 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
           <div>
             <CardTitle className="text-lg flex items-center">
               <Users className="mr-2 h-5 w-5" />
-              Users & Invitations
+              Users
             </CardTitle>
             <CardDescription>
               Manage users associated with this client
             </CardDescription>
           </div>
-          <Button onClick={() => setIsInviteDialogOpen(true)}>
+          <Button onClick={() => setIsAssignUserDialogOpen(true)}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Invite User
+            Assign User
           </Button>
         </CardHeader>
         
         <CardContent>
-          <Tabs 
-            value={activeTab} 
-            onValueChange={(v) => setActiveTab(v as "users" | "invitations")}
-          >
-            <TabsList className="w-full grid grid-cols-2 mb-4">
-              <TabsTrigger value="users">
-                Assigned Users
-              </TabsTrigger>
-              <TabsTrigger value="invitations">
-                Pending Invitations
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="users" className="mt-1">
-              {renderUsersList()}
-            </TabsContent>
-            
-            <TabsContent value="invitations" className="mt-1">
-              {renderInvitationsList()}
-            </TabsContent>
-          </Tabs>
+          {renderUsersList()}
         </CardContent>
       </Card>
       
-      {/* Invite User Dialog */}
-      <Dialog open={isInviteDialogOpen} onOpenChange={setIsInviteDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+      {/* Assign User Dialog */}
+      <Dialog open={isAssignUserDialogOpen} onOpenChange={setIsAssignUserDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Invite User</DialogTitle>
+            <DialogTitle>Assign User</DialogTitle>
             <DialogDescription>
-              Invite a user to access this client business dashboard
+              Assign an existing user to access {clientName}
             </DialogDescription>
           </DialogHeader>
-          <InviteUserForm 
-            clientId={clientId} 
-            clientName={clientName} 
-            onSuccess={handleInviteSuccess}
-            onCancel={() => setIsInviteDialogOpen(false)}
-          />
+          
+          <div className="mt-4 mb-4">
+            <div className="relative">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Search users by name or email"
+                className="pl-8"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="max-h-[300px] overflow-y-auto border rounded-md">
+            {isLoadingAvailableUsers ? (
+              <div className="flex justify-center items-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+              </div>
+            ) : filteredAvailableUsers.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Email</TableHead>
+                    <TableHead>Role</TableHead>
+                    <TableHead className="w-[80px]">Action</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredAvailableUsers.map((user) => (
+                    <TableRow key={user.id}>
+                      <TableCell className="font-medium">{user.name}</TableCell>
+                      <TableCell>{user.email}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{user.role}</Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                          onClick={() => handleAssignUser(user.id)}
+                          disabled={assigningUserId === user.id}
+                        >
+                          {assigningUserId === user.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Check className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8">
+                <Users className="h-8 w-8 text-slate-300 mb-2" />
+                <p className="text-slate-500">No matching users found</p>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsAssignUserDialogOpen(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
       
