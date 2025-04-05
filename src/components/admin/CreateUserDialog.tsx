@@ -1,3 +1,4 @@
+
 import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -76,6 +77,10 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
   const onSubmit = async (data: FormValues) => {
     try {
+      if (!session) {
+        throw new Error("You must be logged in to create users");
+      }
+
       const { data: response, error } = await supabase.functions.invoke("create-user", {
         body: {
           email: data.email,
@@ -85,7 +90,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
           role: data.role
         },
         headers: {
-          Authorization: `Bearer ${session?.access_token}`,
+          Authorization: `Bearer ${session.access_token}`,
         },
       });
 

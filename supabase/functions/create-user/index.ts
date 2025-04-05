@@ -20,6 +20,7 @@ serve(async (req) => {
     // Get authorization header
     const authHeader = req.headers.get("Authorization");
     if (!authHeader) {
+      console.error("Authorization header is missing");
       return new Response(
         JSON.stringify({ error: "No authorization header" }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -97,7 +98,7 @@ serve(async (req) => {
     const { data, error } = await supabaseAdmin.auth.admin.createUser({
       email,
       password,
-      email_confirm: true,
+      email_confirm: true, // Auto-confirm email
       user_metadata: {
         name,
         account_type,
