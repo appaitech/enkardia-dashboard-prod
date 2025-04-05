@@ -35,7 +35,7 @@ const ProfitAndLossPage: React.FC = () => {
     refetch: refetchPL
   } = useQuery({
     queryKey: ["profit-and-loss", selectedBusinessId],
-    queryFn: getProfitAndLossData,
+    queryFn: () => getProfitAndLossData(selectedBusinessId),
     enabled: !!selectedBusinessId,
   });
 
@@ -200,4 +200,3 @@ const ProfitAndLossPage: React.FC = () => {
 };
 
 export default ProfitAndLossPage;
-

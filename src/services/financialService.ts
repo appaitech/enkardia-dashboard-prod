@@ -33,14 +33,19 @@ export interface ProfitAndLossResponse {
   Reports: ProfitAndLossReport[];
 }
 
-export async function getProfitAndLossData(): Promise<ProfitAndLossResponse> {
-  // In a production app, you would likely fetch this from an API
-  // For this example, we're using the static JSON file
+export async function getProfitAndLossData(businessId: string | null): Promise<ProfitAndLossResponse> {
+  if (!businessId) {
+    throw new Error('No business ID provided');
+  }
+
   try {
-    const response = await fetch('/ProfitAndLossResponse.json');
+    // Load the P&L data from the client-specific file
+    const response = await fetch(`/client_businesses/${businessId}/basicCurrentFinancialYear.json`);
+    
     if (!response.ok) {
-      throw new Error('Failed to load profit and loss data');
+      throw new Error(`Failed to load profit and loss data for business ${businessId}`);
     }
+    
     return await response.json();
   } catch (error) {
     console.error("Error fetching P&L data:", error);
