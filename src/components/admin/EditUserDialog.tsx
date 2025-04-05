@@ -1,10 +1,9 @@
-
 import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { User, Shield, Desktop, Smartphone } from "lucide-react";
+import { User, Shield, Monitor, Smartphone } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 import {
@@ -97,29 +96,24 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     try {
       console.log("Updating user profile with data:", data);
       
-      // Create updates object with only the fields that should be updated
       const updates: { 
         name?: string; 
         role?: "ADMIN" | "STANDARD";
         account_type?: "CONSOLE" | "CLIENT";
       } = {};
       
-      // Only include name if it's different from current
       if (data.name !== user.name) {
         updates.name = data.name;
       }
       
-      // Only include role if admin and role is different
       if (isAdmin && data.role !== user.role) {
         updates.role = data.role;
       }
       
-      // Only include account_type if admin and account_type is different
       if (isAdmin && data.account_type !== user.account_type) {
         updates.account_type = data.account_type;
       }
       
-      // Only update if there are changes
       if (Object.keys(updates).length > 0) {
         await updateUserProfile(user.id, updates);
         toast.success(`User ${data.name} updated successfully`);
@@ -221,7 +215,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                         <SelectContent>
                           <SelectItem value="CONSOLE">
                             <div className="flex items-center gap-2">
-                              <Desktop className="h-4 w-4 text-blue-500" />
+                              <Monitor className="h-4 w-4 text-blue-500" />
                               <span>CONSOLE</span>
                             </div>
                           </SelectItem>
