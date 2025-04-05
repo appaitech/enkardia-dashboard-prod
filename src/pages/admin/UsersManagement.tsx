@@ -61,11 +61,14 @@ const UsersManagement = () => {
     // Users can always edit themselves
     if (userData.id === user.id) return true;
     
-    // Admins can edit anyone
-    if (isAdmin) return true;
-    
-    // Console users can edit clients
-    if (isConsole && userData.account_type === "CLIENT") return true;
+    // Only CONSOLE ADMIN users can edit other users
+    if (isAdmin && isConsole) {
+      // CONSOLE ADMIN users cannot edit other CONSOLE ADMIN users
+      if (userData.account_type === "CONSOLE" && userData.role === "ADMIN") {
+        return false;
+      }
+      return true;
+    }
     
     return false;
   };
@@ -77,8 +80,14 @@ const UsersManagement = () => {
     // Users cannot delete themselves
     if (userData.id === user.id) return false;
     
-    // Only admins can delete users
-    if (isAdmin) return true;
+    // Only CONSOLE ADMIN users can delete other users
+    if (isAdmin && isConsole) {
+      // CONSOLE ADMIN users cannot delete other CONSOLE ADMIN users
+      if (userData.account_type === "CONSOLE" && userData.role === "ADMIN") {
+        return false;
+      }
+      return true;
+    }
     
     return false;
   };
@@ -125,8 +134,8 @@ const UsersManagement = () => {
   };
 
   const handleCreateUser = () => {
-    if (!isAdmin) {
-      toast.error("Only administrators can create new users");
+    if (!isAdmin || !isConsole) {
+      toast.error("Only CONSOLE ADMIN users can create new users");
       return;
     }
     setCreateDialogOpen(true);
@@ -145,7 +154,12 @@ const UsersManagement = () => {
 
   const handleDeleteUser = (userData: UserData) => {
     if (!canDeleteUser(userData)) {
-      toast.error("You don't have permission to delete this user");
+      const isConsoleAdmin = userData.account_type === "CONSOLE" && userData.role === "ADMIN";
+      if (isConsoleAdmin && isAdmin && isConsole) {
+        toast.error("You cannot delete other CONSOLE ADMIN users");
+      } else {
+        toast.error("You don't have permission to delete this user");
+      }
       return;
     }
     
@@ -183,7 +197,7 @@ const UsersManagement = () => {
               <p className="text-slate-500">Manage console and client users</p>
             </div>
             
-            {isAdmin && (
+            {isAdmin && isConsole && (
               <Button onClick={handleCreateUser}>
                 <UserPlus className="mr-2 h-4 w-4" />
                 Create User

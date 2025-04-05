@@ -46,10 +46,19 @@ Deno.serve(async (req) => {
 
     console.log("Authenticated user:", authenticatedUser.id);
 
+    // Parse request body to get the userId
+    const { userId } = await req.json();
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'Missing userId in request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Check if the authenticated user has admin privileges
     const { data: adminCheck, error: roleCheckError } = await supabaseAdmin
       .from('profiles')
-      .select('role')
+      .select('role, account_type')
       .eq('id', authenticatedUser.id)
       .single();
 
@@ -61,20 +70,43 @@ Deno.serve(async (req) => {
       );
     }
 
-    if (!adminCheck || adminCheck.role !== 'ADMIN') {
-      console.log("Non-admin attempted deletion, role:", adminCheck?.role);
+    if (!adminCheck || adminCheck.role !== 'ADMIN' || adminCheck.account_type !== 'CONSOLE') {
+      console.log("Non-admin attempted deletion, role:", adminCheck?.role, "account type:", adminCheck?.account_type);
       return new Response(
         JSON.stringify({ error: 'Only administrators can delete users' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Parse request body to get the userId
-    const { userId } = await req.json();
-    if (!userId) {
+    // Don't allow users to delete themselves
+    if (userId === authenticatedUser.id) {
+      console.log("User attempted to delete themselves:", userId);
       return new Response(
-        JSON.stringify({ error: 'Missing userId in request body' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'You cannot delete your own account' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Check if target user is a CONSOLE ADMIN (which cannot be deleted by other CONSOLE ADMINs)
+    const { data: targetUserData, error: targetUserError } = await supabaseAdmin
+      .from('profiles')
+      .select('role, account_type')
+      .eq('id', userId)
+      .single();
+
+    if (targetUserError) {
+      console.error("Error checking target user:", targetUserError);
+      return new Response(
+        JSON.stringify({ error: 'Error checking target user' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    if (targetUserData && targetUserData.role === 'ADMIN' && targetUserData.account_type === 'CONSOLE') {
+      console.log("User attempted to delete another CONSOLE ADMIN user:", userId);
+      return new Response(
+        JSON.stringify({ error: 'CONSOLE ADMIN users cannot delete other CONSOLE ADMIN users' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 

@@ -38,10 +38,23 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
   onUserDeleted,
 }) => {
   const [isDeleting, setIsDeleting] = useState(false);
-  const { session } = useAuth();
+  const { session, user: currentUser } = useAuth();
+
+  // Check if the user is a CONSOLE ADMIN user trying to delete another CONSOLE ADMIN
+  const isConsoleTryingToDeleteAdmin = 
+    user.account_type === "CONSOLE" && 
+    user.role === "ADMIN" && 
+    currentUser?.accountType === "CONSOLE" && 
+    currentUser?.role === "ADMIN";
 
   const handleDelete = async () => {
     if (isDeleting) return; // Prevent multiple clicks
+    
+    // Prevent CONSOLE ADMINs from deleting other CONSOLE ADMINs
+    if (isConsoleTryingToDeleteAdmin) {
+      toast.error("You cannot delete other admin console users");
+      return;
+    }
     
     setIsDeleting(true);
     try {
@@ -93,6 +106,12 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
             <li><span className="font-medium">Role:</span> {user.role}</li>
             <li><span className="font-medium">Account Type:</span> {user.account_type}</li>
           </ul>
+          
+          {isConsoleTryingToDeleteAdmin && (
+            <div className="mt-3 text-red-600 text-sm">
+              You cannot delete another admin console user.
+            </div>
+          )}
         </div>
 
         <DialogFooter>
@@ -107,7 +126,7 @@ const DeleteUserDialog: React.FC<DeleteUserDialogProps> = ({
           <Button 
             variant="destructive" 
             onClick={handleDelete}
-            disabled={isDeleting}
+            disabled={isDeleting || isConsoleTryingToDeleteAdmin}
           >
             {isDeleting ? (
               <>

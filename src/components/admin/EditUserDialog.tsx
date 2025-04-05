@@ -72,15 +72,21 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
 }) => {
   const { user: currentUser, updateUserProfile } = useAuth();
   
+  const isCurrentUserConsoleAdmin = currentUser?.accountType === "CONSOLE" && currentUser?.role === "ADMIN";
+  const isTargetUserConsoleAdmin = user.account_type === "CONSOLE" && user.role === "ADMIN";
+  
+  // Determine if current user is editing themselves
+  const isEditingSelf = currentUser?.id === user.id;
+  
   // Determine if the current user can edit the account type
-  const canEditAccountType = isAdmin;
+  // Only CONSOLE ADMINs can edit account type, but they cannot change other CONSOLE ADMINs
+  const canEditAccountType = isCurrentUserConsoleAdmin && 
+    (!isTargetUserConsoleAdmin || isEditingSelf);
   
   // Determine if the current user can edit the role
-  const canEditRole = isAdmin || 
-    (currentUser?.accountType === "CONSOLE" && user.account_type === "CLIENT");
-  
-  // Current user is editing themselves
-  const isEditingSelf = currentUser?.id === user.id;
+  // Only CONSOLE ADMINs can edit role, but they cannot change other CONSOLE ADMINs
+  const canEditRole = isCurrentUserConsoleAdmin && 
+    (!isTargetUserConsoleAdmin || isEditingSelf);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -117,6 +123,12 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         updates.name = data.name;
       }
       
+      // Check if user is trying to edit a CONSOLE ADMIN and they themselves are not the user
+      if (!isEditingSelf && isTargetUserConsoleAdmin && isCurrentUserConsoleAdmin) {
+        toast.error("You cannot modify other CONSOLE ADMIN users");
+        return;
+      }
+      
       if (canEditRole && data.role !== user.role) {
         updates.role = data.role;
       }
@@ -147,9 +159,14 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>
             Update user details and permissions.
-            {!isAdmin && !canEditRole && (
+            {!isCurrentUserConsoleAdmin && (
               <div className="mt-2 text-amber-500 text-xs">
                 Note: Some fields are disabled based on your permissions.
+              </div>
+            )}
+            {isCurrentUserConsoleAdmin && isTargetUserConsoleAdmin && !isEditingSelf && (
+              <div className="mt-2 text-amber-500 text-xs">
+                Note: You cannot modify other CONSOLE ADMIN users.
               </div>
             )}
           </DialogDescription>
@@ -212,7 +229,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                   </Select>
                   {!canEditRole && (
                     <FormDescription className="text-amber-500">
-                      You don't have permission to change role
+                      {isTargetUserConsoleAdmin && !isEditingSelf 
+                        ? "You cannot modify other CONSOLE ADMIN users"
+                        : "You don't have permission to change role"}
                     </FormDescription>
                   )}
                   {canEditRole && (
@@ -258,7 +277,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                   </Select>
                   {!canEditAccountType && (
                     <FormDescription className="text-amber-500">
-                      Only admins can change account type
+                      {isTargetUserConsoleAdmin && !isEditingSelf 
+                        ? "You cannot modify other CONSOLE ADMIN users"
+                        : "Only CONSOLE ADMIN users can change account type"}
                     </FormDescription>
                   )}
                   {canEditAccountType && (
@@ -280,7 +301,10 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button 
+                type="submit" 
+                disabled={isSubmitting || (isTargetUserConsoleAdmin && !isEditingSelf && isCurrentUserConsoleAdmin)}
+              >
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
