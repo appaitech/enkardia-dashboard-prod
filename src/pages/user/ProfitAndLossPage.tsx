@@ -180,17 +180,17 @@ const ProfitAndLossPage: React.FC = () => {
         {plData && (
           <>
             <div className="mb-8">
-              <ProfitAndLossSummary data={plData} />
+              <ProfitAndLossSummary report={plData.Reports[0]} />
             </div>
 
             <div className="mb-8">
               <h2 className="text-xl font-semibold mb-4">Revenue & Expenses</h2>
-              <ProfitAndLossChart data={plData} />
+              <ProfitAndLossChart rows={plData.Reports[0].Rows} />
             </div>
 
             <div>
               <h2 className="text-xl font-semibold mb-4">Detailed Statement</h2>
-              <ProfitAndLossTable data={plData} />
+              <ProfitAndLossTable rows={plData.Reports[0].Rows} period={plData.Reports[0].ReportDate} />
             </div>
           </>
         )}
