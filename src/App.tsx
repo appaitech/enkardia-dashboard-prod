@@ -1,9 +1,8 @@
 
 import React from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
-import Index from './pages/Index';
 import LoginPage from './pages/LoginPage';
 import AcceptInvitationPage from './pages/AcceptInvitationPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
@@ -24,8 +23,9 @@ const App: React.FC = () => {
         <AuthProvider>
           <Toaster />
           <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/login" element={<LoginPage />} />
+            {/* Make LoginPage the home page */}
+            <Route path="/" element={<LoginPage />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
             
             {/* Admin routes */}
