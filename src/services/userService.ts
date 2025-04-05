@@ -51,3 +51,18 @@ export const getUserClientBusinesses = async (userId: string): Promise<DbClientB
   console.log(`Found ${clientBusinesses.length} client businesses for user:`, userId);
   return clientBusinesses;
 };
+
+/**
+ * Get the currently selected client business ID from localStorage
+ * or null if none is selected
+ */
+export const getSelectedClientBusinessId = (): string | null => {
+  return localStorage.getItem('selectedClientBusinessId');
+};
+
+/**
+ * Save the selected client business ID to localStorage
+ */
+export const saveSelectedClientBusinessId = (businessId: string): void => {
+  localStorage.setItem('selectedClientBusinessId', businessId);
+};
