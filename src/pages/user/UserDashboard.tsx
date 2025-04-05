@@ -16,10 +16,13 @@ import {
   Loader2,
   RefreshCcw,
   AlertTriangle,
-  UserCircle
+  UserCircle,
+  BarChart
 } from "lucide-react";
 import { DbClientBusiness } from "@/types/client";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
+import { getVisualDashboardData } from "@/services/financialService";
+import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -27,13 +30,25 @@ const UserDashboard = () => {
 
   const { 
     data: clientBusinesses,
-    isLoading,
-    isError,
-    refetch
+    isLoading: isLoadingBusinesses,
+    isError: isBusinessError,
+    refetch: refetchBusinesses
   } = useQuery({
     queryKey: ["user-client-businesses", user?.id],
     queryFn: () => getUserClientBusinesses(user?.id || ""),
     enabled: !!user?.id,
+  });
+
+  // Fetch visual dashboard data
+  const {
+    data: visualData,
+    isLoading: isLoadingVisual,
+    isError: isVisualError,
+    refetch: refetchVisual
+  } = useQuery({
+    queryKey: ["visual-dashboard", selectedBusinessId],
+    queryFn: () => getVisualDashboardData(selectedBusinessId),
+    enabled: !!selectedBusinessId,
   });
 
   // Set the first business as selected when data loads if none is selected
@@ -54,6 +69,12 @@ const UserDashboard = () => {
     saveSelectedClientBusinessId(businessId);
   };
 
+  // Combined loading state
+  const isLoading = isLoadingBusinesses || isLoadingVisual;
+  
+  // Combined error state
+  const isError = isBusinessError || isVisualError;
+
   if (isLoading) {
     return (
       <div className="flex h-screen bg-slate-50">
@@ -61,7 +82,7 @@ const UserDashboard = () => {
         <div className="flex-1 p-8 flex items-center justify-center">
           <div className="flex flex-col items-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-            <p className="mt-4 text-slate-500">Loading your client businesses...</p>
+            <p className="mt-4 text-slate-500">Loading your dashboard...</p>
           </div>
         </div>
       </div>
@@ -76,8 +97,11 @@ const UserDashboard = () => {
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">Error Loading Data</h2>
-            <p className="mt-2 text-slate-500">There was a problem loading your client businesses</p>
-            <Button onClick={() => refetch()} className="mt-4">
+            <p className="mt-2 text-slate-500">There was a problem loading your dashboard data</p>
+            <Button onClick={() => {
+              refetchBusinesses();
+              refetchVisual();
+            }} className="mt-4">
               <RefreshCcw className="mr-2 h-4 w-4" />
               Try Again
             </Button>
@@ -152,6 +176,28 @@ const UserDashboard = () => {
             <div className="flex items-center mt-1 text-sm text-slate-500">
               <span>{selectedBusiness.industry || "No industry specified"}</span>
             </div>
+          </div>
+          
+          {/* Financial Visual Dashboard Section */}
+          <div className="mb-8">
+            <div className="flex items-center mb-4">
+              <BarChart className="h-5 w-5 text-green-600 mr-2" />
+              <h2 className="text-xl font-semibold text-slate-800">Financial Dashboard</h2>
+            </div>
+            
+            {visualData ? (
+              <VisualDashboard data={visualData} />
+            ) : (
+              <Card className="p-6 text-center">
+                <div className="flex flex-col items-center justify-center py-6">
+                  <AlertTriangle className="h-12 w-12 text-slate-300" />
+                  <p className="mt-2 text-slate-500">No financial dashboard data available</p>
+                  <p className="text-sm text-slate-400 text-center mt-1">
+                    Connect to Xero to see your financial dashboard
+                  </p>
+                </div>
+              </Card>
+            )}
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
