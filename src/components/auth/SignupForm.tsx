@@ -5,8 +5,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, Lock, Mail, User, Building, ShieldCheck } from "lucide-react";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Loader2, Lock, Mail, User } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { AccountType, UserRole } from "@/contexts/AuthContext";
@@ -19,8 +18,6 @@ const SignupForm = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
-  const [accountType, setAccountType] = useState<AccountType>("CLIENT");
-  const [role, setRole] = useState<UserRole>("STANDARD");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
@@ -51,8 +48,8 @@ const SignupForm = () => {
     }
     
     try {
-      // Create user account
-      const userId = await signup(email, password, name, accountType, role);
+      // Create user account with default account type "CLIENT" and role "STANDARD"
+      const userId = await signup(email, password, name, "CLIENT", "STANDARD");
 
       // If we have an invitation token, accept it to associate user with client business
       if (invitationToken && userId) {
@@ -93,7 +90,7 @@ const SignupForm = () => {
         <CardDescription>
           {invitationToken ? 
             "Complete your account setup to accept the invitation" : 
-            "Set up your new account with role and access type"}
+            "Set up your new account to access the client portal"}
         </CardDescription>
       </CardHeader>
       
@@ -156,54 +153,6 @@ const SignupForm = () => {
               />
             </div>
           </div>
-          
-          {!invitationToken && (
-            <>
-              <div className="space-y-2">
-                <Label htmlFor="signup-account-type">Account Type</Label>
-                <div className="relative">
-                  <Building className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                  <Select
-                    value={accountType}
-                    onValueChange={(value) => setAccountType(value as AccountType)}
-                  >
-                    <SelectTrigger className="pl-10">
-                      <SelectValue placeholder="Select Account Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="CONSOLE">Console</SelectItem>
-                      <SelectItem value="CLIENT">Client</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <p className="text-xs text-slate-500">
-                  Console users access the admin dashboard, Client users access the user dashboard
-                </p>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="signup-role">User Role</Label>
-                <div className="relative">
-                  <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                  <Select
-                    value={role}
-                    onValueChange={(value) => setRole(value as UserRole)}
-                  >
-                    <SelectTrigger className="pl-10">
-                      <SelectValue placeholder="Select Role" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="ADMIN">Admin</SelectItem>
-                      <SelectItem value="STANDARD">Standard</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <p className="text-xs text-slate-500">
-                  Admin roles have full access, Standard roles have limited access
-                </p>
-              </div>
-            </>
-          )}
           
           <div className="pt-2">
             <Button 
