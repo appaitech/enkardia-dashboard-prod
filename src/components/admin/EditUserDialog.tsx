@@ -70,7 +70,17 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
   onUserEdited,
   isAdmin,
 }) => {
-  const { updateUserProfile } = useAuth();
+  const { user: currentUser, updateUserProfile } = useAuth();
+  
+  // Determine if the current user can edit the account type
+  const canEditAccountType = isAdmin;
+  
+  // Determine if the current user can edit the role
+  const canEditRole = isAdmin || 
+    (currentUser?.accountType === "CONSOLE" && user.account_type === "CLIENT");
+  
+  // Current user is editing themselves
+  const isEditingSelf = currentUser?.id === user.id;
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -107,11 +117,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         updates.name = data.name;
       }
       
-      if (isAdmin && data.role !== user.role) {
+      if (canEditRole && data.role !== user.role) {
         updates.role = data.role;
       }
       
-      if (isAdmin && data.account_type !== user.account_type) {
+      if (canEditAccountType && data.account_type !== user.account_type) {
         updates.account_type = data.account_type;
       }
       
@@ -137,6 +147,11 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
           <DialogTitle>Edit User</DialogTitle>
           <DialogDescription>
             Update user details and permissions.
+            {!isAdmin && !canEditRole && (
+              <div className="mt-2 text-amber-500 text-xs">
+                Note: Some fields are disabled based on your permissions.
+              </div>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -164,79 +179,97 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
               )}
             />
 
-            {isAdmin && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Role</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select role" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="ADMIN">
-                            <div className="flex items-center gap-2">
-                              <Shield className="h-4 w-4 text-purple-500" />
-                              <span>ADMIN</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="STANDARD">
-                            <div className="flex items-center gap-2">
-                              <Shield className="h-4 w-4 text-slate-500" />
-                              <span>STANDARD</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Permission level for this user
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
+            <FormField
+              control={form.control}
+              name="role"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Role</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value}
+                    disabled={!canEditRole}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={`w-full ${!canEditRole ? 'opacity-60' : ''}`}>
+                        <SelectValue placeholder="Select role" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="ADMIN">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-purple-500" />
+                          <span>ADMIN</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="STANDARD">
+                        <div className="flex items-center gap-2">
+                          <Shield className="h-4 w-4 text-slate-500" />
+                          <span>STANDARD</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {!canEditRole && (
+                    <FormDescription className="text-amber-500">
+                      You don't have permission to change role
+                    </FormDescription>
                   )}
-                />
+                  {canEditRole && (
+                    <FormDescription>
+                      Permission level for this user
+                    </FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-                <FormField
-                  control={form.control}
-                  name="account_type"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Account Type</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select account type" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="CONSOLE">
-                            <div className="flex items-center gap-2">
-                              <Monitor className="h-4 w-4 text-blue-500" />
-                              <span>CONSOLE</span>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="CLIENT">
-                            <div className="flex items-center gap-2">
-                              <Smartphone className="h-4 w-4 text-green-500" />
-                              <span>CLIENT</span>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Type of account for this user
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
+            <FormField
+              control={form.control}
+              name="account_type"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Account Type</FormLabel>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value}
+                    disabled={!canEditAccountType}
+                  >
+                    <FormControl>
+                      <SelectTrigger className={`w-full ${!canEditAccountType ? 'opacity-60' : ''}`}>
+                        <SelectValue placeholder="Select account type" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="CONSOLE">
+                        <div className="flex items-center gap-2">
+                          <Monitor className="h-4 w-4 text-blue-500" />
+                          <span>CONSOLE</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="CLIENT">
+                        <div className="flex items-center gap-2">
+                          <Smartphone className="h-4 w-4 text-green-500" />
+                          <span>CLIENT</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  {!canEditAccountType && (
+                    <FormDescription className="text-amber-500">
+                      Only admins can change account type
+                    </FormDescription>
                   )}
-                />
-              </>
-            )}
+                  {canEditAccountType && (
+                    <FormDescription>
+                      Type of account for this user
+                    </FormDescription>
+                  )}
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className="pt-4">
               <Button 

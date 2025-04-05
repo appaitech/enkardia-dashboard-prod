@@ -52,6 +52,36 @@ const UsersManagement = () => {
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
   const isAdmin = user?.role === "ADMIN";
+  const isConsole = user?.accountType === "CONSOLE";
+
+  // Function to check if a user can be edited by the current user
+  const canEditUser = (userData: UserData) => {
+    if (!user) return false;
+    
+    // Users can always edit themselves
+    if (userData.id === user.id) return true;
+    
+    // Admins can edit anyone
+    if (isAdmin) return true;
+    
+    // Console users can edit clients
+    if (isConsole && userData.account_type === "CLIENT") return true;
+    
+    return false;
+  };
+
+  // Function to check if a user can be deleted by the current user
+  const canDeleteUser = (userData: UserData) => {
+    if (!user) return false;
+    
+    // Users cannot delete themselves
+    if (userData.id === user.id) return false;
+    
+    // Only admins can delete users
+    if (isAdmin) return true;
+    
+    return false;
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -102,19 +132,25 @@ const UsersManagement = () => {
     setCreateDialogOpen(true);
   };
 
-  const handleEditUser = (user: UserData) => {
-    console.log("Editing user:", user);
-    setSelectedUser(user);
+  const handleEditUser = (userData: UserData) => {
+    if (!canEditUser(userData)) {
+      toast.error("You don't have permission to edit this user");
+      return;
+    }
+    
+    console.log("Editing user:", userData);
+    setSelectedUser(userData);
     setEditDialogOpen(true);
   };
 
-  const handleDeleteUser = (user: UserData) => {
-    if (!isAdmin) {
-      toast.error("Only administrators can delete users");
+  const handleDeleteUser = (userData: UserData) => {
+    if (!canDeleteUser(userData)) {
+      toast.error("You don't have permission to delete this user");
       return;
     }
-    console.log("Attempting to delete user:", user);
-    setSelectedUser(user);
+    
+    console.log("Attempting to delete user:", userData);
+    setSelectedUser(userData);
     setDeleteDialogOpen(true);
   };
 
@@ -243,18 +279,23 @@ const UsersManagement = () => {
                                   variant="ghost"
                                   size="icon"
                                   onClick={() => handleEditUser(userData)}
-                                  title="Edit User"
+                                  title={canEditUser(userData) ? "Edit User" : "No permission to edit"}
+                                  disabled={!canEditUser(userData)}
+                                  className={!canEditUser(userData) ? "opacity-30 cursor-not-allowed" : ""}
                                 >
                                   <Pencil className="h-4 w-4" />
                                 </Button>
                                 
-                                {isAdmin && userData.id !== user?.id && (
+                                {userData.id !== user?.id && (
                                   <Button
                                     variant="ghost"
                                     size="icon"
                                     onClick={() => handleDeleteUser(userData)}
-                                    className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                                    title="Delete User"
+                                    className={canDeleteUser(userData) 
+                                      ? "text-red-500 hover:text-red-600 hover:bg-red-50" 
+                                      : "text-red-300 opacity-30 cursor-not-allowed"}
+                                    title={canDeleteUser(userData) ? "Delete User" : "No permission to delete"}
+                                    disabled={!canDeleteUser(userData)}
                                   >
                                     <Trash2 className="h-4 w-4" />
                                   </Button>

@@ -166,6 +166,15 @@ export type Database = {
         }
         Returns: string
       }
+      get_user_role_and_account_type: {
+        Args: {
+          user_id: string
+        }
+        Returns: {
+          user_role: string
+          user_account_type: string
+        }[]
+      }
       is_valid_invitation_token: {
         Args: {
           token_input: string
