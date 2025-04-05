@@ -1,3 +1,4 @@
+
 import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,10 +41,10 @@ const formSchema = z.object({
   password: z.string().min(6, { message: "Password must be at least 6 characters" }),
   account_type: z.enum(["CONSOLE", "CLIENT"], {
     required_error: "Please select an account type",
-  }),
+  }).default("CLIENT"), // Set CLIENT as the default
   role: z.enum(["ADMIN", "STANDARD"], {
     required_error: "Please select a role",
-  }),
+  }).default("STANDARD"), // Also setting a default for role
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -67,7 +68,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
       name: "",
       email: "",
       password: "",
-      account_type: "CONSOLE",
+      account_type: "CLIENT", // Explicitly set default to CLIENT
       role: "STANDARD",
     },
   });
