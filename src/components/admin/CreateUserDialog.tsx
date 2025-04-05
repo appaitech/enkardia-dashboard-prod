@@ -1,4 +1,3 @@
-
 import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -81,9 +80,9 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         throw new Error("You must be logged in to create users");
       }
 
-      console.log("Creating user with session token:", session.access_token.substring(0, 10) + "...");
+      console.log("Creating user with session token present, length:", session.access_token.length);
       
-      // Make sure we send the token with the correct format
+      // Make the API call to create a user
       const response = await supabase.functions.invoke("create-user", {
         body: {
           email: data.email,
@@ -97,14 +96,17 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         },
       });
 
+      console.log("Create user response:", response);
+
       if (response.error) {
-        console.error("Response error:", response.error);
+        console.error("Function invocation error:", response.error);
         throw new Error(response.error.message || "Failed to create user");
       }
       
       if (response.data?.error) {
-        console.error("Data error:", response.data.error);
-        throw new Error(response.data.error);
+        console.error("Data error from function:", response.data.error);
+        const errorMessage = response.data.details || response.data.error;
+        throw new Error(errorMessage);
       }
       
       toast.success(`User ${data.name} created successfully`);
