@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { createInvitation } from "@/services/invitationService";
+import { assignUserToClientBusiness } from "@/services/invitationService";
 
 const inviteFormSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -49,33 +49,69 @@ const InviteUserForm = ({
     setError("");
     
     try {
-      // Create invitation in database
-      const result = await createInvitation(data.email, clientId);
+      // Check if user already exists
+      const { data: existingUsers } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("email", data.email);
       
-      if (!result.success) {
-        throw new Error(result.message);
-      }
-      
-      if (result.token) {
-        // New user - send invitation email
-        const response = await supabase.functions.invoke("send-invitation", {
-          body: {
-            email: data.email,
-            businessName: clientName,
-            token: result.token,
-          },
-        });
+      if (existingUsers && existingUsers.length > 0) {
+        const userId = existingUsers[0].id;
         
-        if (response.error) {
-          throw new Error("Failed to send invitation email");
+        // Check if the user is already associated with this client business
+        const { data: existingAssociation } = await supabase
+          .from("user_client_businesses")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("client_business_id", clientId);
+        
+        if (existingAssociation && existingAssociation.length > 0) {
+          setError("User is already associated with this client business");
+          toast.error("User is already associated with this client business");
+          return;
         }
         
-        toast.success(`Invitation sent to ${data.email}`);
-      } else {
-        // Existing user - just show success message
+        // Associate existing user with the client business
+        await assignUserToClientBusiness(userId, clientId);
+        
         toast.success(`${data.email} has been added to this client`);
+        reset();
+        if (onSuccess) onSuccess();
+        return;
       }
       
+      // For new users, generate a unique token
+      const token = crypto.randomUUID();
+      
+      // Create new invitation
+      const { error: invitationError } = await supabase
+        .from("invitations")
+        .insert({
+          email: data.email,
+          client_business_id: clientId,
+          token,
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days from now
+        });
+      
+      if (invitationError) {
+        console.error("Error creating invitation:", invitationError);
+        throw new Error("Failed to create invitation");
+      }
+      
+      // Send invitation email
+      const response = await supabase.functions.invoke("send-invitation", {
+        body: {
+          email: data.email,
+          businessName: clientName,
+          token: token,
+        },
+      });
+      
+      if (response.error) {
+        throw new Error("Failed to send invitation email");
+      }
+      
+      toast.success(`Invitation sent to ${data.email}`);
       reset();
       if (onSuccess) onSuccess();
       
