@@ -15,7 +15,7 @@ import ProfitAndLossTable from "@/components/ProfitAndLoss/ProfitAndLossTable";
 import ProfitAndLossChart from "@/components/ProfitAndLoss/ProfitAndLossChart";
 import MonthlyProfitAndLossTable from "@/components/ProfitAndLoss/MonthlyProfitAndLossTable";
 import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
-import { Loader2, AlertTriangle, RefreshCcw } from "lucide-react";
+import { Loader2, AlertTriangle, RefreshCcw, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -176,7 +176,15 @@ const ProfitAndLossPage: React.FC = () => {
         <UserSidebar activePath="/user/financial/profit-loss" />
         <div className="flex-1 p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-            <h1 className="text-3xl font-bold text-slate-800">Profit & Loss</h1>
+            <div>
+              <div className="flex items-center space-x-3">
+                <BarChart className="h-8 w-8 text-green-600" />
+                <h1 className="text-3xl font-bold text-slate-800">Profit & Loss</h1>
+              </div>
+              <p className="text-slate-500 mt-2">
+                View your business's financial performance
+              </p>
+            </div>
             
             {validBusinesses.length > 0 && (
               <ClientBusinessSelector 
@@ -185,6 +193,13 @@ const ProfitAndLossPage: React.FC = () => {
                 onBusinessSelect={handleBusinessSelect}
               />
             )}
+          </div>
+          
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
+            <div className="flex items-center mt-1 text-sm text-slate-500">
+              <span>{selectedBusiness.industry || "No industry specified"}</span>
+            </div>
           </div>
           
           <div className="flex h-[calc(100vh-200px)] items-center justify-center">
@@ -205,7 +220,15 @@ const ProfitAndLossPage: React.FC = () => {
       <UserSidebar activePath="/user/financial/profit-loss" />
       <div className="flex-1 p-8 overflow-auto">
         <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-          <h1 className="text-3xl font-bold text-slate-800">Profit & Loss</h1>
+          <div>
+            <div className="flex items-center space-x-3">
+              <BarChart className="h-8 w-8 text-green-600" />
+              <h1 className="text-3xl font-bold text-slate-800">Profit & Loss</h1>
+            </div>
+            <p className="text-slate-500 mt-2">
+              View your business's financial performance
+            </p>
+          </div>
           
           {validBusinesses.length > 0 && (
             <ClientBusinessSelector 
