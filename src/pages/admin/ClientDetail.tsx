@@ -199,7 +199,7 @@ const ClientDetail = () => {
             </TabsContent>
             
             <TabsContent value="users">
-              <ClientDetailUsers clientId={id || ''} />
+              <ClientDetailUsers clientId={id || ''} clientName={clientBusiness.name} />
             </TabsContent>
             
             <TabsContent value="tasks">

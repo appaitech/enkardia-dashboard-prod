@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,7 +26,6 @@ interface ClientDetailUsersProps {
   clientName: string;
 }
 
-// Interface for users assigned to a client business
 interface AssignedUser {
   id: string;
   email: string;
@@ -35,7 +33,6 @@ interface AssignedUser {
   role: string;
 }
 
-// Interface for available users that can be assigned
 interface AvailableUser {
   id: string;
   email: string;
@@ -51,7 +48,6 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
   const [searchQuery, setSearchQuery] = useState("");
   const [assigningUserId, setAssigningUserId] = useState<string | null>(null);
   
-  // Fetch users associated with this client business
   const { 
     data: assignedUsers,
     isLoading: isLoadingUsers,
@@ -61,7 +57,6 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     queryKey: ["client-users", clientId],
     queryFn: async () => {
       try {
-        // First, get the user_ids connected to this client business
         const { data: userClientData, error: userClientError } = await supabase
           .from("user_client_businesses")
           .select("user_id")
@@ -73,7 +68,6 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
           return [] as AssignedUser[];
         }
         
-        // Then, get the profiles for these user IDs
         const userIds = userClientData.map(item => item.user_id);
         const { data: profilesData, error: profilesError } = await supabase
           .from("profiles")
@@ -90,7 +84,6 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     }
   });
   
-  // Fetch all users that could be assigned to this client
   const {
     data: availableUsers,
     isLoading: isLoadingAvailableUsers,
@@ -100,7 +93,6 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     queryKey: ["available-users", clientId, searchQuery],
     queryFn: async () => {
       try {
-        // Get user_ids already assigned to this client business
         const { data: userClientData, error: userClientError } = await supabase
           .from("user_client_businesses")
           .select("user_id")
@@ -110,18 +102,15 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
         
         const assignedUserIds = userClientData?.map(item => item.user_id) || [];
         
-        // Get all users that are not already assigned
         let query = supabase
           .from("profiles")
           .select("id, email, name, role")
-          .neq("account_type", "CONSOLE"); // Only show CLIENT users
+          .neq("account_type", "CONSOLE");
           
-        // Only exclude already assigned users if there are any
         if (assignedUserIds.length > 0) {
           query = query.not("id", "in", `(${assignedUserIds.join(",")})`);
         }
           
-        // Add search filter if search query exists
         if (searchQuery) {
           query = query.or(`name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
         }
@@ -136,7 +125,7 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
         throw error;
       }
     },
-    enabled: isAssignUserDialogOpen // Only run this query when the dialog is open
+    enabled: isAssignUserDialogOpen
   });
   
   const openRemoveUserDialog = (user: AssignedUser) => {
@@ -172,7 +161,6 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     setAssigningUserId(userId);
     
     try {
-      // Create association between user and business
       const { error } = await supabase
         .from("user_client_businesses")
         .insert({
@@ -196,10 +184,8 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     }
   };
   
-  // Filter available users based on search query
   const filteredAvailableUsers = availableUsers || [];
   
-  // Render users list
   const renderUsersList = () => {
     if (isLoadingUsers) {
       return (
@@ -306,7 +292,6 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
         </CardContent>
       </Card>
       
-      {/* Assign User Dialog */}
       <Dialog open={isAssignUserDialogOpen} onOpenChange={setIsAssignUserDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
@@ -386,7 +371,6 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
         </DialogContent>
       </Dialog>
       
-      {/* Remove User Dialog */}
       <AlertDialog open={isRemoveUserDialogOpen} onOpenChange={setIsRemoveUserDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
