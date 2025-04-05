@@ -1,0 +1,464 @@
+{
+    "Id": "b31f852a-1f16-4a09-810d-b8c8764321d1",
+    "Status": "OK",
+    "ProviderName": "TestApp",
+    "DateTimeUTC": "/Date(1743266567013)/",
+    "Reports": [
+        {
+            "ReportID": "ProfitAndLoss",
+            "ReportName": "Profit and Loss",
+            "ReportType": "ProfitAndLoss",
+            "ReportTitles": [
+                "Profit & Loss",
+                "Demo Company (Global)",
+                "1 March 2025 to 31 March 2025"
+            ],
+            "ReportDate": "29 March 2025",
+            "UpdatedDateUTC": "/Date(1743266567013)/",
+            "Fields": [],
+            "Rows": [
+                {
+                    "RowType": "Header",
+                    "Cells": [
+                        {
+                            "Value": ""
+                        },
+                        {
+                            "Value": "31 Mar 25"
+                        }
+                    ]
+                },
+                {
+                    "RowType": "Section",
+                    "Title": "Income",
+                    "Rows": [
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Sales",
+                                    "Attributes": [
+                                        {
+                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "7263.59",
+                                    "Attributes": [
+                                        {
+                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "SummaryRow",
+                            "Cells": [
+                                {
+                                    "Value": "Total Income"
+                                },
+                                {
+                                    "Value": "7263.59"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "RowType": "Section",
+                    "Title": "Less Cost of Sales",
+                    "Rows": [
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Purchases",
+                                    "Attributes": [
+                                        {
+                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "775.98",
+                                    "Attributes": [
+                                        {
+                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "SummaryRow",
+                            "Cells": [
+                                {
+                                    "Value": "Total Cost of Sales"
+                                },
+                                {
+                                    "Value": "775.98"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "RowType": "Section",
+                    "Title": "",
+                    "Rows": [
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Gross Profit"
+                                },
+                                {
+                                    "Value": "6487.61"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "RowType": "Section",
+                    "Title": "Less Operating Expenses",
+                    "Rows": [
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Advertising",
+                                    "Attributes": [
+                                        {
+                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "2309.47",
+                                    "Attributes": [
+                                        {
+                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Consulting & Accounting",
+                                    "Attributes": [
+                                        {
+                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "29.00",
+                                    "Attributes": [
+                                        {
+                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Entertainment",
+                                    "Attributes": [
+                                        {
+                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "22.00",
+                                    "Attributes": [
+                                        {
+                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Freight & Courier",
+                                    "Attributes": [
+                                        {
+                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "105.50",
+                                    "Attributes": [
+                                        {
+                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "General Expenses",
+                                    "Attributes": [
+                                        {
+                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "120.09",
+                                    "Attributes": [
+                                        {
+                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Light, Power, Heating",
+                                    "Attributes": [
+                                        {
+                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "100.32",
+                                    "Attributes": [
+                                        {
+                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Motor Vehicle Expenses",
+                                    "Attributes": [
+                                        {
+                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "380.00",
+                                    "Attributes": [
+                                        {
+                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Office Expenses",
+                                    "Attributes": [
+                                        {
+                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "162.11",
+                                    "Attributes": [
+                                        {
+                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Printing & Stationery",
+                                    "Attributes": [
+                                        {
+                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "45.45",
+                                    "Attributes": [
+                                        {
+                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Rent",
+                                    "Attributes": [
+                                        {
+                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "1091.22",
+                                    "Attributes": [
+                                        {
+                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Repairs and Maintenance",
+                                    "Attributes": [
+                                        {
+                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "64.20",
+                                    "Attributes": [
+                                        {
+                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Telephone & Internet",
+                                    "Attributes": [
+                                        {
+                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "50.00",
+                                    "Attributes": [
+                                        {
+                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Travel - National",
+                                    "Attributes": [
+                                        {
+                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                },
+                                {
+                                    "Value": "223.56",
+                                    "Attributes": [
+                                        {
+                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
+                                            "Id": "account"
+                                        }
+                                    ]
+                                }
+                            ]
+                        },
+                        {
+                            "RowType": "SummaryRow",
+                            "Cells": [
+                                {
+                                    "Value": "Total Operating Expenses"
+                                },
+                                {
+                                    "Value": "4702.92"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "RowType": "Section",
+                    "Title": "",
+                    "Rows": [
+                        {
+                            "RowType": "Row",
+                            "Cells": [
+                                {
+                                    "Value": "Net Profit"
+                                },
+                                {
+                                    "Value": "1784.69"
+                                }
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
