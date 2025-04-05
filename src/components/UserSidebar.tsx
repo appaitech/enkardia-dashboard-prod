@@ -4,7 +4,17 @@ import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, FileText, User, Calendar, Settings, LogOut, Shield, Bell } from "lucide-react";
+import { 
+  LayoutDashboard, 
+  FileText, 
+  User, 
+  Calendar, 
+  Settings, 
+  LogOut, 
+  Shield, 
+  Bell,
+  BarChart 
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface SidebarItemProps {
@@ -94,6 +104,18 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
           href="/user/documents"
           isActive={activePath === "/user/documents"}
         />
+        
+        {/* Financial Section */}
+        <div className="pt-4">
+          <h3 className="mb-2 px-2 text-xs font-semibold text-muted-foreground">FINANCIAL</h3>
+          <SidebarItem 
+            icon={<BarChart size={18} />} 
+            label="Profit & Loss" 
+            href="/user/financial/profit-loss"
+            isActive={activePath === "/user/financial/profit-loss"}
+          />
+        </div>
+
         <SidebarItem 
           icon={<Bell size={18} />} 
           label="Notifications" 

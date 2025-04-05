@@ -9,6 +9,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ClientsList from './pages/admin/ClientsList';
 import ClientDetail from './pages/admin/ClientDetail';
 import UserDashboard from './pages/user/UserDashboard';
+import ProfitAndLossPage from './pages/user/ProfitAndLossPage';
 import NotFound from './pages/NotFound';
 import { Toaster } from "@/components/ui/toaster"
 import ProtectedRoute from './components/ProtectedRoute';
@@ -71,6 +72,15 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
                   <UserDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/user/financial/profit-loss" 
+              element={
+                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                  <ProfitAndLossPage />
                 </ProtectedRoute>
               } 
             />
