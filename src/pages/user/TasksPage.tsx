@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { 
@@ -19,11 +19,14 @@ import {
   ListChecks,
   Loader2,
   AlertTriangle,
-  RefreshCcw
+  RefreshCcw,
+  UserCircle
 } from "lucide-react";
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import UserSidebar from "@/components/UserSidebar";
+import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
+import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 
 // Define Task type based on our database schema
 interface Task {
@@ -53,28 +56,49 @@ const fetchClientTasks = async (businessId: string): Promise<Task[]> => {
 
 const TasksPage: React.FC = () => {
   const { user } = useAuth();
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
   
-  // Fetch the user's associated business
-  const { data: businessData } = useQuery({
-    queryKey: ['user_client_businesses', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('user_client_businesses')
-        .select('client_business_id')
-        .eq('user_id', user?.id)
-        .single();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id
+  // Fetch the user's client businesses
+  const { 
+    data: clientBusinesses,
+    isLoading: isLoadingBusinesses,
+    isError: isErrorBusinesses,
+    refetch: refetchBusinesses
+  } = useQuery({
+    queryKey: ["user-client-businesses", user?.id],
+    queryFn: () => getUserClientBusinesses(user?.id || ""),
+    enabled: !!user?.id,
   });
 
-  const { data: tasks, isLoading, isError, refetch } = useQuery({
-    queryKey: ['tasks', businessData?.client_business_id],
-    queryFn: () => fetchClientTasks(businessData?.client_business_id),
-    enabled: !!businessData?.client_business_id
+  // Fetch tasks for the selected business
+  const { 
+    data: tasks, 
+    isLoading: isLoadingTasks, 
+    isError: isErrorTasks, 
+    refetch: refetchTasks 
+  } = useQuery({
+    queryKey: ['tasks', selectedBusinessId],
+    queryFn: () => fetchClientTasks(selectedBusinessId || ''),
+    enabled: !!selectedBusinessId
   });
+
+  // Set the first business as selected when data loads if none is selected
+  useEffect(() => {
+    if (clientBusinesses?.length && !selectedBusinessId) {
+      const validBusinesses = clientBusinesses.filter(business => business !== null);
+      if (validBusinesses.length > 0) {
+        const firstBusinessId = validBusinesses[0].id;
+        setSelectedBusinessId(firstBusinessId);
+        saveSelectedClientBusinessId(firstBusinessId);
+      }
+    }
+  }, [clientBusinesses, selectedBusinessId]);
+
+  // Handle business selection
+  const handleBusinessSelect = (businessId: string) => {
+    setSelectedBusinessId(businessId);
+    saveSelectedClientBusinessId(businessId);
+  };
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -85,23 +109,23 @@ const TasksPage: React.FC = () => {
     }
   };
 
-  // Loading state
-  if (isLoading) {
+  // Loading state when fetching businesses
+  if (isLoadingBusinesses) {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/tasks" />
         <div className="flex-1 p-8 flex items-center justify-center">
           <div className="flex flex-col items-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-            <p className="mt-4 text-slate-500">Loading tasks...</p>
+            <p className="mt-4 text-slate-500">Loading your client businesses...</p>
           </div>
         </div>
       </div>
     );
   }
   
-  // Error state
-  if (isError) {
+  // Error state when fetching businesses
+  if (isErrorBusinesses) {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/tasks" />
@@ -109,8 +133,8 @@ const TasksPage: React.FC = () => {
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">Error Loading Data</h2>
-            <p className="mt-2 text-slate-500">There was a problem loading your tasks</p>
-            <Button onClick={() => refetch()} className="mt-4">
+            <p className="mt-2 text-slate-500">There was a problem loading your client businesses</p>
+            <Button onClick={() => refetchBusinesses()} className="mt-4">
               <RefreshCcw className="mr-2 h-4 w-4" />
               Try Again
             </Button>
@@ -120,57 +144,128 @@ const TasksPage: React.FC = () => {
     );
   }
 
+  const validBusinesses = clientBusinesses?.filter(business => business !== null) || [];
+  
+  if (validBusinesses.length === 0) {
+    return (
+      <div className="flex h-screen bg-slate-50">
+        <UserSidebar activePath="/user/tasks" />
+        <div className="flex-1 p-8 flex items-center justify-center">
+          <div className="text-center">
+            <AlertTriangle className="h-12 w-12 text-slate-300 mx-auto" />
+            <h2 className="mt-4 text-xl font-semibold">No Client Businesses</h2>
+            <p className="mt-2 text-slate-500">You don't have access to any client businesses yet</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Get the selected business or default to the first one
+  const selectedBusiness = selectedBusinessId 
+    ? validBusinesses.find(b => b && b.id === selectedBusinessId) 
+    : validBusinesses[0];
+  
+  // Safety check to ensure we have a selected business
+  if (!selectedBusiness) {
+    const firstBusinessId = validBusinesses[0].id;
+    setSelectedBusinessId(firstBusinessId);
+    saveSelectedClientBusinessId(firstBusinessId);
+    return null;
+  }
+
   return (
     <div className="flex h-screen bg-slate-50">
       <UserSidebar activePath="/user/tasks" />
-      <div className="flex-1 p-8 overflow-auto">
-        <div className="mb-6 flex items-center justify-between">
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-2">
-            <ListChecks className="h-8 w-8 text-green-600" />
-            My Tasks
-          </h1>
-        </div>
-
-        {tasks && tasks.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>Due Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.map((task) => (
-                <TableRow key={task.id}>
-                  <TableCell>{task.title}</TableCell>
-                  <TableCell>{task.description}</TableCell>
-                  <TableCell>
-                    <Badge variant={getStatusBadgeVariant(task.status)}>
-                      {task.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {task.start_date 
-                      ? format(new Date(task.start_date), 'MMM dd, yyyy') 
-                      : 'Not set'}
-                  </TableCell>
-                  <TableCell>
-                    {task.due_date 
-                      ? format(new Date(task.due_date), 'MMM dd, yyyy') 
-                      : 'Not set'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <div className="text-center py-12 text-muted-foreground">
-            No tasks found for this business.
+      <div className="flex-1 overflow-auto">
+        <div className="p-8">
+          <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div>
+              <div className="flex items-center space-x-3">
+                <ListChecks className="h-8 w-8 text-green-600" />
+                <h1 className="text-3xl font-bold text-slate-800">My Tasks</h1>
+              </div>
+              <p className="text-slate-500 mt-2">
+                Manage and track your tasks
+              </p>
+            </div>
+            
+            {validBusinesses.length > 0 && (
+              <ClientBusinessSelector 
+                clientBusinesses={validBusinesses}
+                selectedBusinessId={selectedBusinessId}
+                onBusinessSelect={handleBusinessSelect}
+              />
+            )}
           </div>
-        )}
+          
+          <div className="mb-6">
+            <h2 className="text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
+            <div className="flex items-center mt-1 text-sm text-slate-500">
+              <span>{selectedBusiness.industry || "No industry specified"}</span>
+            </div>
+          </div>
+
+          {isLoadingTasks ? (
+            <div className="flex items-center justify-center p-12 bg-white rounded-lg border">
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                <p className="mt-4 text-slate-500">Loading tasks...</p>
+              </div>
+            </div>
+          ) : isErrorTasks ? (
+            <div className="text-center py-12 bg-white rounded-lg border">
+              <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
+              <h2 className="mt-4 text-xl font-semibold">Error Loading Tasks</h2>
+              <p className="mt-2 text-slate-500">There was a problem loading your tasks</p>
+              <Button onClick={() => refetchTasks()} className="mt-4">
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Try Again
+              </Button>
+            </div>
+          ) : tasks && tasks.length > 0 ? (
+            <div className="bg-white p-6 rounded-lg border shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>Due Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {tasks.map((task) => (
+                    <TableRow key={task.id}>
+                      <TableCell>{task.title}</TableCell>
+                      <TableCell>{task.description}</TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(task.status)}>
+                          {task.status}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {task.start_date 
+                          ? format(new Date(task.start_date), 'MMM dd, yyyy') 
+                          : 'Not set'}
+                      </TableCell>
+                      <TableCell>
+                        {task.due_date 
+                          ? format(new Date(task.due_date), 'MMM dd, yyyy') 
+                          : 'Not set'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div className="text-center py-12 bg-white rounded-lg border">
+              <p className="text-muted-foreground">No tasks found for this business.</p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
