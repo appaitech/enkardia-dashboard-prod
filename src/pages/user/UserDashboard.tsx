@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import UserSidebar from "@/components/UserSidebar";
-import { getUserClientBusinesses } from "@/services/userService";
+import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
 import { 
   Building, 
   Boxes, 
@@ -23,7 +23,7 @@ import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 
 const UserDashboard = () => {
   const { user } = useAuth();
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(null);
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
 
   const { 
     data: clientBusinesses,
@@ -36,15 +36,23 @@ const UserDashboard = () => {
     enabled: !!user?.id,
   });
 
-  // Set the first business as selected when data loads
+  // Set the first business as selected when data loads if none is selected
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
       const validBusinesses = clientBusinesses.filter(business => business !== null);
       if (validBusinesses.length > 0) {
-        setSelectedBusinessId(validBusinesses[0].id);
+        const firstBusinessId = validBusinesses[0].id;
+        setSelectedBusinessId(firstBusinessId);
+        saveSelectedClientBusinessId(firstBusinessId);
       }
     }
   }, [clientBusinesses, selectedBusinessId]);
+
+  // Handle business selection
+  const handleBusinessSelect = (businessId: string) => {
+    setSelectedBusinessId(businessId);
+    saveSelectedClientBusinessId(businessId);
+  };
 
   if (isLoading) {
     return (
@@ -103,7 +111,9 @@ const UserDashboard = () => {
   
   // Safety check to ensure we have a selected business
   if (!selectedBusiness) {
-    setSelectedBusinessId(validBusinesses[0].id);
+    const firstBusinessId = validBusinesses[0].id;
+    setSelectedBusinessId(firstBusinessId);
+    saveSelectedClientBusinessId(firstBusinessId);
     return null;
   }
 
@@ -132,7 +142,7 @@ const UserDashboard = () => {
               <ClientBusinessSelector 
                 clientBusinesses={validBusinesses}
                 selectedBusinessId={selectedBusinessId}
-                onBusinessSelect={(id) => setSelectedBusinessId(id)}
+                onBusinessSelect={handleBusinessSelect}
               />
             )}
           </div>
