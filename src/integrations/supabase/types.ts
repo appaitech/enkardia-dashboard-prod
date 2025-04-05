@@ -119,6 +119,59 @@ export type Database = {
         }
         Relationships: []
       }
+      tasks: {
+        Row: {
+          client_business_id: string
+          completed_at: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          start_date: string | null
+          status: string
+          task_type: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          client_business_id: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          start_date?: string | null
+          status?: string
+          task_type: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          client_business_id?: string
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          start_date?: string | null
+          status?: string
+          task_type?: string
+          title?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_client_business_id_fkey"
+            columns: ["client_business_id"]
+            isOneToOne: false
+            referencedRelation: "client_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_client_businesses: {
         Row: {
           client_business_id: string

@@ -1,4 +1,3 @@
-
 import React from "react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
@@ -13,7 +12,8 @@ import {
   LogOut, 
   Shield, 
   Bell,
-  BarChart 
+  BarChart,
+  ListChecks 
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -36,7 +36,6 @@ const SidebarItem: React.FC<SidebarItemProps> = ({
 }) => {
   const { user } = useAuth();
   
-  // Hide admin-only items from standard users
   if (adminOnly && user?.role !== "ADMIN") {
     return null;
   }
@@ -93,7 +92,6 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
           isActive={activePath === "/user/dashboard"}
         />
         
-        {/* Financial Section */}
         <div className="pt-4">
           <h3 className="mb-2 px-2 text-xs font-semibold text-muted-foreground">FINANCIAL</h3>
           <SidebarItem 
@@ -101,6 +99,16 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
             label="Profit & Loss" 
             href="/user/financial/profit-loss"
             isActive={activePath === "/user/financial/profit-loss"}
+          />
+        </div>
+        
+        <div className="pt-4">
+          <h3 className="mb-2 px-2 text-xs font-semibold text-muted-foreground">TASKS</h3>
+          <SidebarItem 
+            icon={<ListChecks size={18} />} 
+            label="My Tasks" 
+            href="/user/tasks"
+            isActive={activePath === "/user/tasks"}
           />
         </div>
       </div>

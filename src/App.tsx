@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -9,13 +8,13 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import ClientsList from './pages/admin/ClientsList';
 import ClientDetail from './pages/admin/ClientDetail';
 import UserDashboard from './pages/user/UserDashboard';
+import TasksPage from './pages/user/TasksPage';
 import ProfitAndLossPage from './pages/user/ProfitAndLossPage';
 import NotFound from './pages/NotFound';
 import { Toaster } from "@/components/ui/toaster";
 import ProtectedRoute from './components/ProtectedRoute';
 import UsersManagement from "./pages/admin/UsersManagement";
 
-// Create a new QueryClient instance
 const queryClient = new QueryClient();
 
 const App: React.FC = () => {
@@ -25,12 +24,10 @@ const App: React.FC = () => {
         <AuthProvider>
           <Toaster />
           <Routes>
-            {/* Make LoginPage the home page */}
             <Route path="/" element={<LoginPage />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
             <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
             
-            {/* Admin routes */}
             <Route 
               path="/admin/dashboard" 
               element={
@@ -67,7 +64,6 @@ const App: React.FC = () => {
               } 
             />
             
-            {/* User routes */}
             <Route 
               path="/user/dashboard" 
               element={
@@ -86,7 +82,15 @@ const App: React.FC = () => {
               } 
             />
             
-            {/* Catch all */}
+            <Route 
+              path="/user/tasks" 
+              element={
+                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                  <TasksPage />
+                </ProtectedRoute>
+              } 
+            />
+            
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
