@@ -21,7 +21,23 @@ import {
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 
-const fetchClientTasks = async (businessId: string) => {
+// Define Task type based on our database schema
+interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  client_business_id: string;
+  created_at: string;
+  updated_at: string | null;
+  status: string;
+  task_type: string;
+  start_date: string | null;
+  due_date: string | null;
+  completed_at: string | null;
+  created_by: string | null;
+}
+
+const fetchClientTasks = async (businessId: string): Promise<Task[]> => {
   const { data, error } = await supabase
     .from('tasks')
     .select('*')
