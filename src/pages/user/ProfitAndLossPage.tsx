@@ -13,6 +13,8 @@ import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClien
 import ProfitAndLossSummary from "@/components/ProfitAndLoss/ProfitAndLossSummary";
 import ProfitAndLossTable from "@/components/ProfitAndLoss/ProfitAndLossTable";
 import ProfitAndLossChart from "@/components/ProfitAndLoss/ProfitAndLossChart";
+import MonthlyProfitAndLossTable from "@/components/ProfitAndLoss/MonthlyProfitAndLossTable";
+import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
 import { Loader2, AlertTriangle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
@@ -260,12 +262,7 @@ const ProfitAndLossPage: React.FC = () => {
             )}
             
             {monthlyData && (
-              <div className="text-center p-4 border rounded bg-white">
-                <h3 className="text-lg font-medium">Monthly Breakdown Data Available</h3>
-                <p className="text-slate-500 mt-2">
-                  The monthly data is available but requires additional components to display properly.
-                </p>
-              </div>
+              <MonthlyProfitAndLossTable data={monthlyData} />
             )}
           </TabsContent>
           
@@ -281,12 +278,7 @@ const ProfitAndLossPage: React.FC = () => {
             )}
             
             {visualData && (
-              <div className="text-center p-4 border rounded bg-white">
-                <h3 className="text-lg font-medium">Visual Dashboard Data Available</h3>
-                <p className="text-slate-500 mt-2">
-                  The visual dashboard data is available but requires additional components to display properly.
-                </p>
-              </div>
+              <VisualDashboard data={visualData} />
             )}
           </TabsContent>
         </Tabs>
