@@ -1,3 +1,4 @@
+
 {
     "Id": "81af44f2-3e64-4835-807e-5632527ec2f3",
     "Status": "OK",
@@ -10,7 +11,7 @@
             "ReportType": "ProfitAndLoss",
             "ReportTitles": [
                 "Profit & Loss",
-                "Demo Company (Global)",
+                "Oceanic Airlines",
                 "1 April 2024 to 31 March 2025"
             ],
             "ReportDate": "5 April 2025",
@@ -36,7 +37,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Sales",
+                                    "Value": "Flight Revenue",
                                     "Attributes": [
                                         {
                                             "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
@@ -45,7 +46,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "22973.18",
+                                    "Value": "458750.00",
                                     "Attributes": [
                                         {
                                             "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
@@ -62,7 +63,7 @@
                                     "Value": "Total Income"
                                 },
                                 {
-                                    "Value": "22973.18"
+                                    "Value": "458750.00"
                                 }
                             ]
                         }
@@ -76,7 +77,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Purchases",
+                                    "Value": "Fuel Costs",
                                     "Attributes": [
                                         {
                                             "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
@@ -85,7 +86,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "775.98",
+                                    "Value": "175320.80",
                                     "Attributes": [
                                         {
                                             "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
@@ -102,7 +103,7 @@
                                     "Value": "Total Cost of Sales"
                                 },
                                 {
-                                    "Value": "775.98"
+                                    "Value": "175320.80"
                                 }
                             ]
                         }
@@ -119,7 +120,7 @@
                                     "Value": "Gross Profit"
                                 },
                                 {
-                                    "Value": "22197.20"
+                                    "Value": "283429.20"
                                 }
                             ]
                         }
@@ -133,7 +134,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Advertising",
+                                    "Value": "Marketing & Advertising",
                                     "Attributes": [
                                         {
                                             "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
@@ -142,7 +143,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "9657.05",
+                                    "Value": "45780.25",
                                     "Attributes": [
                                         {
                                             "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
@@ -156,7 +157,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Bank Fees",
+                                    "Value": "Banking & Finance Fees",
                                     "Attributes": [
                                         {
                                             "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
@@ -165,7 +166,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "30.00",
+                                    "Value": "12680.50",
                                     "Attributes": [
                                         {
                                             "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
@@ -179,7 +180,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Cleaning",
+                                    "Value": "Aircraft Cleaning",
                                     "Attributes": [
                                         {
                                             "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
@@ -188,7 +189,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "110.00",
+                                    "Value": "24315.10",
                                     "Attributes": [
                                         {
                                             "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
@@ -202,7 +203,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Consulting & Accounting",
+                                    "Value": "Consulting & Aviation Compliance",
                                     "Attributes": [
                                         {
                                             "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
@@ -211,7 +212,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "87.00",
+                                    "Value": "18740.30",
                                     "Attributes": [
                                         {
                                             "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
@@ -225,7 +226,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Entertainment",
+                                    "Value": "Customer Entertainment",
                                     "Attributes": [
                                         {
                                             "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
@@ -234,7 +235,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "1553.60",
+                                    "Value": "8645.75",
                                     "Attributes": [
                                         {
                                             "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
@@ -248,7 +249,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Freight & Courier",
+                                    "Value": "Cargo & Baggage Handling",
                                     "Attributes": [
                                         {
                                             "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
@@ -257,7 +258,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "105.50",
+                                    "Value": "27150.40",
                                     "Attributes": [
                                         {
                                             "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
@@ -271,7 +272,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "General Expenses",
+                                    "Value": "Miscellaneous Operating Expenses",
                                     "Attributes": [
                                         {
                                             "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
@@ -280,7 +281,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "166.28",
+                                    "Value": "5230.80",
                                     "Attributes": [
                                         {
                                             "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
@@ -294,7 +295,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Light, Power, Heating",
+                                    "Value": "Airport Electricity & Services",
                                     "Attributes": [
                                         {
                                             "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
@@ -303,7 +304,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "335.82",
+                                    "Value": "14230.60",
                                     "Attributes": [
                                         {
                                             "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
@@ -317,7 +318,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Motor Vehicle Expenses",
+                                    "Value": "Ground Transport & Support Vehicles",
                                     "Attributes": [
                                         {
                                             "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
@@ -326,7 +327,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "654.36",
+                                    "Value": "9875.20",
                                     "Attributes": [
                                         {
                                             "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
@@ -340,7 +341,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Office Expenses",
+                                    "Value": "Administrative & Office Expenses",
                                     "Attributes": [
                                         {
                                             "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
@@ -349,7 +350,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "812.59",
+                                    "Value": "7560.90",
                                     "Attributes": [
                                         {
                                             "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
@@ -363,7 +364,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Printing & Stationery",
+                                    "Value": "Boarding Passes & Documentation",
                                     "Attributes": [
                                         {
                                             "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
@@ -372,7 +373,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "94.41",
+                                    "Value": "3245.85",
                                     "Attributes": [
                                         {
                                             "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
@@ -386,7 +387,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Rent",
+                                    "Value": "Airport Gate & Terminal Rentals",
                                     "Attributes": [
                                         {
                                             "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
@@ -395,7 +396,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "3273.66",
+                                    "Value": "38470.95",
                                     "Attributes": [
                                         {
                                             "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
@@ -409,7 +410,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Repairs and Maintenance",
+                                    "Value": "Aircraft Maintenance",
                                     "Attributes": [
                                         {
                                             "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
@@ -418,7 +419,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "1896.70",
+                                    "Value": "42185.30",
                                     "Attributes": [
                                         {
                                             "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
@@ -432,7 +433,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Telephone & Internet",
+                                    "Value": "Communications & Aircraft Systems",
                                     "Attributes": [
                                         {
                                             "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
@@ -441,7 +442,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "134.75",
+                                    "Value": "8970.45",
                                     "Attributes": [
                                         {
                                             "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
@@ -455,7 +456,7 @@
                             "RowType": "Row",
                             "Cells": [
                                 {
-                                    "Value": "Travel - National",
+                                    "Value": "Crew Travel & Accommodation",
                                     "Attributes": [
                                         {
                                             "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
@@ -464,7 +465,7 @@
                                     ]
                                 },
                                 {
-                                    "Value": "255.80",
+                                    "Value": "15930.65",
                                     "Attributes": [
                                         {
                                             "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
@@ -481,7 +482,7 @@
                                     "Value": "Total Operating Expenses"
                                 },
                                 {
-                                    "Value": "19167.52"
+                                    "Value": "283013.00"
                                 }
                             ]
                         }
@@ -498,7 +499,7 @@
                                     "Value": "Net Profit"
                                 },
                                 {
-                                    "Value": "3029.68"
+                                    "Value": "416.20"
                                 }
                             ]
                         }

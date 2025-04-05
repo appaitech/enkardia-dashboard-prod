@@ -1,2391 +1,529 @@
+
 {
-    "Id": "f1385511-e676-4bac-abbb-57d22d8e3827",
-    "Status": "OK",
-    "ProviderName": "TestApp",
-    "DateTimeUTC": "/Date(1743889394313)/",
-    "Reports": [
+  "Id": "3fe77d7a-2e01-4857-a219-26470f37ef82",
+  "Status": "OK",
+  "ProviderName": "TestApp",
+  "DateTimeUTC": "/Date(1743889531925)/",
+  "Reports": [
+    {
+      "ReportID": "ProfitAndLoss",
+      "ReportName": "Profit and Loss",
+      "ReportType": "ProfitAndLoss",
+      "ReportTitles": [
+        "Profit & Loss",
+        "Oceanic Airlines",
+        "1 April 2024 to 31 March 2025"
+      ],
+      "ReportDate": "5 April 2025",
+      "UpdatedDateUTC": "/Date(1743889531925)/",
+      "Fields": [
         {
-            "ReportID": "ProfitAndLoss",
-            "ReportName": "Profit and Loss",
-            "ReportType": "ProfitAndLoss",
-            "ReportTitles": [
-                "Profit & Loss",
-                "Demo Company (Global)",
-                "1 April 2025 to 30 April 2025"
-            ],
-            "ReportDate": "5 April 2025",
-            "UpdatedDateUTC": "/Date(1743889394313)/",
-            "Fields": [],
-            "Rows": [
-                {
-                    "RowType": "Header",
-                    "Cells": [
-                        {
-                            "Value": ""
-                        },
-                        {
-                            "Value": "30 Apr 25"
-                        },
-                        {
-                            "Value": "30 Mar 25"
-                        },
-                        {
-                            "Value": "28 Feb 25"
-                        },
-                        {
-                            "Value": "30 Jan 25"
-                        },
-                        {
-                            "Value": "30 Dec 24"
-                        },
-                        {
-                            "Value": "30 Nov 24"
-                        },
-                        {
-                            "Value": "30 Oct 24"
-                        },
-                        {
-                            "Value": "30 Sep 24"
-                        },
-                        {
-                            "Value": "30 Aug 24"
-                        },
-                        {
-                            "Value": "30 Jul 24"
-                        },
-                        {
-                            "Value": "30 Jun 24"
-                        },
-                        {
-                            "Value": "30 May 24"
-                        }
-                    ]
-                },
-                {
-                    "RowType": "Section",
-                    "Title": "Income",
-                    "Rows": [
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Sales",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "7263.59",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "11230.84",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "4478.75",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d1ebb97b-d207-4ccb-9ab6-8a466a8b4d39",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "SummaryRow",
-                            "Cells": [
-                                {
-                                    "Value": "Total Income"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "7263.59"
-                                },
-                                {
-                                    "Value": "11230.84"
-                                },
-                                {
-                                    "Value": "4478.75"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "RowType": "Section",
-                    "Title": "Less Cost of Sales",
-                    "Rows": [
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Purchases",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "775.98",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "ae8074e0-1ac1-4b37-8546-afa9fa6ace9e",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "SummaryRow",
-                            "Cells": [
-                                {
-                                    "Value": "Total Cost of Sales"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "775.98"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "RowType": "Section",
-                    "Title": "",
-                    "Rows": [
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Gross Profit"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "6487.61"
-                                },
-                                {
-                                    "Value": "11230.84"
-                                },
-                                {
-                                    "Value": "4478.75"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "RowType": "Section",
-                    "Title": "Less Operating Expenses",
-                    "Rows": [
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Advertising",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "2309.47",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "7347.58",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "eb01b8c7-f9b0-49ef-86f4-ed89b4ac33d5",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Bank Fees",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "15.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "15.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "269479fb-cc8e-4e5f-b0b6-cc4eccf045e0",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Cleaning",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "110.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "30ad3fd7-43b8-4eeb-96bc-ed2b7c945f3c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Consulting & Accounting",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "29.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "29.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "29.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d2429b4f-ad8b-45e5-815a-13f5ecb0d5c1",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Entertainment",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "22.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "1515.60",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "16.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "6a7d9c59-1d5a-4474-8c61-3da1f980db13",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Freight & Courier",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "105.50",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c4b1c463-9913-4672-a8b8-01a3b546126f",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "General Expenses",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "120.09",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "46.19",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "4281c446-efb4-445d-b32d-c441a4ef5678",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Light, Power, Heating",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "100.32",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "125.50",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "110.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "c61d3100-d95f-4ce4-ba75-c03cc767b825",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Motor Vehicle Expenses",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "380.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "274.36",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "470f3b54-9cbe-420a-8d13-22cb17fd9d40",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Office Expenses",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "162.11",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "590.25",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "60.23",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "79fc6227-e183-409a-ba39-77028e0ceeff",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Printing & Stationery",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "45.45",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "27.25",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "21.71",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "a8c9ca73-91ef-4163-a4f6-7d892201c087",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Rent",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "1091.22",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "1091.22",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "1091.22",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "d76027eb-0256-4b69-9f72-4751312e2749",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Repairs and Maintenance",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "64.20",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "1832.50",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "5098e313-2775-40c3-9bb4-6b1f86d89a47",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Telephone & Internet",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "50.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "43.25",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "41.50",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "3b4fee92-7ed1-4d63-b00e-8fdf13927e05",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Travel - National",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "223.56",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "32.24",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                },
-                                {
-                                    "Value": "0.00",
-                                    "Attributes": [
-                                        {
-                                            "Value": "f5211403-43fb-49aa-82de-9fc1f6bc3e8c",
-                                            "Id": "account"
-                                        }
-                                    ]
-                                }
-                            ]
-                        },
-                        {
-                            "RowType": "SummaryRow",
-                            "Cells": [
-                                {
-                                    "Value": "Total Operating Expenses"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "4702.92"
-                                },
-                                {
-                                    "Value": "13001.51"
-                                },
-                                {
-                                    "Value": "1463.09"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "RowType": "Section",
-                    "Title": "",
-                    "Rows": [
-                        {
-                            "RowType": "Row",
-                            "Cells": [
-                                {
-                                    "Value": "Net Profit"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "1784.69"
-                                },
-                                {
-                                    "Value": "-1770.67"
-                                },
-                                {
-                                    "Value": "3015.66"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                },
-                                {
-                                    "Value": "0.00"
-                                }
-                            ]
-                        }
-                    ]
-                }
-            ]
+          "Id": "Column",
+          "Value": "Apr 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "May 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "Jun 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "Jul 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "Aug 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "Sep 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "Oct 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "Nov 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "Dec 2024"
+        },
+        {
+          "Id": "Column",
+          "Value": "Jan 2025"
+        },
+        {
+          "Id": "Column",
+          "Value": "Feb 2025"
+        },
+        {
+          "Id": "Column",
+          "Value": "Mar 2025"
         }
-    ]
+      ],
+      "Rows": [
+        {
+          "RowType": "Section",
+          "Title": "Income",
+          "Cells": [
+            {"Value": "Apr 2024"},
+            {"Value": "May 2024"},
+            {"Value": "Jun 2024"},
+            {"Value": "Jul 2024"},
+            {"Value": "Aug 2024"},
+            {"Value": "Sep 2024"},
+            {"Value": "Oct 2024"},
+            {"Value": "Nov 2024"},
+            {"Value": "Dec 2024"},
+            {"Value": "Jan 2025"},
+            {"Value": "Feb 2025"},
+            {"Value": "Mar 2025"}
+          ],
+          "Rows": [
+            {
+              "RowType": "Row",
+              "Title": "Flight Revenue",
+              "Cells": [
+                {"Value": "32500.00"},
+                {"Value": "35750.00"},
+                {"Value": "38900.00"},
+                {"Value": "42500.00"},
+                {"Value": "45600.00"},
+                {"Value": "42300.00"},
+                {"Value": "38200.00"},
+                {"Value": "36500.00"},
+                {"Value": "41200.00"},
+                {"Value": "34800.00"},
+                {"Value": "32700.00"},
+                {"Value": "37800.00"}
+              ]
+            },
+            {
+              "RowType": "SummaryRow",
+              "Title": "Total Income",
+              "Cells": [
+                {"Value": "32500.00"},
+                {"Value": "35750.00"},
+                {"Value": "38900.00"},
+                {"Value": "42500.00"},
+                {"Value": "45600.00"},
+                {"Value": "42300.00"},
+                {"Value": "38200.00"},
+                {"Value": "36500.00"},
+                {"Value": "41200.00"},
+                {"Value": "34800.00"},
+                {"Value": "32700.00"},
+                {"Value": "37800.00"}
+              ]
+            }
+          ]
+        },
+        {
+          "RowType": "Section",
+          "Title": "Less Cost of Sales",
+          "Cells": [
+            {"Value": "Apr 2024"},
+            {"Value": "May 2024"},
+            {"Value": "Jun 2024"},
+            {"Value": "Jul 2024"},
+            {"Value": "Aug 2024"},
+            {"Value": "Sep 2024"},
+            {"Value": "Oct 2024"},
+            {"Value": "Nov 2024"},
+            {"Value": "Dec 2024"},
+            {"Value": "Jan 2025"},
+            {"Value": "Feb 2025"},
+            {"Value": "Mar 2025"}
+          ],
+          "Rows": [
+            {
+              "RowType": "Row",
+              "Title": "Fuel Costs",
+              "Cells": [
+                {"Value": "12580.40"},
+                {"Value": "13845.60"},
+                {"Value": "14620.30"},
+                {"Value": "15890.50"},
+                {"Value": "16950.80"},
+                {"Value": "15835.70"},
+                {"Value": "14370.40"},
+                {"Value": "13580.60"},
+                {"Value": "15430.20"},
+                {"Value": "13250.40"},
+                {"Value": "12560.90"},
+                {"Value": "16405.00"}
+              ]
+            },
+            {
+              "RowType": "SummaryRow",
+              "Title": "Total Cost of Sales",
+              "Cells": [
+                {"Value": "12580.40"},
+                {"Value": "13845.60"},
+                {"Value": "14620.30"},
+                {"Value": "15890.50"},
+                {"Value": "16950.80"},
+                {"Value": "15835.70"},
+                {"Value": "14370.40"},
+                {"Value": "13580.60"},
+                {"Value": "15430.20"},
+                {"Value": "13250.40"},
+                {"Value": "12560.90"},
+                {"Value": "16405.00"}
+              ]
+            }
+          ]
+        },
+        {
+          "RowType": "Row",
+          "Title": "Gross Profit",
+          "Cells": [
+            {"Value": "19919.60"},
+            {"Value": "21904.40"},
+            {"Value": "24279.70"},
+            {"Value": "26609.50"},
+            {"Value": "28649.20"},
+            {"Value": "26464.30"},
+            {"Value": "23829.60"},
+            {"Value": "22919.40"},
+            {"Value": "25769.80"},
+            {"Value": "21549.60"},
+            {"Value": "20139.10"},
+            {"Value": "21395.00"}
+          ]
+        },
+        {
+          "RowType": "Section",
+          "Title": "Less Operating Expenses",
+          "Cells": [
+            {"Value": "Apr 2024"},
+            {"Value": "May 2024"},
+            {"Value": "Jun 2024"},
+            {"Value": "Jul 2024"},
+            {"Value": "Aug 2024"},
+            {"Value": "Sep 2024"},
+            {"Value": "Oct 2024"},
+            {"Value": "Nov 2024"},
+            {"Value": "Dec 2024"},
+            {"Value": "Jan 2025"},
+            {"Value": "Feb 2025"},
+            {"Value": "Mar 2025"}
+          ],
+          "Rows": [
+            {
+              "RowType": "Row",
+              "Title": "Marketing & Advertising",
+              "Cells": [
+                {"Value": "3240.50"},
+                {"Value": "3580.25"},
+                {"Value": "3890.60"},
+                {"Value": "4250.80"},
+                {"Value": "4560.30"},
+                {"Value": "4230.50"},
+                {"Value": "3820.40"},
+                {"Value": "3650.10"},
+                {"Value": "4120.30"},
+                {"Value": "3480.50"},
+                {"Value": "3270.80"},
+                {"Value": "3685.20"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Banking & Finance Fees",
+              "Cells": [
+                {"Value": "980.20"},
+                {"Value": "1050.40"},
+                {"Value": "1120.60"},
+                {"Value": "1180.30"},
+                {"Value": "1240.50"},
+                {"Value": "1140.60"},
+                {"Value": "980.40"},
+                {"Value": "940.30"},
+                {"Value": "1080.50"},
+                {"Value": "920.60"},
+                {"Value": "880.30"},
+                {"Value": "1165.80"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Aircraft Cleaning",
+              "Cells": [
+                {"Value": "1850.40"},
+                {"Value": "1920.60"},
+                {"Value": "2050.30"},
+                {"Value": "2180.50"},
+                {"Value": "2250.40"},
+                {"Value": "2150.30"},
+                {"Value": "1980.60"},
+                {"Value": "1890.50"},
+                {"Value": "2080.40"},
+                {"Value": "1860.50"},
+                {"Value": "1780.60"},
+                {"Value": "2320.50"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Consulting & Aviation Compliance",
+              "Cells": [
+                {"Value": "1450.30"},
+                {"Value": "1520.60"},
+                {"Value": "1650.40"},
+                {"Value": "1720.50"},
+                {"Value": "1820.30"},
+                {"Value": "1680.50"},
+                {"Value": "1540.60"},
+                {"Value": "1480.30"},
+                {"Value": "1680.50"},
+                {"Value": "1420.60"},
+                {"Value": "1350.30"},
+                {"Value": "1425.40"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Customer Entertainment",
+              "Cells": [
+                {"Value": "650.30"},
+                {"Value": "720.50"},
+                {"Value": "780.60"},
+                {"Value": "820.40"},
+                {"Value": "840.50"},
+                {"Value": "780.60"},
+                {"Value": "720.30"},
+                {"Value": "680.50"},
+                {"Value": "780.60"},
+                {"Value": "650.30"},
+                {"Value": "620.50"},
+                {"Value": "600.65"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Cargo & Baggage Handling",
+              "Cells": [
+                {"Value": "1980.40"},
+                {"Value": "2150.60"},
+                {"Value": "2320.30"},
+                {"Value": "2480.50"},
+                {"Value": "2580.40"},
+                {"Value": "2380.30"},
+                {"Value": "2180.60"},
+                {"Value": "2080.40"},
+                {"Value": "2380.30"},
+                {"Value": "2050.60"},
+                {"Value": "1980.50"},
+                {"Value": "2586.50"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Miscellaneous Operating Expenses",
+              "Cells": [
+                {"Value": "380.40"},
+                {"Value": "420.50"},
+                {"Value": "450.60"},
+                {"Value": "480.30"},
+                {"Value": "520.40"},
+                {"Value": "480.50"},
+                {"Value": "430.60"},
+                {"Value": "410.30"},
+                {"Value": "460.50"},
+                {"Value": "390.60"},
+                {"Value": "380.30"},
+                {"Value": "425.80"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Airport Electricity & Services",
+              "Cells": [
+                {"Value": "1080.40"},
+                {"Value": "1150.60"},
+                {"Value": "1220.30"},
+                {"Value": "1280.50"},
+                {"Value": "1350.40"},
+                {"Value": "1220.60"},
+                {"Value": "1150.30"},
+                {"Value": "1080.50"},
+                {"Value": "1250.40"},
+                {"Value": "1120.60"},
+                {"Value": "1050.30"},
+                {"Value": "1276.70"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Ground Transport & Support Vehicles",
+              "Cells": [
+                {"Value": "750.40"},
+                {"Value": "820.60"},
+                {"Value": "880.30"},
+                {"Value": "920.50"},
+                {"Value": "980.40"},
+                {"Value": "880.60"},
+                {"Value": "820.30"},
+                {"Value": "780.50"},
+                {"Value": "880.40"},
+                {"Value": "750.60"},
+                {"Value": "720.30"},
+                {"Value": "690.30"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Administrative & Office Expenses",
+              "Cells": [
+                {"Value": "580.40"},
+                {"Value": "620.60"},
+                {"Value": "680.30"},
+                {"Value": "720.50"},
+                {"Value": "750.40"},
+                {"Value": "680.60"},
+                {"Value": "620.30"},
+                {"Value": "580.50"},
+                {"Value": "680.40"},
+                {"Value": "580.60"},
+                {"Value": "550.30"},
+                {"Value": "520.00"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Boarding Passes & Documentation",
+              "Cells": [
+                {"Value": "250.40"},
+                {"Value": "280.50"},
+                {"Value": "295.60"},
+                {"Value": "320.30"},
+                {"Value": "340.50"},
+                {"Value": "295.60"},
+                {"Value": "280.30"},
+                {"Value": "250.40"},
+                {"Value": "295.60"},
+                {"Value": "240.30"},
+                {"Value": "230.50"},
+                {"Value": "166.85"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Airport Gate & Terminal Rentals",
+              "Cells": [
+                {"Value": "2980.40"},
+                {"Value": "3120.60"},
+                {"Value": "3280.30"},
+                {"Value": "3450.50"},
+                {"Value": "3580.40"},
+                {"Value": "3350.60"},
+                {"Value": "3120.30"},
+                {"Value": "2980.50"},
+                {"Value": "3380.40"},
+                {"Value": "2980.60"},
+                {"Value": "2850.30"},
+                {"Value": "3396.05"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Aircraft Maintenance",
+              "Cells": [
+                {"Value": "3250.40"},
+                {"Value": "3420.60"},
+                {"Value": "3580.30"},
+                {"Value": "3780.50"},
+                {"Value": "3920.40"},
+                {"Value": "3680.60"},
+                {"Value": "3420.30"},
+                {"Value": "3250.40"},
+                {"Value": "3680.60"},
+                {"Value": "3250.30"},
+                {"Value": "3150.50"},
+                {"Value": "3801.40"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Communications & Aircraft Systems",
+              "Cells": [
+                {"Value": "680.40"},
+                {"Value": "720.60"},
+                {"Value": "780.30"},
+                {"Value": "820.50"},
+                {"Value": "850.40"},
+                {"Value": "780.60"},
+                {"Value": "720.30"},
+                {"Value": "680.50"},
+                {"Value": "780.60"},
+                {"Value": "680.30"},
+                {"Value": "650.50"},
+                {"Value": "826.45"}
+              ]
+            },
+            {
+              "RowType": "Row",
+              "Title": "Crew Travel & Accommodation",
+              "Cells": [
+                {"Value": "1240.30"},
+                {"Value": "1320.50"},
+                {"Value": "1380.60"},
+                {"Value": "1450.30"},
+                {"Value": "1520.50"},
+                {"Value": "1380.60"},
+                {"Value": "1320.30"},
+                {"Value": "1240.50"},
+                {"Value": "1380.60"},
+                {"Value": "1240.30"},
+                {"Value": "1180.50"},
+                {"Value": "1276.65"}
+              ]
+            },
+            {
+              "RowType": "SummaryRow",
+              "Title": "Total Operating Expenses",
+              "Cells": [
+                {"Value": "19924.20"},
+                {"Value": "21816.50"},
+                {"Value": "23290.60"},
+                {"Value": "24655.40"},
+                {"Value": "25855.40"},
+                {"Value": "23921.50"},
+                {"Value": "22105.30"},
+                {"Value": "21015.20"},
+                {"Value": "24130.60"},
+                {"Value": "20215.70"},
+                {"Value": "19646.00"},
+                {"Value": "24436.60"}
+              ]
+            }
+          ]
+        },
+        {
+          "RowType": "Row",
+          "Title": "Net Profit",
+          "Cells": [
+            {"Value": "-4.60"},
+            {"Value": "87.90"},
+            {"Value": "989.10"},
+            {"Value": "1954.10"},
+            {"Value": "2793.80"},
+            {"Value": "2542.80"},
+            {"Value": "1724.30"},
+            {"Value": "1904.20"},
+            {"Value": "1639.20"},
+            {"Value": "1333.90"},
+            {"Value": "493.10"},
+            {"Value": "-3041.60"}
+          ]
+        }
+      ]
+    }
+  ]
 }
