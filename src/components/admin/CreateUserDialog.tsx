@@ -1,4 +1,3 @@
-
 import React from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -6,6 +5,7 @@ import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { User, Mail, Shield, Building } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 import {
   Dialog,
@@ -59,6 +59,8 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
   onOpenChange,
   onUserCreated,
 }) => {
+  const { session } = useAuth();
+  
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -74,18 +76,21 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
   const onSubmit = async (data: FormValues) => {
     try {
-      const { error } = await supabase.auth.admin.createUser({
-        email: data.email,
-        password: data.password,
-        email_confirm: true,
-        user_metadata: {
+      const { data: response, error } = await supabase.functions.invoke("create-user", {
+        body: {
+          email: data.email,
+          password: data.password,
           name: data.name,
           account_type: data.account_type,
-          role: data.role,
+          role: data.role
+        },
+        headers: {
+          Authorization: `Bearer ${session?.access_token}`,
         },
       });
 
-      if (error) throw error;
+      if (error) throw new Error(error.message || "Failed to create user");
+      if (response?.error) throw new Error(response.error);
       
       toast.success(`User ${data.name} created successfully`);
       form.reset();
