@@ -3,7 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import UserSidebar from "@/components/UserSidebar";
 import { useAuth } from "@/contexts/AuthContext";
-import { getProfitAndLossData } from "@/services/financialService";
+import { 
+  getProfitAndLossData, 
+  getMonthlyProfitAndLossData,
+  getVisualDashboardData,
+  FinancialDataType
+} from "@/services/financialService";
 import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
 import ProfitAndLossSummary from "@/components/ProfitAndLoss/ProfitAndLossSummary";
 import ProfitAndLossTable from "@/components/ProfitAndLoss/ProfitAndLossTable";
@@ -11,10 +16,12 @@ import ProfitAndLossChart from "@/components/ProfitAndLoss/ProfitAndLossChart";
 import { Loader2, AlertTriangle, RefreshCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const ProfitAndLossPage: React.FC = () => {
   const { user } = useAuth();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
+  const [activeTab, setActiveTab] = useState<string>("current-year");
 
   // Fetch client businesses
   const { 
@@ -27,16 +34,38 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch profit and loss data
+  // Fetch current financial year data
   const {
     data: plData,
     isLoading: isLoadingPL,
     isError: isErrorPL,
     refetch: refetchPL
   } = useQuery({
-    queryKey: ["profit-and-loss", selectedBusinessId],
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.BASIC_CURRENT_YEAR],
     queryFn: () => getProfitAndLossData(selectedBusinessId),
     enabled: !!selectedBusinessId,
+  });
+
+  // Fetch monthly breakdown data
+  const {
+    data: monthlyData,
+    isLoading: isLoadingMonthly,
+    isError: isErrorMonthly,
+  } = useQuery({
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.MONTHLY_BREAKDOWN],
+    queryFn: () => getMonthlyProfitAndLossData(selectedBusinessId),
+    enabled: !!selectedBusinessId && activeTab === "monthly",
+  });
+
+  // Fetch visual dashboard data
+  const {
+    data: visualData,
+    isLoading: isLoadingVisual,
+    isError: isErrorVisual,
+  } = useQuery({
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.VISUAL_DASHBOARD],
+    queryFn: () => getVisualDashboardData(selectedBusinessId),
+    enabled: !!selectedBusinessId && activeTab === "visual",
   });
 
   // Set the first business as selected when data loads if none is selected
@@ -57,8 +86,18 @@ const ProfitAndLossPage: React.FC = () => {
     saveSelectedClientBusinessId(businessId);
   };
 
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+  };
+
   // Loading state
-  if (isLoadingBusinesses || (isLoadingPL && !!selectedBusinessId)) {
+  const isLoading = isLoadingBusinesses || 
+    (isLoadingPL && activeTab === "current-year" && !!selectedBusinessId) ||
+    (isLoadingMonthly && activeTab === "monthly" && !!selectedBusinessId) ||
+    (isLoadingVisual && activeTab === "visual" && !!selectedBusinessId);
+
+  if (isLoading) {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/financial/profit-loss" />
@@ -73,7 +112,12 @@ const ProfitAndLossPage: React.FC = () => {
   }
 
   // Error state
-  if (isErrorBusinesses || (isErrorPL && !!selectedBusinessId)) {
+  const hasError = isErrorBusinesses || 
+    (isErrorPL && activeTab === "current-year" && !!selectedBusinessId) ||
+    (isErrorMonthly && activeTab === "monthly" && !!selectedBusinessId) ||
+    (isErrorVisual && activeTab === "visual" && !!selectedBusinessId);
+
+  if (hasError) {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/financial/profit-loss" />
@@ -123,8 +167,8 @@ const ProfitAndLossPage: React.FC = () => {
     return null;
   }
 
-  // No P&L data state
-  if (!plData && selectedBusinessId) {
+  // No P&L data state for current year tab
+  if (!plData && selectedBusinessId && activeTab === "current-year") {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/financial/profit-loss" />
@@ -153,7 +197,7 @@ const ProfitAndLossPage: React.FC = () => {
     );
   }
 
-  // Main content with P&L data
+  // Main content with data tabs
   return (
     <div className="flex h-screen bg-slate-50">
       <UserSidebar activePath="/user/financial/profit-loss" />
@@ -177,23 +221,75 @@ const ProfitAndLossPage: React.FC = () => {
           </div>
         </div>
         
-        {plData && (
-          <>
-            <div className="mb-8">
-              <ProfitAndLossSummary report={plData.Reports[0]} />
-            </div>
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="current-year">Current Year</TabsTrigger>
+            <TabsTrigger value="monthly">Monthly Breakdown</TabsTrigger>
+            <TabsTrigger value="visual">Visual Dashboard</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="current-year">
+            {plData && (
+              <>
+                <div className="mb-8">
+                  <ProfitAndLossSummary report={plData.Reports[0]} />
+                </div>
 
-            <div className="mb-8">
-              <h2 className="text-xl font-semibold mb-4">Revenue & Expenses</h2>
-              <ProfitAndLossChart rows={plData.Reports[0].Rows} />
-            </div>
+                <div className="mb-8">
+                  <h2 className="text-xl font-semibold mb-4">Revenue & Expenses</h2>
+                  <ProfitAndLossChart rows={plData.Reports[0].Rows} />
+                </div>
 
-            <div>
-              <h2 className="text-xl font-semibold mb-4">Detailed Statement</h2>
-              <ProfitAndLossTable rows={plData.Reports[0].Rows} period={plData.Reports[0].ReportDate} />
-            </div>
-          </>
-        )}
+                <div>
+                  <h2 className="text-xl font-semibold mb-4">Detailed Statement</h2>
+                  <ProfitAndLossTable rows={plData.Reports[0].Rows} period={plData.Reports[0].ReportDate} />
+                </div>
+              </>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="monthly">
+            {activeTab === "monthly" && !monthlyData && (
+              <div className="flex h-80 items-center justify-center">
+                <div className="text-center">
+                  <AlertTriangle className="h-10 w-10 text-slate-300 mx-auto" />
+                  <h2 className="mt-4 text-lg font-semibold">No Monthly Data Available</h2>
+                  <p className="mt-2 text-slate-500">There is no monthly breakdown data for this business</p>
+                </div>
+              </div>
+            )}
+            
+            {monthlyData && (
+              <div className="text-center p-4 border rounded bg-white">
+                <h3 className="text-lg font-medium">Monthly Breakdown Data Available</h3>
+                <p className="text-slate-500 mt-2">
+                  The monthly data is available but requires additional components to display properly.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          
+          <TabsContent value="visual">
+            {activeTab === "visual" && !visualData && (
+              <div className="flex h-80 items-center justify-center">
+                <div className="text-center">
+                  <AlertTriangle className="h-10 w-10 text-slate-300 mx-auto" />
+                  <h2 className="mt-4 text-lg font-semibold">No Visual Dashboard Data Available</h2>
+                  <p className="mt-2 text-slate-500">There is no visual dashboard data for this business</p>
+                </div>
+              </div>
+            )}
+            
+            {visualData && (
+              <div className="text-center p-4 border rounded bg-white">
+                <h3 className="text-lg font-medium">Visual Dashboard Data Available</h3>
+                <p className="text-slate-500 mt-2">
+                  The visual dashboard data is available but requires additional components to display properly.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
