@@ -20,7 +20,10 @@ export interface ProfitAndLossReport {
   ReportTitles: string[];
   ReportDate: string;
   UpdatedDateUTC: string;
-  Fields: any[];
+  Fields: {
+    Id: string;
+    Value: string;
+  }[];
   Rows: ProfitAndLossRow[];
 }
 

@@ -23,11 +23,10 @@ const MonthlyProfitAndLossTable: React.FC<MonthlyProfitAndLossTableProps> = ({ d
   // Get the report
   const report = data.Reports[0];
   
-  // Extract month names from report fields
-  // The monthly data structure is different from the yearly data,
-  // with periods stored in Fields array
+  // Extract month names from report headers
+  // In the JSON structure, the column headers are in the report's Fields array
   const monthNames = report.Fields
-    .filter(field => field.Id === 'Period')
+    .filter(field => field.Id === 'Period' || field.Id === 'Column')
     .map(field => field.Value);
   
   // Process rows to extract data
@@ -65,7 +64,7 @@ const MonthlyProfitAndLossTable: React.FC<MonthlyProfitAndLossTableProps> = ({ d
         // Add section header first
         allRows.push({
           label: row.Title,
-          values: [],
+          values: row.Cells?.map((cell: any) => cell.Value) || [],
           level,
           isHeader: true,
         });
