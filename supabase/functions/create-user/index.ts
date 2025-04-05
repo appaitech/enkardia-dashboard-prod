@@ -27,6 +27,9 @@ serve(async (req) => {
       );
     }
 
+    // Extract the JWT token from the Authorization header
+    const token = authHeader.replace("Bearer ", "");
+    
     // Create Supabase admin client
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -39,7 +42,7 @@ serve(async (req) => {
       }
     );
 
-    // Create Supabase client with user's JWT
+    // Create Supabase client with JWT token
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
@@ -50,13 +53,13 @@ serve(async (req) => {
         },
         global: {
           headers: {
-            Authorization: authHeader,
+            Authorization: `Bearer ${token}`,
           },
         },
       }
     );
 
-    // Verify the requesting user is a CONSOLE ADMIN
+    // Verify the requesting user is authenticated by getting their information
     const { 
       data: { user: requestingUser },
       error: requestingUserError
