@@ -92,18 +92,6 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
           href="/user/dashboard"
           isActive={activePath === "/user/dashboard"}
         />
-        <SidebarItem 
-          icon={<Calendar size={18} />} 
-          label="Schedule" 
-          href="/user/schedule"
-          isActive={activePath === "/user/schedule"}
-        />
-        <SidebarItem 
-          icon={<FileText size={18} />} 
-          label="Documents" 
-          href="/user/documents"
-          isActive={activePath === "/user/documents"}
-        />
         
         {/* Financial Section */}
         <div className="pt-4">
@@ -115,35 +103,6 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
             isActive={activePath === "/user/financial/profit-loss"}
           />
         </div>
-
-        <SidebarItem 
-          icon={<Bell size={18} />} 
-          label="Notifications" 
-          href="/user/notifications"
-          isActive={activePath === "/user/notifications"}
-          adminOnly={true}
-          badge="Admin"
-        />
-        <SidebarItem 
-          icon={<Shield size={18} />} 
-          label="Team Access" 
-          href="/user/team"
-          isActive={activePath === "/user/team"}
-          adminOnly={true}
-          badge="Admin"
-        />
-        <SidebarItem 
-          icon={<User size={18} />} 
-          label="Profile" 
-          href="/user/profile"
-          isActive={activePath === "/user/profile"}
-        />
-        <SidebarItem 
-          icon={<Settings size={18} />} 
-          label="Settings" 
-          href="/user/settings"
-          isActive={activePath === "/user/settings"}
-        />
       </div>
       
       <div className="p-4 border-t">

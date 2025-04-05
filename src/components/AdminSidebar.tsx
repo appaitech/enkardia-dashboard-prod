@@ -105,32 +105,6 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePath }) => {
           adminOnly={true}
           badge="Admin"
         />
-        <SidebarItem 
-          icon={<FileText size={18} />} 
-          label="Reports" 
-          href="/admin/reports"
-          isActive={activePath === "/admin/reports"}
-        />
-        <SidebarItem 
-          icon={<BarChart3 size={18} />} 
-          label="Analytics" 
-          href="/admin/analytics"
-          isActive={activePath === "/admin/analytics"}
-        />
-        <SidebarItem 
-          icon={<Shield size={18} />} 
-          label="Access Control" 
-          href="/admin/access"
-          isActive={activePath === "/admin/access"}
-          adminOnly={true}
-          badge="Admin"
-        />
-        <SidebarItem 
-          icon={<Settings size={18} />} 
-          label="Settings" 
-          href="/admin/settings"
-          isActive={activePath === "/admin/settings"}
-        />
       </div>
       
       <div className="p-4 border-t">
