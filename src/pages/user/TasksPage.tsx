@@ -183,10 +183,10 @@ const TasksPage: React.FC = () => {
             <div>
               <div className="flex items-center space-x-3">
                 <ListChecks className="h-8 w-8 text-green-600" />
-                <h1 className="text-3xl font-bold text-slate-800">My Tasks</h1>
+                <h1 className="text-3xl font-bold text-slate-800">Task Statuses</h1>
               </div>
               <p className="text-slate-500 mt-2">
-                Manage and track your tasks
+                We are working on your tasks. Here you can see their statuses.
               </p>
             </div>
             

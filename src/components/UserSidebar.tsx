@@ -106,7 +106,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
           <h3 className="mb-2 px-2 text-xs font-semibold text-muted-foreground">TASKS</h3>
           <SidebarItem 
             icon={<ListChecks size={18} />} 
-            label="My Tasks" 
+            label="Task Statuses" 
             href="/user/tasks"
             isActive={activePath === "/user/tasks"}
           />
