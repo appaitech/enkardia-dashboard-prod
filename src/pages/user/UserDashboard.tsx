@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -73,7 +74,7 @@ const UserDashboard = () => {
 
   if (isLoading) {
     return (
-      <div className="flex h-screen bg-slate-50">
+      <div className="flex min-h-screen bg-slate-50">
         <UserSidebar activePath="/user/dashboard" />
         <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0">
           <div className="flex flex-col items-center">
@@ -87,7 +88,7 @@ const UserDashboard = () => {
 
   if (isError) {
     return (
-      <div className="flex h-screen bg-slate-50">
+      <div className="flex min-h-screen bg-slate-50">
         <UserSidebar activePath="/user/dashboard" />
         <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0">
           <div className="text-center">
@@ -111,7 +112,7 @@ const UserDashboard = () => {
   
   if (validBusinesses.length === 0) {
     return (
-      <div className="flex h-screen bg-slate-50">
+      <div className="flex min-h-screen bg-slate-50">
         <UserSidebar activePath="/user/dashboard" />
         <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0">
           <div className="text-center">
@@ -136,7 +137,7 @@ const UserDashboard = () => {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50">
       <UserSidebar activePath="/user/dashboard" />
       
       <div className="flex-1 overflow-auto pt-14 md:pt-0">
@@ -145,11 +146,11 @@ const UserDashboard = () => {
             <div>
               <div className="flex items-center space-x-3">
                 <UserCircle className="h-8 w-8 text-blue-600" />
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
+                <h1 className="text-xl md:text-2xl font-bold text-slate-800">
                   Welcome, {user?.name || 'User'}
                 </h1>
               </div>
-              <p className="text-slate-500 mt-2">
+              <p className="text-slate-500 mt-2 text-sm">
                 {user?.accountType === 'CONSOLE' 
                   ? 'Console Administrator Dashboard' 
                   : `${user?.role === 'ADMIN' ? 'Client Business Admin' : 'Client User'} Dashboard`}
@@ -168,7 +169,7 @@ const UserDashboard = () => {
           </div>
           
           <div className="mb-6">
-            <h2 className="text-xl md:text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
+            <h2 className="text-lg md:text-xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
             <div className="flex items-center mt-1 text-sm text-slate-500">
               <span>{selectedBusiness.industry || "No industry specified"}</span>
             </div>
@@ -177,12 +178,12 @@ const UserDashboard = () => {
           <div className="mb-8">
             <div className="flex items-center mb-4">
               <BarChart className="h-5 w-5 text-green-600 mr-2" />
-              <h2 className="text-xl font-semibold text-slate-800">Financial Dashboard</h2>
+              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Financial Dashboard</h2>
             </div>
             
             {visualData ? (
               <div className="overflow-x-auto">
-                <div className="min-w-[600px]">
+                <div className={isMobile ? "min-w-[600px]" : ""}>
                   <VisualDashboard data={visualData} />
                 </div>
               </div>
@@ -199,9 +200,9 @@ const UserDashboard = () => {
             )}
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <Boxes className="mr-2 h-5 w-5" />
                   Financial Summary
@@ -213,21 +214,21 @@ const UserDashboard = () => {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="p-4 bg-slate-50 rounded-md">
                         <div className="text-sm text-slate-500">Outstanding Invoices</div>
-                        <div className="text-2xl font-semibold">$12,450</div>
+                        <div className="text-xl md:text-2xl font-semibold">$12,450</div>
                         <div className="text-xs text-slate-500">5 invoices</div>
                       </div>
                       <div className="p-4 bg-slate-50 rounded-md">
                         <div className="text-sm text-slate-500">Paid Last Month</div>
-                        <div className="text-2xl font-semibold">$8,720</div>
+                        <div className="text-xl md:text-2xl font-semibold">$8,720</div>
                         <div className="text-xs text-slate-500">3 invoices</div>
                       </div>
                     </div>
                   </div>
                 ) : (
                   <div className="flex flex-col items-center justify-center py-6">
-                    <AlertTriangle className="h-12 w-12 text-slate-300" />
-                    <p className="mt-2 text-slate-500">No financial data available</p>
-                    <p className="text-sm text-slate-400 text-center mt-1">
+                    <AlertTriangle className="h-10 w-10 text-slate-300" />
+                    <p className="mt-2 text-sm md:text-base text-slate-500">No financial data available</p>
+                    <p className="text-xs md:text-sm text-slate-400 text-center mt-1">
                       This client is not connected to Xero yet
                     </p>
                   </div>
@@ -236,7 +237,7 @@ const UserDashboard = () => {
             </Card>
             
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <Calendar className="mr-2 h-5 w-5" />
                   Recent Activity
@@ -252,9 +253,9 @@ const UserDashboard = () => {
             </Card>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <FileText className="mr-2 h-5 w-5" />
                   Documents
@@ -271,7 +272,7 @@ const UserDashboard = () => {
             </Card>
             
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <Settings className="mr-2 h-5 w-5" />
                   Account Settings
@@ -288,7 +289,7 @@ const UserDashboard = () => {
             </Card>
             
             <Card>
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
                   <Building className="mr-2 h-5 w-5" />
                   Business Details
@@ -299,16 +300,16 @@ const UserDashboard = () => {
                   <div className="space-y-2">
                     <div>
                       <span className="text-xs text-slate-500">Contact Name</span>
-                      <p>{selectedBusiness.contact_name}</p>
+                      <p className="text-sm">{selectedBusiness.contact_name}</p>
                     </div>
                     <div>
                       <span className="text-xs text-slate-500">Email</span>
-                      <p className="break-words">{selectedBusiness.email}</p>
+                      <p className="text-sm break-words">{selectedBusiness.email}</p>
                     </div>
                     {selectedBusiness.phone && (
                       <div>
                         <span className="text-xs text-slate-500">Phone</span>
-                        <p>{selectedBusiness.phone}</p>
+                        <p className="text-sm">{selectedBusiness.phone}</p>
                       </div>
                     )}
                   </div>
