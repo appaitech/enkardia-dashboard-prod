@@ -18,7 +18,7 @@ import { Loader2, AlertTriangle, RefreshCcw, BarChart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const ProfitAndLossPage: React.FC = () => {
   const { user } = useAuth();

@@ -22,7 +22,7 @@ import { DbClientBusiness } from "@/types/client";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import { getVisualDashboardData } from "@/services/financialService";
 import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
-import { useIsMobile } from "@/hooks/useIsMobile";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const UserDashboard = () => {
   const { user } = useAuth();
