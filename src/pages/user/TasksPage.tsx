@@ -27,6 +27,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import UserSidebar from "@/components/UserSidebar";
 import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 // Define Task type based on our database schema
 interface Task {
@@ -57,6 +58,7 @@ const fetchClientTasks = async (businessId: string): Promise<Task[]> => {
 const TasksPage: React.FC = () => {
   const { user } = useAuth();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
+  const isMobile = useIsMobile();
   
   // Fetch the user's client businesses
   const { 
@@ -114,7 +116,7 @@ const TasksPage: React.FC = () => {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/tasks" />
-        <div className="flex-1 p-8 flex items-center justify-center">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center">
           <div className="flex flex-col items-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
             <p className="mt-4 text-slate-500">Loading your client businesses...</p>
@@ -129,7 +131,7 @@ const TasksPage: React.FC = () => {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/tasks" />
-        <div className="flex-1 p-8 flex items-center justify-center">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">Error Loading Data</h2>
@@ -150,7 +152,7 @@ const TasksPage: React.FC = () => {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/tasks" />
-        <div className="flex-1 p-8 flex items-center justify-center">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-slate-300 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">No Client Businesses</h2>
@@ -177,13 +179,13 @@ const TasksPage: React.FC = () => {
   return (
     <div className="flex h-screen bg-slate-50">
       <UserSidebar activePath="/user/tasks" />
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
+      <div className="flex-1 overflow-auto pt-14 md:pt-0">
+        <div className="p-4 md:p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
               <div className="flex items-center space-x-3">
                 <ListChecks className="h-8 w-8 text-green-600" />
-                <h1 className="text-3xl font-bold text-slate-800">Task Statuses</h1>
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Task Statuses</h1>
               </div>
               <p className="text-slate-500 mt-2">
                 We are working on your tasks. Here you can see their statuses.
@@ -191,16 +193,18 @@ const TasksPage: React.FC = () => {
             </div>
             
             {validBusinesses.length > 0 && (
-              <ClientBusinessSelector 
-                clientBusinesses={validBusinesses}
-                selectedBusinessId={selectedBusinessId}
-                onBusinessSelect={handleBusinessSelect}
-              />
+              <div className="w-full md:w-auto">
+                <ClientBusinessSelector 
+                  clientBusinesses={validBusinesses}
+                  selectedBusinessId={selectedBusinessId}
+                  onBusinessSelect={handleBusinessSelect}
+                />
+              </div>
             )}
           </div>
           
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
+            <h2 className="text-xl md:text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
             <div className="flex items-center mt-1 text-sm text-slate-500">
               <span>{selectedBusiness.industry || "No industry specified"}</span>
             </div>
@@ -224,41 +228,43 @@ const TasksPage: React.FC = () => {
               </Button>
             </div>
           ) : tasks && tasks.length > 0 ? (
-            <div className="bg-white p-6 rounded-lg border shadow-sm">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>Due Date</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {tasks.map((task) => (
-                    <TableRow key={task.id}>
-                      <TableCell>{task.title}</TableCell>
-                      <TableCell>{task.description}</TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(task.status)}>
-                          {task.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {task.start_date 
-                          ? format(new Date(task.start_date), 'MMM dd, yyyy') 
-                          : 'Not set'}
-                      </TableCell>
-                      <TableCell>
-                        {task.due_date 
-                          ? format(new Date(task.due_date), 'MMM dd, yyyy') 
-                          : 'Not set'}
-                      </TableCell>
+            <div className="bg-white p-4 md:p-6 rounded-lg border shadow-sm overflow-x-auto">
+              <div className="min-w-full">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead className="hidden md:table-cell">Description</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="hidden md:table-cell">Start Date</TableHead>
+                      <TableHead>Due Date</TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {tasks.map((task) => (
+                      <TableRow key={task.id}>
+                        <TableCell className="font-medium">{task.title}</TableCell>
+                        <TableCell className="hidden md:table-cell">{task.description}</TableCell>
+                        <TableCell>
+                          <Badge variant={getStatusBadgeVariant(task.status)}>
+                            {task.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="hidden md:table-cell">
+                          {task.start_date 
+                            ? format(new Date(task.start_date), 'MMM dd, yyyy') 
+                            : 'Not set'}
+                        </TableCell>
+                        <TableCell>
+                          {task.due_date 
+                            ? format(new Date(task.due_date), 'MMM dd, yyyy') 
+                            : 'Not set'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-lg border">

@@ -25,8 +25,8 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-100 to-slate-200">
-      <div className="container mx-auto px-4 py-16">
-        <header className="flex justify-between items-center mb-16">
+      <div className="container mx-auto px-4 py-8 md:py-16">
+        <header className="flex flex-col md:flex-row justify-between items-center gap-4 mb-8 md:mb-16">
           <div className="flex items-center">
             <ShieldCheck className="h-8 w-8 text-blue-600 mr-2" />
             <h1 className="text-2xl font-bold text-slate-800">Secure Portal</h1>
@@ -46,7 +46,7 @@ const Index = () => {
               </div>
               <Button 
                 onClick={() => user?.accountType === "CONSOLE" ? navigate("/admin/dashboard") : navigate("/user/dashboard")}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-blue-600 hover:bg-blue-700 whitespace-nowrap"
               >
                 Dashboard <ExternalLink className="ml-2 h-4 w-4" />
               </Button>
@@ -62,11 +62,11 @@ const Index = () => {
           )}
         </header>
 
-        <main className="max-w-4xl mx-auto text-center mt-20">
-          <h1 className="text-5xl font-bold text-slate-800 mb-6">
+        <main className="max-w-4xl mx-auto text-center mt-10 md:mt-20">
+          <h1 className="text-3xl md:text-5xl font-bold text-slate-800 mb-6">
             Secure Access Portal for <span className="text-blue-600">Teams</span>
           </h1>
-          <p className="text-xl text-slate-600 mb-10 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-slate-600 mb-6 md:mb-10 max-w-2xl mx-auto">
             A secure dashboard with role-based access. Separate interfaces for console and client users with different admin privileges.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-4">
@@ -79,7 +79,7 @@ const Index = () => {
             </Button>
           </div>
           
-          <div className="mt-20 grid md:grid-cols-2 gap-8">
+          <div className="mt-12 md:mt-20 grid md:grid-cols-2 gap-6 md:gap-8">
             <Card className="text-left p-6 shadow-md hover:shadow-lg transition-shadow">
               <div className="flex items-center mb-4">
                 <div className="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
@@ -129,7 +129,7 @@ const Index = () => {
           </div>
         </main>
         
-        <footer className="mt-24 text-center text-slate-500 text-sm">
+        <footer className="mt-16 md:mt-24 text-center text-slate-500 text-sm">
           <p>© 2023 Secure Portal. All rights reserved.</p>
         </footer>
       </div>

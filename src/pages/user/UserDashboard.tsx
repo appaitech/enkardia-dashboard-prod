@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -23,10 +22,12 @@ import { DbClientBusiness } from "@/types/client";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import { getVisualDashboardData } from "@/services/financialService";
 import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 const UserDashboard = () => {
   const { user } = useAuth();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
+  const isMobile = useIsMobile();
 
   const { 
     data: clientBusinesses,
@@ -39,7 +40,6 @@ const UserDashboard = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch visual dashboard data
   const {
     data: visualData,
     isLoading: isLoadingVisual,
@@ -51,7 +51,6 @@ const UserDashboard = () => {
     enabled: !!selectedBusinessId,
   });
 
-  // Set the first business as selected when data loads if none is selected
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
       const validBusinesses = clientBusinesses.filter(business => business !== null);
@@ -63,23 +62,20 @@ const UserDashboard = () => {
     }
   }, [clientBusinesses, selectedBusinessId]);
 
-  // Handle business selection
   const handleBusinessSelect = (businessId: string) => {
     setSelectedBusinessId(businessId);
     saveSelectedClientBusinessId(businessId);
   };
 
-  // Combined loading state
   const isLoading = isLoadingBusinesses || isLoadingVisual;
   
-  // Combined error state
   const isError = isBusinessError || isVisualError;
 
   if (isLoading) {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/dashboard" />
-        <div className="flex-1 p-8 flex items-center justify-center">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0">
           <div className="flex flex-col items-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
             <p className="mt-4 text-slate-500">Loading your dashboard...</p>
@@ -93,7 +89,7 @@ const UserDashboard = () => {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/dashboard" />
-        <div className="flex-1 p-8 flex items-center justify-center">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">Error Loading Data</h2>
@@ -117,7 +113,7 @@ const UserDashboard = () => {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/dashboard" />
-        <div className="flex-1 p-8 flex items-center justify-center">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0">
           <div className="text-center">
             <Building className="h-12 w-12 text-slate-300 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">No Client Businesses</h2>
@@ -128,12 +124,10 @@ const UserDashboard = () => {
     );
   }
 
-  // Get the selected business or default to the first one
   const selectedBusiness = selectedBusinessId 
     ? validBusinesses.find(b => b && b.id === selectedBusinessId) 
     : validBusinesses[0];
   
-  // Safety check to ensure we have a selected business
   if (!selectedBusiness) {
     const firstBusinessId = validBusinesses[0].id;
     setSelectedBusinessId(firstBusinessId);
@@ -145,13 +139,13 @@ const UserDashboard = () => {
     <div className="flex h-screen bg-slate-50">
       <UserSidebar activePath="/user/dashboard" />
       
-      <div className="flex-1 overflow-auto">
-        <div className="p-8">
+      <div className="flex-1 overflow-auto pt-14 md:pt-0">
+        <div className="p-4 md:p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
               <div className="flex items-center space-x-3">
                 <UserCircle className="h-8 w-8 text-blue-600" />
-                <h1 className="text-3xl font-bold text-slate-800">
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">
                   Welcome, {user?.name || 'User'}
                 </h1>
               </div>
@@ -163,22 +157,23 @@ const UserDashboard = () => {
             </div>
             
             {validBusinesses.length > 0 && (
-              <ClientBusinessSelector 
-                clientBusinesses={validBusinesses}
-                selectedBusinessId={selectedBusinessId}
-                onBusinessSelect={handleBusinessSelect}
-              />
+              <div className="w-full md:w-auto">
+                <ClientBusinessSelector 
+                  clientBusinesses={validBusinesses}
+                  selectedBusinessId={selectedBusinessId}
+                  onBusinessSelect={handleBusinessSelect}
+                />
+              </div>
             )}
           </div>
           
           <div className="mb-6">
-            <h2 className="text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
+            <h2 className="text-xl md:text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
             <div className="flex items-center mt-1 text-sm text-slate-500">
               <span>{selectedBusiness.industry || "No industry specified"}</span>
             </div>
           </div>
           
-          {/* Financial Visual Dashboard Section */}
           <div className="mb-8">
             <div className="flex items-center mb-4">
               <BarChart className="h-5 w-5 text-green-600 mr-2" />
@@ -186,7 +181,11 @@ const UserDashboard = () => {
             </div>
             
             {visualData ? (
-              <VisualDashboard data={visualData} />
+              <div className="overflow-x-auto">
+                <div className="min-w-[600px]">
+                  <VisualDashboard data={visualData} />
+                </div>
+              </div>
             ) : (
               <Card className="p-6 text-center">
                 <div className="flex flex-col items-center justify-center py-6">
@@ -211,7 +210,7 @@ const UserDashboard = () => {
               <CardContent>
                 {selectedBusiness.xero_connected ? (
                   <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="p-4 bg-slate-50 rounded-md">
                         <div className="text-sm text-slate-500">Outstanding Invoices</div>
                         <div className="text-2xl font-semibold">$12,450</div>
@@ -304,7 +303,7 @@ const UserDashboard = () => {
                     </div>
                     <div>
                       <span className="text-xs text-slate-500">Email</span>
-                      <p>{selectedBusiness.email}</p>
+                      <p className="break-words">{selectedBusiness.email}</p>
                     </div>
                     {selectedBusiness.phone && (
                       <div>

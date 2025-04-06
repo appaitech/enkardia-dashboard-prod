@@ -23,10 +23,10 @@ const LoginPage = () => {
   }, [isAuthenticated, user, navigate]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4 py-8">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-slate-800">Secure Portal</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800">Secure Portal</h1>
           <p className="text-slate-500 mt-2">Access your customized dashboard</p>
         </div>
         
