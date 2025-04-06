@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency } from "@/lib/utils";
 import { ProfitAndLossRow } from "@/services/financialService";
 
 interface ProfitAndLossTableProps {
@@ -62,6 +61,10 @@ const ProfitAndLossTable: React.FC<ProfitAndLossTableProps> = ({ rows, period })
 
       return null;
     });
+  };
+
+  const formatAmount = (amount: number) => {
+    return formatCurrency(amount);
   };
 
   return (
