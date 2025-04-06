@@ -124,13 +124,6 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
           href="/admin/clients" 
           onClick={closeSidebarOnMobile}
         />
-        <SidebarItem 
-          icon={<Settings size={18} />} 
-          label="Settings" 
-          href="/admin/settings" 
-          adminOnly={true} 
-          onClick={closeSidebarOnMobile}
-        />
       </div>
       
       <div className="p-4 border-t mt-auto">
