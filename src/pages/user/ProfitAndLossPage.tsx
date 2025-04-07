@@ -222,54 +222,101 @@ const ProfitAndLossPage: React.FC = () => {
   }
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-gray-50">
-      <UserSidebar />
-      <div className="flex-1 p-4 md:p-8">
-        <div className="max-w-[1600px] mx-auto">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
+      <UserSidebar activePath="/user/financial/profit-loss" />
+      <div className="flex-1 p-4 md:p-8 pt-14 md:pt-8">
+        <div className="max-w-[1400px] mx-auto">
           <div className="mb-8 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold text-navy-800 mb-2">
-                Profit & Loss
-              </h1>
-              <p className="text-navy-600/80">
-                Track your financial performance
-              </p>
+            <div className="flex items-center space-x-4">
+              <div className="bg-navy-100/50 p-3 rounded-xl">
+                <BarChart className="h-8 w-8 text-navy-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-navy-800">
+                  Profit & Loss
+                </h1>
+                <p className="text-navy-600/80 mt-1">
+                  Track your financial performance
+                </p>
+              </div>
             </div>
             
             {validBusinesses.length > 0 && (
-              <div className="w-full md:w-auto">
+              <div className="w-full md:w-[300px]">
                 <ClientBusinessSelector 
                   clientBusinesses={validBusinesses}
                   selectedBusinessId={selectedBusinessId}
                   onBusinessSelect={handleBusinessSelect}
-                  className="w-full md:w-[300px]"
+                  className="w-full"
                 />
               </div>
             )}
           </div>
+
+          {selectedBusiness && (
+            <Card className="mb-8 bg-white border-navy-100">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-navy-800">
+                      {selectedBusiness.name}
+                    </h2>
+                    <div className="flex items-center mt-2">
+                      <Badge variant="outline" className="bg-navy-50 text-navy-700 border-navy-200">
+                        {selectedBusiness.industry || "No industry specified"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-sm font-medium text-navy-800">
+                          Connected to Xero
+                        </span>
+                      </div>
+                      <span className="text-xs text-navy-600/70 mt-1">
+                        Last synced: {new Date().toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    <Button 
+                      onClick={() => refetchPL()} 
+                      variant="outline" 
+                      size="sm"
+                      className="bg-white hover:bg-navy-50 border-navy-200"
+                    >
+                      <RefreshCcw className="h-4 w-4 mr-1" />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
           
           <Tabs 
             defaultValue="current-year" 
             value={activeTab}
-            onValueChange={setActiveTab}
-            className="space-y-4"
+            onValueChange={handleTabChange}
+            className="space-y-6"
           >
-            <TabsList className="grid grid-cols-2 md:grid-cols-3 gap-2 bg-transparent">
+            <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-navy-50/50 p-1 text-navy-600 w-full md:w-auto">
               <TabsTrigger 
                 value="current-year"
-                className="data-[state=active]:bg-navy-600 data-[state=active]:text-white text-navy-600"
+                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
               >
                 Current Year
               </TabsTrigger>
               <TabsTrigger 
                 value="monthly"
-                className="data-[state=active]:bg-navy-600 data-[state=active]:text-white text-navy-600"
+                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
               >
                 Monthly Breakdown
               </TabsTrigger>
               <TabsTrigger 
                 value="visual"
-                className="data-[state=active]:bg-navy-600 data-[state=active]:text-white text-navy-600"
+                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
               >
                 Visual Dashboard
               </TabsTrigger>
@@ -277,32 +324,30 @@ const ProfitAndLossPage: React.FC = () => {
             
             <TabsContent value="current-year" className="space-y-6">
               {plData && (
-                <>
-                  <div className="mb-8">
-                    <ProfitAndLossSummary report={plData.Reports[0]} />
-                  </div>
+                <div className="grid gap-6">
+                  <ProfitAndLossSummary report={plData.Reports[0]} />
 
-                  <Card className="mb-8">
+                  <Card className="bg-white border-navy-100">
                     <CardHeader>
                       <CardTitle className="text-xl font-semibold text-navy-800">
                         Revenue & Expenses
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
-                      <div className="min-w-[500px]">
+                      <div className="min-w-[500px] max-w-[900px] mx-auto">
                         <ProfitAndLossChart rows={plData.Reports[0].Rows} />
                       </div>
                     </CardContent>
                   </Card>
 
-                  <Card>
+                  <Card className="bg-white border-navy-100">
                     <CardHeader>
                       <CardTitle className="text-xl font-semibold text-navy-800">
                         Detailed Statement
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
-                      <div className="min-w-[700px]">
+                      <div className="max-w-[800px] mx-auto">
                         <ProfitAndLossTable 
                           rows={plData.Reports[0].Rows} 
                           period={plData.Reports[0].ReportDate} 
@@ -310,7 +355,7 @@ const ProfitAndLossPage: React.FC = () => {
                       </div>
                     </CardContent>
                   </Card>
-                </>
+                </div>
               )}
             </TabsContent>
             
