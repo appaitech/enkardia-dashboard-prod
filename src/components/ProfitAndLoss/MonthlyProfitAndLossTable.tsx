@@ -1,5 +1,4 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { MonthlyProfitAndLoss } from '@/services/financialService';
 import {
   Table,
@@ -9,13 +8,19 @@ import {
   TableHead,
   TableCell,
 } from '@/components/ui/table';
-import { Card } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { formatCurrency } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Download, Search, X } from "lucide-react";
 
 interface MonthlyProfitAndLossTableProps {
   data: MonthlyProfitAndLoss;
 }
 
 const MonthlyProfitAndLossTable: React.FC<MonthlyProfitAndLossTableProps> = ({ data }) => {
+  const [searchTerm, setSearchTerm] = useState('');
+  
   if (!data || !data.Reports || !data.Reports.length) {
     return <div>No monthly data available</div>;
   }
@@ -87,51 +92,133 @@ const MonthlyProfitAndLossTable: React.FC<MonthlyProfitAndLossTableProps> = ({ d
   
   const processedRows = getAllRows(report.Rows);
   
+  // Filter rows based on search term
+  const filterRows = (rows: any[]) => {
+    if (!searchTerm) return rows;
+    return rows.filter(row => 
+      row.label.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      row.values.some((value: string) => 
+        value.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    );
+  };
+
+  // Export to CSV function
+  const exportToCSV = () => {
+    // Header row
+    const headers = ['Item', ...monthNames];
+    
+    // Data rows
+    const csvRows = processedRows.map(row => {
+      return [row.label, ...row.values];
+    });
+    
+    // Combine headers and rows
+    const csvContent = [
+      headers.join(','),
+      ...csvRows.map(row => row.join(','))
+    ].join('\n');
+    
+    // Create and trigger download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `monthly_breakdown_${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const filteredRows = filterRows(processedRows);
+  
   return (
-    <Card className="p-4">
-      <h3 className="text-lg font-semibold mb-4">Monthly Breakdown</h3>
-      <div className="overflow-x-auto">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-[250px]">Item</TableHead>
-              {monthNames.map((month, index) => (
-                <TableHead key={index} className="min-w-[120px] text-right">
-                  {month}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {processedRows.map((row, rowIndex) => (
-              <TableRow 
-                key={rowIndex} 
-                className={
-                  row.isHeader 
-                    ? 'font-bold bg-slate-100' 
-                    : row.isTotal 
-                      ? 'font-semibold bg-slate-50' 
-                      : ''
-                }
+    <Card>
+      <CardHeader className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 pb-4">
+        <CardTitle className="text-xl font-bold text-navy-800">
+          Monthly Breakdown
+        </CardTitle>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+          <div className="relative w-full sm:w-auto">
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-500" />
+            <Input
+              placeholder="Filter entries..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-8 w-full sm:w-[200px] bg-white"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
               >
-                <TableCell 
-                  className={`${row.level > 0 ? 'pl-' + (row.level * 6) : ''}`}
-                >
-                  {row.label}
-                </TableCell>
-                {row.values.map((value: string, cellIndex: number) => (
-                  <TableCell 
-                    key={cellIndex} 
-                    className={`text-right ${value && value.startsWith('-') ? 'text-red-600' : ''}`}
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+          <Button
+            onClick={exportToCSV}
+            variant="outline"
+            className="w-full sm:w-auto bg-white text-navy-700 border-navy-200 hover:bg-navy-50"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            Export
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="overflow-x-auto">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[250px] bg-navy-50">Item</TableHead>
+                {monthNames.map((month, index) => (
+                  <TableHead 
+                    key={index} 
+                    className="min-w-[120px] text-right bg-navy-50"
                   >
-                    {value}
-                  </TableCell>
+                    {month}
+                  </TableHead>
                 ))}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {filteredRows.map((row, rowIndex) => (
+                <TableRow 
+                  key={rowIndex} 
+                  className={
+                    row.isHeader 
+                      ? 'font-bold bg-navy-50/50' 
+                      : row.isTotal 
+                        ? 'font-semibold bg-navy-50/30' 
+                        : ''
+                  }
+                >
+                  <TableCell 
+                    className={`${row.level > 0 ? 'pl-' + (row.level * 6) : ''}`}
+                  >
+                    {row.label}
+                  </TableCell>
+                  {row.values.map((value: string, cellIndex: number) => (
+                    <TableCell 
+                      key={cellIndex} 
+                      className={`text-right ${value && value.startsWith('-') ? 'text-red-600' : ''}`}
+                    >
+                      {value}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+        {filteredRows.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            No results found for "{searchTerm}"
+          </div>
+        )}
+      </CardContent>
     </Card>
   );
 };

@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency } from "@/lib/utils";
 import { ProfitAndLossRow } from "@/services/financialService";
 
 interface ProfitAndLossTableProps {
@@ -13,17 +12,17 @@ const ProfitAndLossTable: React.FC<ProfitAndLossTableProps> = ({ rows, period })
   const renderRows = (rows: ProfitAndLossRow[], depth = 0) => {
     return rows.map((row, index) => {
       if (row.RowType === "Header") {
-        return null; // Headers are rendered separately
+        return null;
       }
 
       if (row.RowType === "Section" && row.Rows) {
         return (
           <React.Fragment key={`section-${index}-${depth}`}>
             {row.Title && (
-              <TableRow className="bg-muted/40">
+              <TableRow className="bg-navy-50/50">
                 <TableCell
                   colSpan={2}
-                  className="font-medium py-2"
+                  className="font-semibold py-3"
                 >
                   {row.Title}
                 </TableCell>
@@ -36,25 +35,35 @@ const ProfitAndLossTable: React.FC<ProfitAndLossTableProps> = ({ rows, period })
 
       if (row.RowType === "SummaryRow" && row.Cells) {
         return (
-          <TableRow key={`summary-${index}-${depth}`} className="font-semibold bg-muted/20">
-            <TableCell className="py-2 pl-4">
+          <TableRow key={`summary-${index}-${depth}`} className="font-semibold bg-navy-50/30">
+            <TableCell className="py-3">
               {row.Cells[0].Value}
             </TableCell>
-            <TableCell className="py-2 text-right">
-              {formatCurrency(row.Cells[1].Value)}
+            <TableCell className="py-3 text-right">
+              {typeof row.Cells[1].Value === 'number' 
+                ? formatCurrency(row.Cells[1].Value)
+                : formatCurrency(parseFloat(row.Cells[1].Value) || 0)
+              }
             </TableCell>
           </TableRow>
         );
       }
 
       if (row.RowType === "Row" && row.Cells) {
+        const paddingLeft = depth * 1.5;
         return (
-          <TableRow key={`row-${index}-${depth}`}>
-            <TableCell className={`py-2 pl-${4 + depth * 4}`}>
+          <TableRow key={`row-${index}-${depth}`} className="hover:bg-navy-50/20">
+            <TableCell 
+              className="py-2.5" 
+              style={{ paddingLeft: `${paddingLeft + 1}rem` }}
+            >
               {row.Cells[0].Value}
             </TableCell>
-            <TableCell className="py-2 text-right">
-              {formatCurrency(row.Cells[1].Value)}
+            <TableCell className="py-2.5 text-right">
+              {typeof row.Cells[1].Value === 'number' 
+                ? formatCurrency(row.Cells[1].Value)
+                : formatCurrency(parseFloat(row.Cells[1].Value) || 0)
+              }
             </TableCell>
           </TableRow>
         );
@@ -65,12 +74,12 @@ const ProfitAndLossTable: React.FC<ProfitAndLossTableProps> = ({ rows, period })
   };
 
   return (
-    <div className="rounded-md border">
+    <div className="rounded-md border border-navy-100">
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Account</TableHead>
-            <TableHead className="text-right">{period}</TableHead>
+          <TableRow className="bg-navy-50">
+            <TableHead className="w-[60%] py-3 font-semibold text-navy-800">Account</TableHead>
+            <TableHead className="w-[40%] text-right py-3 font-semibold text-navy-800">{period}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>{renderRows(rows)}</TableBody>

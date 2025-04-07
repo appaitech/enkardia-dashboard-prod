@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { VisualDashboardData, ProfitAndLossRow } from '@/services/financialService';
 import { Card } from '@/components/ui/card';
@@ -16,6 +15,7 @@ import {
   Cell,
   TooltipProps
 } from 'recharts';
+import { formatCurrency } from "@/lib/utils";
 
 interface VisualDashboardProps {
   data: VisualDashboardData;
@@ -69,6 +69,20 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#8DD1E1', '#A4DE6C', '#D0ED57'];
 
+  // First, let's define a nice color palette near the top of the component
+  const EXPENSE_COLORS = [
+    '#3b82f6', // blue
+    '#14b8a6', // teal
+    '#8b5cf6', // purple
+    '#06b6d4', // cyan
+    '#6366f1', // indigo
+    '#0ea5e9', // sky
+    '#10b981', // emerald
+    '#6d28d9', // violet
+    '#0284c7', // lightBlue
+    '#059669'  // green
+  ];
+
   // Custom label formatter for the pie charts
   const renderCustomizedLabel = (props: any) => {
     const { name, percent } = props;
@@ -78,7 +92,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   // Custom tooltip formatter that handles number values
   const customTooltipFormatter = (value: number | string) => {
     if (typeof value === 'number') {
-      return `$${value.toFixed(2)}`;
+      return formatCurrency(value);
     }
     return value;
   };
@@ -89,94 +103,103 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card className="p-4 bg-blue-50">
           <h3 className="text-sm font-medium text-slate-500">Total Income</h3>
-          <p className="text-2xl font-bold">{totalIncome}</p>
+          <p className="text-2xl font-bold">{formatCurrency(parseFloat(totalIncome))}</p>
         </Card>
         <Card className="p-4 bg-red-50">
           <h3 className="text-sm font-medium text-slate-500">Total Expenses</h3>
-          <p className="text-2xl font-bold">{totalExpenses}</p>
+          <p className="text-2xl font-bold">{formatCurrency(parseFloat(totalExpenses))}</p>
         </Card>
         <Card className="p-4 bg-green-50">
           <h3 className="text-sm font-medium text-slate-500">Net Profit</h3>
-          <p className="text-2xl font-bold">{netProfit}</p>
+          <p className="text-2xl font-bold">{formatCurrency(parseFloat(netProfit))}</p>
         </Card>
       </div>
 
       {/* Top Expenses Bar Chart */}
-      <Card className="p-4">
+      <Card className="p-4 col-span-1 lg:col-span-2">
         <h3 className="text-lg font-semibold mb-4">Top Expenses</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <BarChart
-            data={expenseData.slice(0, 5)} // Show top 5 expenses
-            layout="vertical"
-            margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis type="category" dataKey="name" width={100} />
-            <Tooltip formatter={(value) => {
-              return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
-            }} />
-            <Legend />
-            <Bar dataKey="value" fill="#FF8042" name="Amount" />
-          </BarChart>
-        </ResponsiveContainer>
+        <div className="h-[300px] md:h-[400px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={expenseData.slice(0, 5)} // Show top 5 expenses
+              layout="vertical"
+              margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis type="number" />
+              <YAxis type="category" dataKey="name" width={100} />
+              <Tooltip formatter={(value) => {
+                return typeof value === 'number' ? formatCurrency(value) : value;
+              }} />
+              <Legend />
+              <Bar dataKey="value" name="Amount">
+                {expenseData.slice(0, 5).map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={EXPENSE_COLORS[index % EXPENSE_COLORS.length]} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </Card>
 
-      {/* Income Breakdown Pie Chart */}
+      {/* Income and Expense Breakdown Charts */}
       <Card className="p-4">
         <h3 className="text-lg font-semibold mb-4">Income Breakdown</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={incomeData}
-              cx="50%"
-              cy="50%"
-              labelLine={true}
-              outerRadius={100}
-              fill="#8884d8"
-              dataKey="value"
-              nameKey="name"
-              label={({ name, percent }) => {
-                return `${name}: ${(typeof percent === 'number' ? (percent * 100).toFixed(0) : '0')}%`;
-              }}
-            >
-              {incomeData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value) => {
-              return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
-            }} />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={incomeData}
+                cx="50%"
+                cy="50%"
+                labelLine={true}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={({ name, percent }) => {
+                  return `${name}: ${(typeof percent === 'number' ? (percent * 100).toFixed(0) : '0')}%`;
+                }}
+              >
+                {incomeData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => {
+                return typeof value === 'number' ? formatCurrency(value) : value;
+              }} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </Card>
 
-      {/* Expense Breakdown Pie Chart */}
       <Card className="p-4">
         <h3 className="text-lg font-semibold mb-4">Expense Breakdown</h3>
-        <ResponsiveContainer width="100%" height={300}>
-          <PieChart>
-            <Pie
-              data={expenseData}
-              cx="50%"
-              cy="50%"
-              labelLine={false}
-              outerRadius={100}
-              fill="#8884d8"
-              dataKey="value"
-              nameKey="name"
-            >
-              {expenseData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip formatter={(value) => {
-              return typeof value === 'number' ? `$${value.toFixed(2)}` : value;
-            }} />
-            <Legend />
-          </PieChart>
-        </ResponsiveContainer>
+        <div className="h-[300px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <PieChart>
+              <Pie
+                data={expenseData}
+                cx="50%"
+                cy="50%"
+                labelLine={false}
+                outerRadius={100}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+              >
+                {expenseData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                ))}
+              </Pie>
+              <Tooltip formatter={(value) => {
+                return typeof value === 'number' ? formatCurrency(value) : value;
+              }} />
+              <Legend />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
       </Card>
     </div>
   );

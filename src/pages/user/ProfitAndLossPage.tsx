@@ -14,11 +14,14 @@ import ProfitAndLossTable from "@/components/ProfitAndLoss/ProfitAndLossTable";
 import ProfitAndLossChart from "@/components/ProfitAndLoss/ProfitAndLossChart";
 import MonthlyProfitAndLossTable from "@/components/ProfitAndLoss/MonthlyProfitAndLossTable";
 import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
-import { Loader2, AlertTriangle, RefreshCcw, BarChart } from "lucide-react";
+import { Loader2, AlertTriangle, RefreshCcw, BarChart, DollarSign, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 
 const ProfitAndLossPage: React.FC = () => {
   const { user } = useAuth();
@@ -163,15 +166,21 @@ const ProfitAndLossPage: React.FC = () => {
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath="/user/financial/profit-loss" />
         <div className="flex-1 p-4 md:p-8 pt-14 md:pt-0">
-          <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+          <div className="mb-8 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
-              <div className="flex items-center space-x-3">
-                <BarChart className="h-8 w-8 text-green-600" />
-                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Profit & Loss</h1>
+              <div className="flex items-center space-x-4">
+                <div className="bg-navy-100/50 p-3 rounded-xl">
+                  <BarChart className="h-8 w-8 text-navy-600" />
+                </div>
+                <div>
+                  <h1 className="text-2xl md:text-3xl font-bold text-navy-800">
+                    Profit & Loss
+                  </h1>
+                  <p className="text-navy-600/80 mt-1">
+                    View your business's financial performance
+                  </p>
+                </div>
               </div>
-              <p className="text-slate-500 mt-2">
-                View your business's financial performance
-              </p>
             </div>
             
             {validBusinesses.length > 0 && (
@@ -185,11 +194,19 @@ const ProfitAndLossPage: React.FC = () => {
             )}
           </div>
           
-          <div className="mb-6">
-            <h2 className="text-xl md:text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
-            <div className="flex items-center mt-1 text-sm text-slate-500">
-              <span>{selectedBusiness.industry || "No industry specified"}</span>
-            </div>
+          <div className="mb-8">
+            <Card className="bg-white border-navy-100">
+              <CardContent className="pt-6">
+                <h2 className="text-xl md:text-2xl font-bold text-navy-800">
+                  {selectedBusiness.name}
+                </h2>
+                <div className="flex items-center mt-2">
+                  <Badge variant="outline" className="bg-navy-50 text-navy-700 border-navy-200">
+                    {selectedBusiness.industry || "No industry specified"}
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
           </div>
           
           <div className="flex h-[calc(100vh-200px)] items-center justify-center">
@@ -205,105 +222,195 @@ const ProfitAndLossPage: React.FC = () => {
   }
 
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
       <UserSidebar activePath="/user/financial/profit-loss" />
-      <div className="flex-1 p-4 md:p-8 overflow-auto pt-14 md:pt-0">
-        <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-          <div>
-            <div className="flex items-center space-x-3">
-              <BarChart className="h-8 w-8 text-green-600" />
-              <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Profit & Loss</h1>
+      <div className="flex-1 p-4 md:p-8 pt-14 md:pt-8">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="mb-8 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div className="flex items-center space-x-4">
+              <div className="bg-navy-100/50 p-3 rounded-xl">
+                <BarChart className="h-8 w-8 text-navy-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-navy-800">
+                  Profit & Loss
+                </h1>
+                <p className="text-navy-600/80 mt-1">
+                  Track your financial performance
+                </p>
+              </div>
             </div>
-            <p className="text-slate-500 mt-2">
-              View your business's financial performance
-            </p>
+            
+            {validBusinesses.length > 0 && (
+              <div className="w-full md:w-[300px]">
+                <ClientBusinessSelector 
+                  clientBusinesses={validBusinesses}
+                  selectedBusinessId={selectedBusinessId}
+                  onBusinessSelect={handleBusinessSelect}
+                  className="w-full"
+                />
+              </div>
+            )}
           </div>
-          
-          {validBusinesses.length > 0 && (
-            <div className="w-full md:w-auto">
-              <ClientBusinessSelector 
-                clientBusinesses={validBusinesses}
-                selectedBusinessId={selectedBusinessId}
-                onBusinessSelect={handleBusinessSelect}
-              />
-            </div>
+
+          {selectedBusiness && (
+            <Card className="mb-8 bg-white border-navy-100">
+              <CardContent className="pt-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-xl font-semibold text-navy-800">
+                      {selectedBusiness.name}
+                    </h2>
+                    <div className="flex items-center mt-2">
+                      <Badge variant="outline" className="bg-navy-50 text-navy-700 border-navy-200">
+                        {selectedBusiness.industry || "No industry specified"}
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex flex-col items-end">
+                      <div className="flex items-center space-x-2">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                        <span className="text-sm font-medium text-navy-800">
+                          Connected to Xero
+                        </span>
+                      </div>
+                      <span className="text-xs text-navy-600/70 mt-1">
+                        Last synced: {new Date().toLocaleString()}
+                      </span>
+                    </div>
+                    
+                    <Button 
+                      onClick={() => refetchPL()} 
+                      variant="outline" 
+                      size="sm"
+                      className="bg-white hover:bg-navy-50 border-navy-200"
+                    >
+                      <RefreshCcw className="h-4 w-4 mr-1" />
+                      Refresh
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
-        </div>
-        
-        <div className="mb-6">
-          <h2 className="text-xl md:text-2xl font-semibold text-slate-800">{selectedBusiness.name}</h2>
-          <div className="flex items-center mt-1 text-sm text-slate-500">
-            <span>{selectedBusiness.industry || "No industry specified"}</span>
-          </div>
-        </div>
-        
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-          <TabsList className="mb-4 w-full md:w-auto overflow-x-auto">
-            <TabsTrigger value="current-year">Current Year</TabsTrigger>
-            <TabsTrigger value="monthly">Monthly Breakdown</TabsTrigger>
-            <TabsTrigger value="visual">Visual Dashboard</TabsTrigger>
-          </TabsList>
           
-          <TabsContent value="current-year">
-            {plData && (
-              <>
-                <div className="mb-8">
+          <Tabs 
+            defaultValue="current-year" 
+            value={activeTab}
+            onValueChange={handleTabChange}
+            className="space-y-6"
+          >
+            <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-navy-50/50 p-1 text-navy-600 w-full md:w-auto">
+              <TabsTrigger 
+                value="current-year"
+                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
+              >
+                Current Year
+              </TabsTrigger>
+              <TabsTrigger 
+                value="monthly"
+                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
+              >
+                Monthly Breakdown
+              </TabsTrigger>
+              <TabsTrigger 
+                value="visual"
+                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
+              >
+                Visual Dashboard
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="current-year" className="space-y-6">
+              {plData && (
+                <div className="grid gap-6">
                   <ProfitAndLossSummary report={plData.Reports[0]} />
-                </div>
 
-                <div className="mb-8 overflow-x-auto">
-                  <h2 className="text-xl font-semibold mb-4">Revenue & Expenses</h2>
-                  <div className="min-w-[500px]">
-                    <ProfitAndLossChart rows={plData.Reports[0].Rows} />
-                  </div>
-                </div>
+                  <Card className="bg-white border-navy-100">
+                    <CardHeader>
+                      <CardTitle className="text-xl font-semibold text-navy-800">
+                        Revenue & Expenses
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="overflow-x-auto">
+                      <div className="min-w-[500px] max-w-[900px] mx-auto">
+                        <ProfitAndLossChart rows={plData.Reports[0].Rows} />
+                      </div>
+                    </CardContent>
+                  </Card>
 
-                <div className="overflow-x-auto">
-                  <h2 className="text-xl font-semibold mb-4">Detailed Statement</h2>
-                  <div className="min-w-[700px]">
-                    <ProfitAndLossTable rows={plData.Reports[0].Rows} period={plData.Reports[0].ReportDate} />
-                  </div>
+                  <Card className="bg-white border-navy-100">
+                    <CardHeader>
+                      <CardTitle className="text-xl font-semibold text-navy-800">
+                        Detailed Statement
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="overflow-x-auto">
+                      <div className="max-w-[800px] mx-auto">
+                        <ProfitAndLossTable 
+                          rows={plData.Reports[0].Rows} 
+                          period={plData.Reports[0].ReportDate} 
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
                 </div>
-              </>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="monthly">
-            {activeTab === "monthly" && !monthlyData && (
-              <div className="flex h-80 items-center justify-center">
-                <div className="text-center">
-                  <AlertTriangle className="h-10 w-10 text-slate-300 mx-auto" />
-                  <h2 className="mt-4 text-lg font-semibold">No Monthly Data Available</h2>
-                  <p className="mt-2 text-slate-500">There is no monthly breakdown data for this business</p>
-                </div>
-              </div>
-            )}
+              )}
+            </TabsContent>
             
-            {monthlyData && (
-              <div className="overflow-x-auto">
-                <div className="min-w-[700px]">
-                  <MonthlyProfitAndLossTable data={monthlyData} />
-                </div>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="visual">
-            {activeTab === "visual" && !visualData && (
-              <div className="flex h-80 items-center justify-center">
-                <div className="text-center">
-                  <AlertTriangle className="h-10 w-10 text-slate-300 mx-auto" />
-                  <h2 className="mt-4 text-lg font-semibold">No Visual Dashboard Data Available</h2>
-                  <p className="mt-2 text-slate-500">There is no visual dashboard data for this business</p>
-                </div>
-              </div>
-            )}
+            <TabsContent value="monthly">
+              {activeTab === "monthly" && !monthlyData && (
+                <Card className="bg-navy-50/30 border-navy-100">
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <AlertTriangle className="h-12 w-12 text-navy-400" />
+                    <h2 className="mt-4 text-lg font-semibold text-navy-700">
+                      No Monthly Data Available
+                    </h2>
+                    <p className="mt-2 text-navy-600/80">
+                      There is no monthly breakdown data for this business
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {monthlyData && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="text-xl font-semibold text-navy-800">
+                      Monthly Breakdown
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="overflow-x-auto">
+                    <div className="min-w-[700px]">
+                      <MonthlyProfitAndLossTable data={monthlyData} />
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </TabsContent>
             
-            {visualData && (
-              <VisualDashboard data={visualData} />
-            )}
-          </TabsContent>
-        </Tabs>
+            <TabsContent value="visual">
+              {activeTab === "visual" && !visualData && (
+                <Card className="bg-navy-50/30 border-navy-100">
+                  <CardContent className="flex flex-col items-center justify-center py-12">
+                    <AlertTriangle className="h-12 w-12 text-navy-400" />
+                    <h2 className="mt-4 text-lg font-semibold text-navy-700">
+                      No Visual Dashboard Data Available
+                    </h2>
+                    <p className="mt-2 text-navy-600/80">
+                      There is no visual dashboard data for this business
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {visualData && (
+                <VisualDashboard data={visualData} />
+              )}
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
     </div>
   );

@@ -1,7 +1,6 @@
-
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/utils/formatters";
+import { formatCurrency } from "@/lib/utils";
 import { ProfitAndLossReport } from "@/services/financialService";
 import { ArrowUpCircle, ArrowDownCircle, DollarSign } from "lucide-react";
 
@@ -41,7 +40,7 @@ const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report }) =
   const isProfit = netProfitValue >= 0;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-sm font-medium text-muted-foreground">

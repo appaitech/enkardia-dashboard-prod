@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -50,16 +49,16 @@ const SidebarItem = ({
       <Button
         variant="ghost"
         className={cn(
-          "w-full justify-start font-normal my-1", 
+          "w-full justify-start font-medium my-0.5 transition-all duration-200 rounded-lg", 
           isActive 
-            ? "bg-blue-50 text-blue-700 hover:bg-blue-100 hover:text-blue-800" 
-            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            ? "bg-navy-100/80 text-navy-700 hover:bg-navy-200/60" 
+            : "text-navy-600/80 hover:bg-navy-50 hover:text-navy-700"
         )}
       >
         {icon}
         <span className="ml-3">{label}</span>
         {badge && (
-          <span className="ml-auto bg-blue-100 text-blue-800 text-xs font-medium rounded px-1.5 py-0.5">
+          <span className="ml-auto bg-navy-100 text-navy-700 text-xs font-semibold rounded-full px-2.5 py-1">
             {badge}
           </span>
         )}
@@ -100,43 +99,45 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
 
   const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b">
-        <h2 className="font-bold text-xl text-blue-700">Console Portal</h2>
-        <p className="text-xs text-slate-500 mt-1">Admin Dashboard</p>
+      <div className="p-6 border-b border-navy-100">
+        <h2 className="font-bold text-2xl text-navy-700 tracking-tight">Console Portal</h2>
+        <p className="text-sm text-navy-500/80 mt-1 font-medium">Admin Dashboard</p>
       </div>
       
-      <div className="flex-1 p-4 overflow-y-auto">
-        <SidebarItem 
-          icon={<LayoutDashboard size={18} />} 
-          label="Dashboard" 
-          href="/admin/dashboard" 
-          onClick={closeSidebarOnMobile}
-        />
-        <SidebarItem 
-          icon={<Users size={18} />} 
-          label="Users" 
-          href="/admin/users" 
-          onClick={closeSidebarOnMobile}
-        />
-        <SidebarItem 
-          icon={<Building size={18} />} 
-          label="Clients" 
-          href="/admin/clients" 
-          onClick={closeSidebarOnMobile}
-        />
+      <div className="flex-1 px-3 py-4 overflow-y-auto">
+        <div className="space-y-1">
+          <SidebarItem 
+            icon={<LayoutDashboard size={20} />} 
+            label="Dashboard" 
+            href="/admin/dashboard" 
+            onClick={closeSidebarOnMobile}
+          />
+          <SidebarItem 
+            icon={<Users size={20} />} 
+            label="Users" 
+            href="/admin/users" 
+            onClick={closeSidebarOnMobile}
+          />
+          <SidebarItem 
+            icon={<Building size={20} />} 
+            label="Clients" 
+            href="/admin/clients" 
+            onClick={closeSidebarOnMobile}
+          />
+        </div>
       </div>
       
-      <div className="p-4 border-t mt-auto">
+      <div className="p-4 border-t border-navy-100 mt-auto bg-gradient-to-b from-navy-50/50 to-navy-50/10">
         {user && (
           <div className="mb-4 px-2">
-            <div className="font-medium text-sm">{user.name}</div>
-            <div className="text-xs text-slate-500 truncate">{user.email}</div>
+            <div className="font-semibold text-sm text-navy-700">{user.name}</div>
+            <div className="text-xs text-navy-500/80 truncate mt-0.5">{user.email}</div>
           </div>
         )}
         
         <Button 
           variant="ghost" 
-          className="w-full justify-start text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+          className="w-full justify-start text-navy-600 hover:bg-navy-100 hover:text-navy-800 transition-all duration-200 font-medium"
           onClick={() => {
             closeSidebarOnMobile();
             logout();
@@ -156,10 +157,10 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
         <Button
           variant="ghost"
           size="icon"
-          className="fixed top-4 left-4 z-40 bg-white/80 backdrop-blur-sm rounded-full shadow-md"
+          className="fixed top-4 left-4 z-40 bg-white shadow-lg rounded-full hover:bg-navy-50 transition-all duration-200"
           onClick={toggleSidebar}
         >
-          {isOpen ? <X size={20} /> : <Menu size={20} />}
+          {isOpen ? <X size={20} className="text-navy-600" /> : <Menu size={20} className="text-navy-600" />}
         </Button>
         
         <Sheet open={isOpen} onOpenChange={setIsOpen}>
@@ -175,27 +176,27 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
   return (
     <div 
       className={cn(
-        "h-screen bg-white flex flex-col z-30 transition-all duration-300 ease-in-out border-r",
+        "h-screen bg-white flex flex-col z-30 transition-all duration-300 ease-in-out border-r border-navy-100",
         isCollapsed ? "w-[70px]" : "w-64"
       )}
     >
       {isCollapsed ? (
-        <div className="p-4 flex justify-center border-b">
-          <Badge className="bg-blue-100 text-blue-700 uppercase">
+        <div className="p-4 flex justify-center border-b border-navy-100">
+          <Badge className="bg-navy-100 text-navy-700 uppercase font-semibold">
             CP
           </Badge>
         </div>
       ) : (
         <div className="p-4 border-b flex justify-between items-center">
           <div>
-            <h2 className="font-bold text-xl text-blue-700">Console Portal</h2>
-            <p className="text-xs text-slate-500 mt-1">Admin Dashboard</p>
+            <h2 className="font-bold text-xl text-navy-700">Console Portal</h2>
+            <p className="text-xs text-navy-500 mt-1">Admin Dashboard</p>
           </div>
           <Button 
             variant="ghost" 
             size="icon" 
             onClick={toggleCollapsed}
-            className="ml-auto text-slate-400 hover:text-slate-600"
+            className="ml-auto text-navy-400 hover:text-navy-600"
           >
             <ChevronLeft size={20} />
           </Button>
@@ -211,8 +212,8 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
               className={cn(
                 "w-full h-10",
                 activePath === "/admin/dashboard" 
-                  ? "bg-blue-50 text-blue-700 hover:bg-blue-100" 
-                  : "text-slate-600 hover:bg-slate-100"
+                  ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                  : "text-navy-600 hover:bg-navy-50"
               )}
             >
               <LayoutDashboard size={20} />
@@ -226,8 +227,8 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
               className={cn(
                 "w-full h-10",
                 activePath === "/admin/users" 
-                  ? "bg-blue-50 text-blue-700 hover:bg-blue-100" 
-                  : "text-slate-600 hover:bg-slate-100"
+                  ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                  : "text-navy-600 hover:bg-navy-50"
               )}
             >
               <Users size={20} />
@@ -241,8 +242,8 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
               className={cn(
                 "w-full h-10",
                 activePath === "/admin/clients" 
-                  ? "bg-blue-50 text-blue-700 hover:bg-blue-100" 
-                  : "text-slate-600 hover:bg-slate-100"
+                  ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                  : "text-navy-600 hover:bg-navy-50"
               )}
             >
               <Building size={20} />
@@ -257,8 +258,8 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
                 className={cn(
                   "w-full h-10",
                   activePath === "/admin/settings" 
-                    ? "bg-blue-50 text-blue-700 hover:bg-blue-100" 
-                    : "text-slate-600 hover:bg-slate-100"
+                    ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                    : "text-navy-600 hover:bg-navy-50"
                 )}
               >
                 <Settings size={20} />
@@ -269,7 +270,7 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
           <Button 
             variant="ghost" 
             size="icon"
-            className="w-full h-10 mt-auto absolute bottom-4 left-0 right-0 mx-auto text-slate-600 hover:bg-slate-100"
+            className="w-full h-10 mt-auto absolute bottom-4 left-0 right-0 mx-auto text-navy-600 hover:bg-navy-50"
             onClick={toggleCollapsed}
           >
             <ChevronRight size={20} />
