@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -100,21 +99,62 @@ serve(async (req) => {
       const tokenExpiry = new Date();
       tokenExpiry.setSeconds(tokenExpiry.getSeconds() + expiresIn);
 
-      // Store token in database
-      const { data: tokenRecord, error: tokenError } = await supabase
+      // Check if a token already exists with this authentication_event_id
+      const { data: existingToken, error: checkError } = await supabase
         .from("xero_tokens")
-        .insert({
-          authentication_event_id: state,
-          access_token: tokenData.access_token,
-          expires_in: tokenData.expires_in,
-          token_type: tokenData.token_type,
-          refresh_token: tokenData.refresh_token,
-          scope: tokenData.scope,
-          id_token: tokenData.id_token,
-          token_expiry: tokenExpiry.toISOString(),
-        })
         .select("id")
-        .single();
+        .eq("authentication_event_id", state)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error("Error checking for existing token:", checkError);
+      }
+
+      let tokenRecord;
+      let tokenError;
+
+      // If token exists, update it instead of inserting a new one
+      if (existingToken) {
+        console.log("Updating existing token for authentication event:", state);
+        const { data, error } = await supabase
+          .from("xero_tokens")
+          .update({
+            access_token: tokenData.access_token,
+            expires_in: tokenData.expires_in,
+            token_type: tokenData.token_type,
+            refresh_token: tokenData.refresh_token,
+            scope: tokenData.scope,
+            id_token: tokenData.id_token,
+            token_expiry: tokenExpiry.toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", existingToken.id)
+          .select("id")
+          .single();
+          
+        tokenRecord = data;
+        tokenError = error;
+      } else {
+        // Otherwise insert a new token
+        console.log("Creating new token for authentication event:", state);
+        const { data, error } = await supabase
+          .from("xero_tokens")
+          .insert({
+            authentication_event_id: state,
+            access_token: tokenData.access_token,
+            expires_in: tokenData.expires_in,
+            token_type: tokenData.token_type,
+            refresh_token: tokenData.refresh_token,
+            scope: tokenData.scope,
+            id_token: tokenData.id_token,
+            token_expiry: tokenExpiry.toISOString(),
+          })
+          .select("id")
+          .single();
+          
+        tokenRecord = data;
+        tokenError = error;
+      }
 
       if (tokenError) {
         console.error("Error storing token:", tokenError);
