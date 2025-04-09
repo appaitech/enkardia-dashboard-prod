@@ -99,32 +99,23 @@ serve(async (req) => {
       const tokenExpiry = new Date();
       tokenExpiry.setSeconds(tokenExpiry.getSeconds() + expiresIn);
 
-      // Check if any token exists in the table
-      const { count, error: countError } = await supabase
+      // Check if any token exists in the table by querying the first record
+      const { data: existingTokens, error: queryError } = await supabase
         .from("xero_tokens")
-        .count();
+        .select("id")
+        .limit(1);
 
-      if (countError) {
-        console.error("Error checking for existing tokens:", countError);
+      if (queryError) {
+        console.error("Error checking for existing tokens:", queryError);
       }
 
       let tokenRecord;
       let tokenError;
 
-      // If any token exists, update the first one instead of inserting a new one
-      if (count && count > 0) {
+      // If any token exists, update it instead of inserting a new one
+      if (existingTokens && existingTokens.length > 0) {
         console.log("Updating existing token");
-        // Get the first token id
-        const { data: firstToken, error: firstTokenError } = await supabase
-          .from("xero_tokens")
-          .select("id")
-          .limit(1)
-          .single();
-          
-        if (firstTokenError) {
-          console.error("Error fetching first token:", firstTokenError);
-          throw new Error(`Failed to fetch first token: ${firstTokenError.message}`);
-        }
+        const firstTokenId = existingTokens[0].id;
         
         // Update the first token
         const { data, error } = await supabase
@@ -140,7 +131,7 @@ serve(async (req) => {
             token_expiry: tokenExpiry.toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq("id", firstToken.id)
+          .eq("id", firstTokenId)
           .select("id")
           .single();
           
