@@ -2,86 +2,24 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Link, Search } from "lucide-react";
+import { Plus, Link, Search, RefreshCcw } from "lucide-react";
 import AdminSidebar from "@/components/AdminSidebar";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { XeroConnection } from "@/types/xero";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
-
-// Mock data for Xero connections
-const mockXeroConnections: XeroConnection[] = [
-  {
-    id: "3ed4aea5-6134-429e-85b5-6c908965976c",
-    authEventId: "cc830e7a-3813-4f40-9525-7ab1d622fd1d",
-    tenantId: "ced0f8e6-bebe-48e8-83b5-1179100e1b73",
-    tenantType: "ORGANISATION",
-    tenantName: "Demo Company (Global)",
-    createdDateUtc: "2025-03-29T15:29:45.6555900",
-    updatedDateUtc: "2025-04-09T21:15:31.1928120"
-  },
-  {
-    id: "5af7bec1-7fb0-42c3-9123-4d77a8f98a21",
-    authEventId: "d981e54b-aa67-4f23-bc45-9a72c3e56f12",
-    tenantId: "f8e33d42-1abc-478d-9c12-7e843f567890",
-    tenantType: "ORGANISATION",
-    tenantName: "Acme Corporation",
-    createdDateUtc: "2025-04-01T09:15:22.1234560",
-    updatedDateUtc: "2025-04-08T14:30:45.6789120"
-  },
-  {
-    id: "72e9d1b3-5c8a-4f62-b789-3e21a67d9f34",
-    authEventId: "e457a9c1-2d3e-4f56-a789-0b12c3d45e67",
-    tenantId: "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
-    tenantType: "ORGANISATION",
-    tenantName: "Global Enterprises Ltd",
-    createdDateUtc: "2025-03-15T11:42:37.9876540",
-    updatedDateUtc: "2025-04-07T16:20:19.8765430"
-  },
-  {
-    id: "89a12c3d-4e5f-67a8-9b0c-1d2e3f4a5b67",
-    authEventId: "b1c2d3e4-f5a6-b7c8-d9e0-f1a2b3c4d5e6",
-    tenantId: "a1b2c3d4-e5f6-a7b8-c9d0-a1b2c3d4e5f6",
-    tenantType: "ORGANISATION",
-    tenantName: "TechSolutions Inc",
-    createdDateUtc: "2025-03-12T08:19:54.1234567",
-    updatedDateUtc: "2025-04-05T11:32:18.7654321"
-  },
-  {
-    id: "a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6",
-    authEventId: "d1e2f3a4-b5c6-d7e8-f9a0-b1c2d3e4f5a6",
-    tenantId: "c1d2e3f4-a5b6-c7d8-e9f0-c1d2e3f4a5b6",
-    tenantType: "ORGANISATION",
-    tenantName: "NextGen Financial",
-    createdDateUtc: "2025-02-28T15:45:22.9876543",
-    updatedDateUtc: "2025-04-03T09:15:47.3456789"
-  },
-  {
-    id: "b1c2d3e4-f5a6-b7c8-d9e0-a1b2c3d4e5f6",
-    authEventId: "f1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6",
-    tenantId: "e1f2a3b4-c5d6-e7f8-a9b0-e1f2a3b4c5d6",
-    tenantType: "ORGANISATION",
-    tenantName: "Atlas Consulting Group",
-    createdDateUtc: "2025-02-25T12:37:49.8765432",
-    updatedDateUtc: "2025-04-01T16:28:35.2345678"
-  },
-  {
-    id: "c1d2e3f4-a5b6-c7d8-e9f0-b1c2d3e4f5a6",
-    authEventId: "a1b2c3d4-e5f6-a7b8-c9d0-f1a2b3c4d5e6",
-    tenantId: "g1h2i3j4-k5l6-m7n8-o9p0-g1h2i3j4k5l6",
-    tenantType: "ORGANISATION",
-    tenantName: "Phoenix Enterprises",
-    createdDateUtc: "2025-02-20T09:53:15.7654321",
-    updatedDateUtc: "2025-03-30T13:42:11.1234567"
-  }
-];
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 const XeroSyncLoader: React.FC = () => {
   const [progress, setProgress] = useState(30);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
   
   useEffect(() => {
     const timer = setInterval(() => {
@@ -91,8 +29,50 @@ const XeroSyncLoader: React.FC = () => {
       });
     }, 1000);
     
+    const searchParams = new URLSearchParams(location.search);
+    const code = searchParams.get('code');
+    const state = searchParams.get('state');
+    
+    if (code && state) {
+      const processXeroAuth = async () => {
+        try {
+          const response = await supabase.functions.invoke('xero-auth', {
+            body: { 
+              action: 'callback',
+              code,
+              state
+            }
+          });
+          
+          if (response.error) {
+            throw new Error(response.error.message || 'Failed to authenticate with Xero');
+          }
+          
+          toast({
+            title: "Xero Connected Successfully",
+            description: `Connected ${response.data.connections.length} organizations from Xero.`,
+          });
+          
+          // Clear the URL params and navigate back to the connections page
+          navigate('/admin/xero-connections', { replace: true });
+        } catch (error) {
+          console.error('Error processing Xero auth:', error);
+          toast({
+            title: "Xero Connection Failed",
+            description: error.message || "There was an error connecting to Xero",
+            variant: "destructive",
+          });
+          
+          // Clear the URL params and navigate back to the connections page
+          navigate('/admin/xero-connections', { replace: true });
+        }
+      };
+      
+      processXeroAuth();
+    }
+    
     return () => clearInterval(timer);
-  }, []);
+  }, [location.search, navigate, toast]);
   
   return (
     <Card>
@@ -128,16 +108,109 @@ const XeroSyncLoader: React.FC = () => {
 };
 
 const XeroConnectionsPage: React.FC = () => {
-  const [connections, setConnections] = useState<XeroConnection[]>(mockXeroConnections);
-  const [filteredConnections, setFilteredConnections] = useState<XeroConnection[]>(mockXeroConnections);
+  const [connections, setConnections] = useState<XeroConnection[]>([]);
+  const [filteredConnections, setFilteredConnections] = useState<XeroConnection[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
+  const [isLoading, setIsLoading] = useState(true);
   const location = useLocation();
+  const { toast } = useToast();
 
   // Check for Xero auth parameters in URL
   const searchParams = new URLSearchParams(location.search);
   const hasXeroAuthParams = searchParams.has('code') && searchParams.has('state');
+
+  useEffect(() => {
+    const fetchConnections = async () => {
+      try {
+        setIsLoading(true);
+        
+        // In a real implementation, fetch data from API
+        // For now, using mock data with a delay to simulate API call
+        setTimeout(() => {
+          setConnections([
+            {
+              id: "3ed4aea5-6134-429e-85b5-6c908965976c",
+              authEventId: "cc830e7a-3813-4f40-9525-7ab1d622fd1d",
+              tenantId: "ced0f8e6-bebe-48e8-83b5-1179100e1b73",
+              tenantType: "ORGANISATION",
+              tenantName: "Demo Company (Global)",
+              createdDateUtc: "2025-03-29T15:29:45.6555900",
+              updatedDateUtc: "2025-04-09T21:15:31.1928120"
+            },
+            {
+              id: "5af7bec1-7fb0-42c3-9123-4d77a8f98a21",
+              authEventId: "d981e54b-aa67-4f23-bc45-9a72c3e56f12",
+              tenantId: "f8e33d42-1abc-478d-9c12-7e843f567890",
+              tenantType: "ORGANISATION",
+              tenantName: "Acme Corporation",
+              createdDateUtc: "2025-04-01T09:15:22.1234560",
+              updatedDateUtc: "2025-04-08T14:30:45.6789120"
+            },
+            {
+              id: "72e9d1b3-5c8a-4f62-b789-3e21a67d9f34",
+              authEventId: "e457a9c1-2d3e-4f56-a789-0b12c3d45e67",
+              tenantId: "1a2b3c4d-5e6f-7a8b-9c0d-1e2f3a4b5c6d",
+              tenantType: "ORGANISATION",
+              tenantName: "Global Enterprises Ltd",
+              createdDateUtc: "2025-03-15T11:42:37.9876540",
+              updatedDateUtc: "2025-04-07T16:20:19.8765430"
+            },
+            {
+              id: "89a12c3d-4e5f-67a8-9b0c-1d2e3f4a5b67",
+              authEventId: "b1c2d3e4-f5a6-b7c8-d9e0-f1a2b3c4d5e6",
+              tenantId: "a1b2c3d4-e5f6-a7b8-c9d0-a1b2c3d4e5f6",
+              tenantType: "ORGANISATION",
+              tenantName: "TechSolutions Inc",
+              createdDateUtc: "2025-03-12T08:19:54.1234567",
+              updatedDateUtc: "2025-04-05T11:32:18.7654321"
+            },
+            {
+              id: "a1b2c3d4-e5f6-a7b8-c9d0-e1f2a3b4c5d6",
+              authEventId: "d1e2f3a4-b5c6-d7e8-f9a0-b1c2d3e4f5a6",
+              tenantId: "c1d2e3f4-a5b6-c7d8-e9f0-c1d2e3f4a5b6",
+              tenantType: "ORGANISATION",
+              tenantName: "NextGen Financial",
+              createdDateUtc: "2025-02-28T15:45:22.9876543",
+              updatedDateUtc: "2025-04-03T09:15:47.3456789"
+            },
+            {
+              id: "b1c2d3e4-f5a6-b7c8-d9e0-a1b2c3d4e5f6",
+              authEventId: "f1a2b3c4-d5e6-f7a8-b9c0-d1e2f3a4b5c6",
+              tenantId: "e1f2a3b4-c5d6-e7f8-a9b0-e1f2a3b4c5d6",
+              tenantType: "ORGANISATION",
+              tenantName: "Atlas Consulting Group",
+              createdDateUtc: "2025-02-25T12:37:49.8765432",
+              updatedDateUtc: "2025-04-01T16:28:35.2345678"
+            },
+            {
+              id: "c1d2e3f4-a5b6-c7d8-e9f0-b1c2d3e4f5a6",
+              authEventId: "a1b2c3d4-e5f6-a7b8-c9d0-f1a2b3c4d5e6",
+              tenantId: "g1h2i3j4-k5l6-m7n8-o9p0-g1h2i3j4k5l6",
+              tenantType: "ORGANISATION",
+              tenantName: "Phoenix Enterprises",
+              createdDateUtc: "2025-02-20T09:53:15.7654321",
+              updatedDateUtc: "2025-03-30T13:42:11.1234567"
+            }
+          ]);
+          setIsLoading(false);
+        }, 1000);
+      } catch (error) {
+        console.error("Error fetching Xero connections:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch Xero connections",
+          variant: "destructive",
+        });
+        setIsLoading(false);
+      }
+    };
+
+    if (!hasXeroAuthParams) {
+      fetchConnections();
+    }
+  }, [hasXeroAuthParams, toast]);
 
   useEffect(() => {
     // Filter connections based on search term
@@ -196,20 +269,26 @@ const XeroConnectionsPage: React.FC = () => {
     return pageNumbers;
   };
 
-  const handleAddNewConnection = () => {
-    // In a real implementation, this would open a dialog or redirect to an authentication flow
-    // For now, we'll just add a new mock connection
-    const newConnection: XeroConnection = {
-      id: crypto.randomUUID(),
-      authEventId: crypto.randomUUID(),
-      tenantId: crypto.randomUUID(),
-      tenantType: "ORGANISATION",
-      tenantName: `New Company ${connections.length + 1}`,
-      createdDateUtc: new Date().toISOString(),
-      updatedDateUtc: new Date().toISOString()
-    };
-    
-    setConnections([...connections, newConnection]);
+  const handleAddNewConnection = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('xero-auth', {
+        body: { action: 'authorize' }
+      });
+      
+      if (error) {
+        throw new Error(error.message || 'Failed to get Xero authorization URL');
+      }
+      
+      // Redirect to Xero authorization page
+      window.location.href = data.url;
+    } catch (error) {
+      console.error('Error initiating Xero auth:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to connect to Xero",
+        variant: "destructive",
+      });
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -249,7 +328,7 @@ const XeroConnectionsPage: React.FC = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="mb-4">
+                <div className="mb-4 flex justify-between items-center">
                   <div className="relative w-full sm:max-w-sm">
                     <Input
                       type="text"
@@ -260,6 +339,19 @@ const XeroConnectionsPage: React.FC = () => {
                     />
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                   </div>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    onClick={() => {
+                      setIsLoading(true);
+                      // In a real implementation, this would refresh the data from the API
+                      setTimeout(() => setIsLoading(false), 1000);
+                    }}
+                    className="ml-2"
+                    title="Refresh connections"
+                  >
+                    <RefreshCcw size={16} />
+                  </Button>
                 </div>
               
                 <div className="rounded-md border overflow-hidden">
@@ -274,7 +366,22 @@ const XeroConnectionsPage: React.FC = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {currentItems.length === 0 ? (
+                      {isLoading ? (
+                        Array(3).fill(0).map((_, index) => (
+                          <TableRow key={`loading-${index}`}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <Skeleton className="h-4 w-4 rounded-full" />
+                                <Skeleton className="h-4 w-40" />
+                              </div>
+                            </TableCell>
+                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                          </TableRow>
+                        ))
+                      ) : currentItems.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-8 text-gray-500">
                             {searchTerm ? "No matching Xero connections found." : "No Xero connections found. Click \"Add New Xero Connection\" to connect an organisation."}

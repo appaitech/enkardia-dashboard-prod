@@ -201,6 +201,54 @@ export type Database = {
           },
         ]
       }
+      xero_tokens: {
+        Row: {
+          access_token: string
+          authentication_event_id: string
+          client_id: string | null
+          created_at: string
+          expires_in: number
+          id: string
+          id_token: string | null
+          refresh_token: string
+          scope: string | null
+          token_expiry: string
+          token_type: string
+          updated_at: string
+          xero_userid: string | null
+        }
+        Insert: {
+          access_token: string
+          authentication_event_id: string
+          client_id?: string | null
+          created_at?: string
+          expires_in: number
+          id?: string
+          id_token?: string | null
+          refresh_token: string
+          scope?: string | null
+          token_expiry: string
+          token_type: string
+          updated_at?: string
+          xero_userid?: string | null
+        }
+        Update: {
+          access_token?: string
+          authentication_event_id?: string
+          client_id?: string | null
+          created_at?: string
+          expires_in?: number
+          id?: string
+          id_token?: string | null
+          refresh_token?: string
+          scope?: string | null
+          token_expiry?: string
+          token_type?: string
+          updated_at?: string
+          xero_userid?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

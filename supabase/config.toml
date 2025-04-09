@@ -1,1 +1,5 @@
+
 project_id = "itkpwdlqlfymxzjzymya"
+
+[functions.xero-auth]
+verify_jwt = false
