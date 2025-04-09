@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,8 @@ import {
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Link as LinkIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -122,6 +124,12 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
             icon={<Building size={20} />} 
             label="Clients" 
             href="/admin/clients" 
+            onClick={closeSidebarOnMobile}
+          />
+          <SidebarItem 
+            icon={<LinkIcon size={20} />} 
+            label="Xero Connections" 
+            href="/admin/xero-connections" 
             onClick={closeSidebarOnMobile}
           />
         </div>
@@ -247,6 +255,21 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
               )}
             >
               <Building size={20} />
+            </Button>
+          </Link>
+          
+          <Link to="/admin/xero-connections" onClick={closeSidebarOnMobile}>
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "w-full h-10",
+                activePath === "/admin/xero-connections" 
+                  ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                  : "text-navy-600 hover:bg-navy-50"
+              )}
+            >
+              <LinkIcon size={20} />
             </Button>
           </Link>
           

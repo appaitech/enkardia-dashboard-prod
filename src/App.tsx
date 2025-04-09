@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -14,6 +15,7 @@ import NotFound from './pages/NotFound';
 import { Toaster } from "@/components/ui/toaster";
 import ProtectedRoute from './components/ProtectedRoute';
 import UsersManagement from "./pages/admin/UsersManagement";
+import XeroConnectionsPage from './pages/admin/XeroConnectionsPage';
 
 const queryClient = new QueryClient();
 
@@ -60,6 +62,15 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
                   <UsersManagement />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/admin/xero-connections" 
+              element={
+                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                  <XeroConnectionsPage />
                 </ProtectedRoute>
               } 
             />
