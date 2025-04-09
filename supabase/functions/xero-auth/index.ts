@@ -99,26 +99,38 @@ serve(async (req) => {
       const tokenExpiry = new Date();
       tokenExpiry.setSeconds(tokenExpiry.getSeconds() + expiresIn);
 
-      // Check if a token already exists with this authentication_event_id
-      const { data: existingToken, error: checkError } = await supabase
+      // Check if any token exists in the table
+      const { count, error: countError } = await supabase
         .from("xero_tokens")
-        .select("id")
-        .eq("authentication_event_id", state)
-        .maybeSingle();
+        .count();
 
-      if (checkError) {
-        console.error("Error checking for existing token:", checkError);
+      if (countError) {
+        console.error("Error checking for existing tokens:", countError);
       }
 
       let tokenRecord;
       let tokenError;
 
-      // If token exists, update it instead of inserting a new one
-      if (existingToken) {
-        console.log("Updating existing token for authentication event:", state);
+      // If any token exists, update the first one instead of inserting a new one
+      if (count && count > 0) {
+        console.log("Updating existing token");
+        // Get the first token id
+        const { data: firstToken, error: firstTokenError } = await supabase
+          .from("xero_tokens")
+          .select("id")
+          .limit(1)
+          .single();
+          
+        if (firstTokenError) {
+          console.error("Error fetching first token:", firstTokenError);
+          throw new Error(`Failed to fetch first token: ${firstTokenError.message}`);
+        }
+        
+        // Update the first token
         const { data, error } = await supabase
           .from("xero_tokens")
           .update({
+            authentication_event_id: state,
             access_token: tokenData.access_token,
             expires_in: tokenData.expires_in,
             token_type: tokenData.token_type,
@@ -128,7 +140,7 @@ serve(async (req) => {
             token_expiry: tokenExpiry.toISOString(),
             updated_at: new Date().toISOString()
           })
-          .eq("id", existingToken.id)
+          .eq("id", firstToken.id)
           .select("id")
           .single();
           
@@ -136,7 +148,7 @@ serve(async (req) => {
         tokenError = error;
       } else {
         // Otherwise insert a new token
-        console.log("Creating new token for authentication event:", state);
+        console.log("Creating new token");
         const { data, error } = await supabase
           .from("xero_tokens")
           .insert({
