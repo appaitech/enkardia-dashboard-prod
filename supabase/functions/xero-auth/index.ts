@@ -20,7 +20,21 @@ serve(async (req) => {
 
   try {
     const url = new URL(req.url);
-    const action = url.searchParams.get("action");
+    
+    // Get action from either URL query parameter or request body
+    let action = url.searchParams.get("action");
+    
+    // If action not found in URL params, try to get it from the request body
+    if (!action && req.method === "POST") {
+      try {
+        const requestData = await req.json();
+        action = requestData.action;
+      } catch (error) {
+        console.error("Error parsing request body:", error);
+      }
+    }
+    
+    console.log("Action requested:", action);
 
     // Get authorization URL for Xero
     if (action === "authorize") {

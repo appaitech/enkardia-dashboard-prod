@@ -271,12 +271,23 @@ const XeroConnectionsPage: React.FC = () => {
 
   const handleAddNewConnection = async () => {
     try {
+      console.log("Initiating Xero auth...");
+      
+      // Call the edge function with the action in the request body
       const { data, error } = await supabase.functions.invoke('xero-auth', {
+        method: 'POST',
         body: { action: 'authorize' }
       });
       
       if (error) {
+        console.error("Xero auth error:", error);
         throw new Error(error.message || 'Failed to get Xero authorization URL');
+      }
+      
+      console.log("Xero auth response:", data);
+      
+      if (!data?.url) {
+        throw new Error('No authorization URL returned from Xero auth endpoint');
       }
       
       // Redirect to Xero authorization page
