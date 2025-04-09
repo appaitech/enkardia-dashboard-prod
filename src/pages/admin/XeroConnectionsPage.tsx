@@ -20,6 +20,7 @@ const XeroSyncLoader: React.FC = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const [isProcessing, setIsProcessing] = useState(false);
   
   useEffect(() => {
     const timer = setInterval(() => {
@@ -33,9 +34,11 @@ const XeroSyncLoader: React.FC = () => {
     const code = searchParams.get('code');
     const state = searchParams.get('state');
     
-    if (code && state) {
+    if (code && state && !isProcessing) {
       const processXeroAuth = async () => {
         try {
+          setIsProcessing(true); // Prevent duplicate processing
+          
           const response = await supabase.functions.invoke('xero-auth', {
             body: { 
               action: 'callback',
@@ -72,7 +75,7 @@ const XeroSyncLoader: React.FC = () => {
     }
     
     return () => clearInterval(timer);
-  }, [location.search, navigate, toast]);
+  }, [location.search, navigate, toast, isProcessing]);
   
   return (
     <Card>
