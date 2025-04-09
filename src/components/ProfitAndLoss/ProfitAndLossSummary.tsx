@@ -1,3 +1,4 @@
+
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
@@ -29,6 +30,14 @@ const findValueByTitle = (
   return null;
 };
 
+// Helper function to parse string values to numbers
+const parseFinancialValue = (value: string | null): number => {
+  if (!value) return 0;
+  // Remove any non-numeric characters except decimal point and minus sign
+  const numericValue = value.replace(/[^0-9.-]/g, '');
+  return parseFloat(numericValue) || 0;
+};
+
 const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report }) => {
   const totalIncome = findValueByTitle(report.Rows, 'Total Income') || '0';
   const totalCostOfSales = findValueByTitle(report.Rows, 'Total Cost of Sales') || '0';
@@ -36,7 +45,12 @@ const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report }) =
   const netProfit = findValueByTitle(report.Rows, 'Net Profit') || '0';
   const grossProfit = findValueByTitle(report.Rows, 'Gross Profit') || '0';
 
-  const netProfitValue = parseFloat(netProfit);
+  // Parse string values to numbers for formatCurrency
+  const totalIncomeValue = parseFinancialValue(totalIncome);
+  const grossProfitValue = parseFinancialValue(grossProfit);
+  const totalExpensesValue = parseFinancialValue(totalExpenses);
+  const netProfitValue = parseFinancialValue(netProfit);
+
   const isProfit = netProfitValue >= 0;
 
   return (
@@ -50,7 +64,7 @@ const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report }) =
         <CardContent>
           <div className="flex items-center">
             <DollarSign className="mr-2 h-4 w-4 text-green-500" />
-            <span className="text-2xl font-bold">{formatCurrency(totalIncome)}</span>
+            <span className="text-2xl font-bold">{formatCurrency(totalIncomeValue)}</span>
           </div>
         </CardContent>
       </Card>
@@ -64,7 +78,7 @@ const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report }) =
         <CardContent>
           <div className="flex items-center">
             <DollarSign className="mr-2 h-4 w-4 text-blue-500" />
-            <span className="text-2xl font-bold">{formatCurrency(grossProfit)}</span>
+            <span className="text-2xl font-bold">{formatCurrency(grossProfitValue)}</span>
           </div>
         </CardContent>
       </Card>
@@ -78,7 +92,7 @@ const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report }) =
         <CardContent>
           <div className="flex items-center">
             <DollarSign className="mr-2 h-4 w-4 text-amber-500" />
-            <span className="text-2xl font-bold">{formatCurrency(totalExpenses)}</span>
+            <span className="text-2xl font-bold">{formatCurrency(totalExpensesValue)}</span>
           </div>
         </CardContent>
       </Card>
@@ -97,7 +111,7 @@ const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report }) =
               <ArrowDownCircle className="mr-2 h-4 w-4 text-red-500" />
             )}
             <span className={`text-2xl font-bold ${isProfit ? 'text-green-600' : 'text-red-600'}`}>
-              {formatCurrency(netProfit)}
+              {formatCurrency(netProfitValue)}
             </span>
           </div>
         </CardContent>
