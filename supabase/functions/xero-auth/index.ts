@@ -102,6 +102,7 @@ serve(async (req) => {
 
       // Get user information from id_token if available
       let userName = "Xero User";
+      let xeroUserId = null;
       if (tokenData.id_token) {
         try {
           // Extract user info from id_token (JWT)
@@ -112,6 +113,8 @@ serve(async (req) => {
           }).join(''));
           
           const payload = JSON.parse(jsonPayload);
+          xeroUserId = payload.xero_userid || payload.sub;
+          
           if (payload.email) {
             userName = payload.email;
           } else if (payload.preferred_username) {
@@ -124,26 +127,80 @@ serve(async (req) => {
         }
       }
 
-      // Create a new token record
-      const { data: tokenRecord, error: tokenError } = await supabase
-        .from("xero_tokens")
-        .insert({
-          authentication_event_id: state,
-          access_token: tokenData.access_token,
-          expires_in: tokenData.expires_in,
-          token_type: tokenData.token_type,
-          refresh_token: tokenData.refresh_token,
-          scope: tokenData.scope,
-          id_token: tokenData.id_token,
-          token_expiry: tokenExpiry.toISOString(),
-          user_name: userName
-        })
-        .select("id")
-        .single();
+      // Check if we already have a token for this Xero user
+      let existingToken = null;
+      if (xeroUserId) {
+        const { data: existingTokens, error: fetchError } = await supabase
+          .from("xero_tokens")
+          .select("*")
+          .eq("xero_userid", xeroUserId)
+          .limit(1);
+          
+        if (fetchError) {
+          console.error("Error fetching existing token:", fetchError);
+        } else if (existingTokens && existingTokens.length > 0) {
+          existingToken = existingTokens[0];
+        }
+      }
 
-      if (tokenError) {
-        console.error("Error storing token:", tokenError);
-        throw new Error(`Failed to store token: ${tokenError.message}`);
+      let tokenRecord;
+      
+      if (existingToken) {
+        // Update existing token
+        console.log(`Updating existing token for Xero user: ${userName} (${xeroUserId})`);
+        
+        const { data: updatedToken, error: updateError } = await supabase
+          .from("xero_tokens")
+          .update({
+            access_token: tokenData.access_token,
+            expires_in: tokenData.expires_in,
+            token_type: tokenData.token_type,
+            refresh_token: tokenData.refresh_token,
+            scope: tokenData.scope,
+            id_token: tokenData.id_token,
+            token_expiry: tokenExpiry.toISOString(),
+            updated_at: new Date().toISOString(),
+            user_name: userName,
+            authentication_event_id: state // Update with the new auth event
+          })
+          .eq("id", existingToken.id)
+          .select("id")
+          .single();
+
+        if (updateError) {
+          console.error("Error updating token:", updateError);
+          throw new Error(`Failed to update token: ${updateError.message}`);
+        }
+        
+        tokenRecord = updatedToken;
+      } else {
+        // Create a new token record
+        console.log(`Creating new token for Xero user: ${userName} (${xeroUserId})`);
+        
+        const { data: newToken, error: tokenError } = await supabase
+          .from("xero_tokens")
+          .insert({
+            authentication_event_id: state,
+            access_token: tokenData.access_token,
+            expires_in: tokenData.expires_in,
+            token_type: tokenData.token_type,
+            refresh_token: tokenData.refresh_token,
+            scope: tokenData.scope,
+            id_token: tokenData.id_token,
+            token_expiry: tokenExpiry.toISOString(),
+            user_name: userName,
+            xero_userid: xeroUserId,
+            client_id: XERO_CLIENT_ID
+          })
+          .select("id")
+          .single();
+
+        if (tokenError) {
+          console.error("Error storing token:", tokenError);
+          throw new Error(`Failed to store token: ${tokenError.message}`);
+        }
+        
+        tokenRecord = newToken;
       }
 
       // Get connections from Xero
