@@ -21,8 +21,8 @@ const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrual
   const cashReport = cashData.Reports[0];
   const accrualReport = accrualData.Reports[0];
   
-  console.log('Cash Report:', cashReport);
-  console.log('Accrual Report:', accrualReport);
+  console.log('Cash Report:', JSON.stringify(cashReport, null, 2));
+  console.log('Accrual Report:', JSON.stringify(accrualReport, null, 2));
   
   // Extract financial summary data
   const extractFinancialData = (report: any) => {
@@ -31,48 +31,70 @@ const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrual
     let netProfit = 0;
     
     try {
-      // Extract revenue
-      const incomeSection = report.Rows.find((row: any) => row.Title === 'Income' || row.Title === 'Revenue');
+      // Extract revenue (find Income section or Revenue section)
+      const incomeSection = report.Rows.find((row: any) => 
+        row.Title === 'Income' || 
+        row.Title === 'Revenue' || 
+        (row.Cells && row.Cells[0] && row.Cells[0].Value === 'Income')
+      );
+      
       if (incomeSection && incomeSection.Rows) {
+        // Look for the summary row in the income section
         const summaryRow = incomeSection.Rows.find((row: any) => row.RowType === 'SummaryRow');
         if (summaryRow && summaryRow.Cells && summaryRow.Cells.length > 1) {
           const valueStr = summaryRow.Cells[1].Value || '0';
-          revenue = parseFloat(valueStr.replace(/,/g, '').replace(/[^-0-9.]/g, ''));
+          // Parse numeric value, handling currency symbols and commas
+          revenue = parseFloat(valueStr.replace(/[^-0-9.]/g, ''));
         }
       }
       
-      // Extract expenses
+      // Extract expenses (could be "Less Operating Expenses", "Expenses", or "Operating Expenses")
       const expensesSection = report.Rows.find((row: any) => 
-        row.Title === 'Less Operating Expenses' || row.Title === 'Expenses' || row.Title === 'Operating Expenses'
+        row.Title === 'Less Operating Expenses' || 
+        row.Title === 'Expenses' || 
+        row.Title === 'Operating Expenses' ||
+        (row.Cells && row.Cells[0] && (
+          row.Cells[0].Value === 'Less Operating Expenses' || 
+          row.Cells[0].Value === 'Expenses' || 
+          row.Cells[0].Value === 'Operating Expenses'
+        ))
       );
+      
       if (expensesSection && expensesSection.Rows) {
         const summaryRow = expensesSection.Rows.find((row: any) => row.RowType === 'SummaryRow');
         if (summaryRow && summaryRow.Cells && summaryRow.Cells.length > 1) {
           const valueStr = summaryRow.Cells[1].Value || '0';
-          expenses = parseFloat(valueStr.replace(/,/g, '').replace(/[^-0-9.]/g, ''));
-          // Ensure expenses are positive for display purposes
+          // Parse numeric value, handling currency symbols and commas
+          expenses = parseFloat(valueStr.replace(/[^-0-9.]/g, ''));
+          // Ensure expenses are positive for comparison purposes
           expenses = Math.abs(expenses);
         }
       }
       
-      // Extract net profit
+      // Extract net profit - this could be a direct row or a section
+      // First look for a row with "Net Profit" title
       const netProfitRow = report.Rows.find((row: any) => 
-        row.Title === 'Net Profit' || (row.Cells && row.Cells[0] && row.Cells[0].Value === 'Net Profit')
+        row.Title === 'Net Profit' || 
+        (row.Cells && row.Cells[0] && row.Cells[0].Value === 'Net Profit')
       );
       
       if (netProfitRow) {
         if (netProfitRow.Cells && netProfitRow.Cells.length > 1) {
           const valueStr = netProfitRow.Cells[1].Value || '0';
-          netProfit = parseFloat(valueStr.replace(/,/g, '').replace(/[^-0-9.]/g, ''));
+          netProfit = parseFloat(valueStr.replace(/[^-0-9.]/g, ''));
         } else if (netProfitRow.Rows) {
+          // If it's a section with rows, look for the Net Profit row within it
           const profitRow = netProfitRow.Rows.find((row: any) => 
             row.Cells && row.Cells[0] && row.Cells[0].Value === 'Net Profit'
           );
           if (profitRow && profitRow.Cells && profitRow.Cells.length > 1) {
             const valueStr = profitRow.Cells[1].Value || '0';
-            netProfit = parseFloat(valueStr.replace(/,/g, '').replace(/[^-0-9.]/g, ''));
+            netProfit = parseFloat(valueStr.replace(/[^-0-9.]/g, ''));
           }
         }
+      } else {
+        // If we couldn't find a Net Profit row, calculate it from revenue and expenses
+        netProfit = revenue - expenses;
       }
       
       console.log(`Extracted for ${report.ReportName}: Revenue=${revenue}, Expenses=${expenses}, NetProfit=${netProfit}`);
@@ -130,48 +152,60 @@ const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrual
   // Extract top differences in revenue items
   const extractItemDifferences = (cashReport: any, accrualReport: any, sectionTitle: string) => {
     try {
+      // Find the relevant section in both reports
       const cashSection = cashReport.Rows.find((row: any) => 
         row.Title === sectionTitle || 
-        (sectionTitle === 'Income' && row.Title === 'Revenue') ||
-        (sectionTitle === 'Less Operating Expenses' && row.Title === 'Expenses')
+        (sectionTitle === 'Income' && (row.Title === 'Revenue' || (row.Cells && row.Cells[0] && row.Cells[0].Value === 'Income'))) ||
+        (sectionTitle === 'Less Operating Expenses' && (row.Title === 'Expenses' || row.Title === 'Operating Expenses' || 
+          (row.Cells && row.Cells[0] && (row.Cells[0].Value === 'Expenses' || row.Cells[0].Value === 'Operating Expenses'))))
       );
       
       const accrualSection = accrualReport.Rows.find((row: any) => 
         row.Title === sectionTitle || 
-        (sectionTitle === 'Income' && row.Title === 'Revenue') ||
-        (sectionTitle === 'Less Operating Expenses' && row.Title === 'Expenses')
+        (sectionTitle === 'Income' && (row.Title === 'Revenue' || (row.Cells && row.Cells[0] && row.Cells[0].Value === 'Income'))) ||
+        (sectionTitle === 'Less Operating Expenses' && (row.Title === 'Expenses' || row.Title === 'Operating Expenses' || 
+          (row.Cells && row.Cells[0] && (row.Cells[0].Value === 'Expenses' || row.Cells[0].Value === 'Operating Expenses'))))
       );
       
-      if (!cashSection?.Rows || !accrualSection?.Rows) return [];
+      if (!cashSection?.Rows || !accrualSection?.Rows) {
+        console.log(`Could not find section '${sectionTitle}' in reports`);
+        console.log('Available sections in cash report:', cashReport.Rows.map((r: any) => r.Title || (r.Cells && r.Cells[0] && r.Cells[0].Value)));
+        console.log('Available sections in accrual report:', accrualReport.Rows.map((r: any) => r.Title || (r.Cells && r.Cells[0] && r.Cells[0].Value)));
+        return [];
+      }
       
+      // Extract items from cash report
       const cashItems = cashSection.Rows
         .filter((row: any) => row.RowType === 'Row')
         .reduce((acc: any, row: any) => {
           if (row.Cells && row.Cells.length > 1) {
             const name = row.Cells[0].Value;
             const valueStr = row.Cells[1].Value || '0';
-            const value = parseFloat(valueStr.replace(/,/g, '').replace(/[^-0-9.]/g, ''));
+            // Parse numeric value, handling currency symbols and commas
+            const value = parseFloat(valueStr.replace(/[^-0-9.]/g, ''));
             acc[name] = value;
           }
           return acc;
         }, {});
       
+      // Extract items from accrual report
       const accrualItems = accrualSection.Rows
         .filter((row: any) => row.RowType === 'Row')
         .reduce((acc: any, row: any) => {
           if (row.Cells && row.Cells.length > 1) {
             const name = row.Cells[0].Value;
             const valueStr = row.Cells[1].Value || '0';
-            const value = parseFloat(valueStr.replace(/,/g, '').replace(/[^-0-9.]/g, ''));
+            // Parse numeric value, handling currency symbols and commas
+            const value = parseFloat(valueStr.replace(/[^-0-9.]/g, ''));
             acc[name] = value;
           }
           return acc;
         }, {});
       
-      // Combine all keys
+      // Combine all keys from both reports
       const allKeys = [...new Set([...Object.keys(cashItems), ...Object.keys(accrualItems)])];
       
-      // Calculate differences
+      // Calculate differences for each item
       const itemDifferences = allKeys.map(key => {
         const cashValue = cashItems[key] || 0;
         const accrualValue = accrualItems[key] || 0;
