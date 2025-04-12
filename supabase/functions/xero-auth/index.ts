@@ -222,21 +222,49 @@ serve(async (req) => {
       // Store connections in database
       for (const connection of connections) {
         // Store connections in the xero_connections table
-        const { error: connectionError } = await supabase
-          .from("xero_connections")
-          .upsert({
-            xero_id: connection.id,
-            tenant_id: connection.tenantId,
-            tenant_type: connection.tenantType,
-            tenant_name: connection.tenantName,
-            created_date_utc: connection.createdDateUtc,
-            updated_date_utc: connection.updatedDateUtc,
-            updated_at: new Date().toISOString(),
-            xero_token_id: tokenRecord.id  // Link connection to token
-          }, { onConflict: 'xero_id' });
+        console.log(`Processing connection: ${connection.tenantId} (${connection.tenantName})`);
+        
+        try {
+          // First, try inserting the connection
+          const { error: connectionError } = await supabase
+            .from("xero_connections")
+            .insert({
+              xero_id: connection.id,
+              tenant_id: connection.tenantId,
+              tenant_type: connection.tenantType,
+              tenant_name: connection.tenantName,
+              created_date_utc: connection.createdDateUtc,
+              updated_date_utc: connection.updatedDateUtc,
+              updated_at: new Date().toISOString(),
+              xero_token_id: tokenRecord.id  // Link connection to token
+            });
 
-        if (connectionError) {
-          console.error(`Error storing Xero connection for tenant ${connection.tenantId}:`, connectionError);
+          if (connectionError) {
+            // If insert fails due to unique constraint violation, try updating instead
+            if (connectionError.code === "23505") { // Unique violation code
+              console.log(`Connection ${connection.id} already exists, updating...`);
+              
+              const { error: updateError } = await supabase
+                .from("xero_connections")
+                .update({
+                  tenant_id: connection.tenantId,
+                  tenant_type: connection.tenantType,
+                  tenant_name: connection.tenantName,
+                  updated_date_utc: connection.updatedDateUtc,
+                  updated_at: new Date().toISOString(),
+                  xero_token_id: tokenRecord.id
+                })
+                .eq("xero_id", connection.id);
+                
+              if (updateError) {
+                console.error(`Error updating Xero connection for tenant ${connection.tenantId}:`, updateError);
+              }
+            } else {
+              console.error(`Error storing Xero connection for tenant ${connection.tenantId}:`, connectionError);
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing Xero connection for tenant ${connection.tenantId}:`, error);
         }
       }
 
@@ -365,21 +393,49 @@ serve(async (req) => {
       // Store connections in database
       for (const connection of connections) {
         // Store connections in the xero_connections table
-        const { error: connectionError } = await supabase
-          .from("xero_connections")
-          .upsert({
-            xero_id: connection.id,
-            tenant_id: connection.tenantId,
-            tenant_type: connection.tenantType,
-            tenant_name: connection.tenantName,
-            created_date_utc: connection.createdDateUtc,
-            updated_date_utc: connection.updatedDateUtc,
-            updated_at: new Date().toISOString(),
-            xero_token_id: token.id  // Link connection to token
-          }, { onConflict: 'xero_id' });
-          
-        if (connectionError) {
-          console.error(`Error storing Xero connection for tenant ${connection.tenantId}:`, connectionError);
+        console.log(`Processing connection: ${connection.tenantId} (${connection.tenantName})`);
+        
+        try {
+          // First, try inserting the connection
+          const { error: connectionError } = await supabase
+            .from("xero_connections")
+            .insert({
+              xero_id: connection.id,
+              tenant_id: connection.tenantId,
+              tenant_type: connection.tenantType,
+              tenant_name: connection.tenantName,
+              created_date_utc: connection.createdDateUtc,
+              updated_date_utc: connection.updatedDateUtc,
+              updated_at: new Date().toISOString(),
+              xero_token_id: token.id  // Link connection to token
+            });
+
+          if (connectionError) {
+            // If insert fails due to unique constraint violation, try updating instead
+            if (connectionError.code === "23505") { // Unique violation code
+              console.log(`Connection ${connection.id} already exists, updating...`);
+              
+              const { error: updateError } = await supabase
+                .from("xero_connections")
+                .update({
+                  tenant_id: connection.tenantId,
+                  tenant_type: connection.tenantType,
+                  tenant_name: connection.tenantName,
+                  updated_date_utc: connection.updatedDateUtc,
+                  updated_at: new Date().toISOString(),
+                  xero_token_id: token.id
+                })
+                .eq("xero_id", connection.id);
+                
+              if (updateError) {
+                console.error(`Error updating Xero connection for tenant ${connection.tenantId}:`, updateError);
+              }
+            } else {
+              console.error(`Error storing Xero connection for tenant ${connection.tenantId}:`, connectionError);
+            }
+          }
+        } catch (error) {
+          console.error(`Error processing Xero connection for tenant ${connection.tenantId}:`, error);
         }
       }
       

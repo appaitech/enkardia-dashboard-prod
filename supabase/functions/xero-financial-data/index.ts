@@ -148,6 +148,9 @@ serve(async (req) => {
       reportUrl += `?fromDate=${periodStart}&toDate=${periodEnd}`;
     }
     
+    console.log(`Calling Xero API: ${reportUrl}`);
+    console.log(`Using tenant ID: ${tenantId}`);
+    
     // Fetch the report from Xero
     const reportResponse = await fetch(reportUrl, {
       method: "GET",
@@ -161,10 +164,19 @@ serve(async (req) => {
     if (!reportResponse.ok) {
       const errorText = await reportResponse.text();
       console.error(`Error fetching ${reportType} from Xero:`, errorText);
+      console.error(`Status: ${reportResponse.status} ${reportResponse.statusText}`);
+      console.error(`Request URL: ${reportUrl}`);
+      console.error(`Headers used:`, {
+        Authorization: `Bearer ${accessToken.substring(0, 10)}...`,
+        Accept: "application/json",
+        "Xero-Tenant-Id": tenantId,
+      });
+      
       throw new Error(`Failed to fetch ${reportType} from Xero: ${reportResponse.status} ${reportResponse.statusText}`);
     }
     
     const reportData = await reportResponse.json();
+    console.log(`Successfully retrieved ${reportType} data from Xero`);
     
     return new Response(
       JSON.stringify({ 
