@@ -1,3 +1,4 @@
+
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -193,6 +194,23 @@ serve(async (req) => {
         if (updateError) {
           console.error(`Error updating client business for tenant ${connection.tenantId}:`, updateError);
         }
+        
+        // Store connections in the xero_connections table
+        const { error: connectionError } = await supabase
+          .from("xero_connections")
+          .upsert({
+            xero_id: connection.id,
+            tenant_id: connection.tenantId,
+            tenant_type: connection.tenantType,
+            tenant_name: connection.tenantName,
+            created_date_utc: connection.createdDateUtc,
+            updated_date_utc: connection.updatedDateUtc,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'tenant_id' });
+
+        if (connectionError) {
+          console.error(`Error storing Xero connection for tenant ${connection.tenantId}:`, connectionError);
+        }
       }
 
       return new Response(
@@ -200,6 +218,130 @@ serve(async (req) => {
           success: true, 
           message: "Xero authentication successful", 
           tokenId: tokenRecord.id,
+          connections 
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Get connections from Xero using the current token
+    if (action === "get-connections") {
+      console.log("Fetching Xero connections");
+      
+      // Get the first token from the database
+      const { data: token, error: tokenError } = await supabase
+        .from("xero_tokens")
+        .select("*")
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (tokenError) {
+        console.error("Error fetching token:", tokenError);
+        throw new Error("No Xero token found. Please connect to Xero first.");
+      }
+      
+      console.log("Found token, checking expiry:", token.token_expiry);
+      
+      // Check if the token is expired
+      const now = new Date();
+      const tokenExpiry = new Date(token.token_expiry);
+      let accessToken = token.access_token;
+      
+      // If token is expired, refresh it
+      if (tokenExpiry <= now) {
+        console.log("Token expired, refreshing...");
+        
+        // Refresh the token
+        const refreshResponse = await fetch("https://identity.xero.com/connect/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${btoa(`${XERO_CLIENT_ID}:${XERO_CLIENT_SECRET}`)}`,
+          },
+          body: new URLSearchParams({
+            grant_type: "refresh_token",
+            refresh_token: token.refresh_token,
+          }),
+        });
+        
+        if (!refreshResponse.ok) {
+          const errorData = await refreshResponse.text();
+          console.error("Token refresh failed:", errorData);
+          throw new Error("Failed to refresh Xero token. Please reconnect to Xero.");
+        }
+        
+        const refreshData = await refreshResponse.json();
+        console.log("Token refreshed:", JSON.stringify(refreshData));
+        
+        // Calculate new token expiry time
+        const expiresIn = refreshData.expires_in;
+        const newTokenExpiry = new Date();
+        newTokenExpiry.setSeconds(newTokenExpiry.getSeconds() + expiresIn);
+        
+        // Update the token in the database
+        const { error: updateError } = await supabase
+          .from("xero_tokens")
+          .update({
+            access_token: refreshData.access_token,
+            expires_in: refreshData.expires_in,
+            token_type: refreshData.token_type,
+            refresh_token: refreshData.refresh_token,
+            scope: refreshData.scope,
+            id_token: refreshData.id_token,
+            token_expiry: newTokenExpiry.toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq("id", token.id);
+        
+        if (updateError) {
+          console.error("Error updating token:", updateError);
+          throw new Error("Failed to update token in database");
+        }
+        
+        accessToken = refreshData.access_token;
+      }
+      
+      // Get connections from Xero
+      const connectionsResponse = await fetch("https://api.xero.com/connections", {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+      
+      if (!connectionsResponse.ok) {
+        console.error("Error fetching connections:", await connectionsResponse.text());
+        throw new Error(`Failed to fetch Xero connections: ${connectionsResponse.status}`);
+      }
+      
+      const connections = await connectionsResponse.json();
+      console.log("Connections:", JSON.stringify(connections));
+      
+      // Store connections in database
+      for (const connection of connections) {
+        // Store connections in the xero_connections table
+        const { error: connectionError } = await supabase
+          .from("xero_connections")
+          .upsert({
+            xero_id: connection.id,
+            tenant_id: connection.tenantId,
+            tenant_type: connection.tenantType,
+            tenant_name: connection.tenantName,
+            created_date_utc: connection.createdDateUtc,
+            updated_date_utc: connection.updatedDateUtc,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'tenant_id' });
+          
+        if (connectionError) {
+          console.error(`Error storing Xero connection for tenant ${connection.tenantId}:`, connectionError);
+        }
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: "Xero connections fetched successfully", 
           connections 
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }

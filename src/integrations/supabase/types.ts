@@ -201,6 +201,45 @@ export type Database = {
           },
         ]
       }
+      xero_connections: {
+        Row: {
+          connection_status: string
+          created_at: string
+          created_date_utc: string
+          id: string
+          tenant_id: string
+          tenant_name: string
+          tenant_type: string
+          updated_at: string
+          updated_date_utc: string
+          xero_id: string
+        }
+        Insert: {
+          connection_status?: string
+          created_at?: string
+          created_date_utc: string
+          id?: string
+          tenant_id: string
+          tenant_name: string
+          tenant_type: string
+          updated_at?: string
+          updated_date_utc: string
+          xero_id: string
+        }
+        Update: {
+          connection_status?: string
+          created_at?: string
+          created_date_utc?: string
+          id?: string
+          tenant_id?: string
+          tenant_name?: string
+          tenant_type?: string
+          updated_at?: string
+          updated_date_utc?: string
+          xero_id?: string
+        }
+        Relationships: []
+      }
       xero_tokens: {
         Row: {
           access_token: string
