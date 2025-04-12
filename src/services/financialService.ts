@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ProfitAndLossRow {
@@ -91,22 +90,17 @@ export async function getProfitAndLossData(businessId: string | null): Promise<P
       throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
     }
 
-    // Get P&L data from Xero
-    const response = await fetch(`${supabase.functions.url}/xero-financial-data?tenantId=${business.tenant_id}&reportType=ProfitAndLoss`);
-    
-    if (!response.ok) {
-      // Fallback to local data if Xero API fails
-      console.warn(`Failed to fetch P&L data from Xero, falling back to local data: ${response.status} ${response.statusText}`);
-      const fallbackResponse = await fetch(getFinancialDataPath(businessId, FinancialDataType.BASIC_CURRENT_YEAR));
-      
-      if (!fallbackResponse.ok) {
-        throw new Error(`Failed to load profit and loss data for business ${businessId}: ${fallbackResponse.status} ${fallbackResponse.statusText}`);
+    // Get P&L data from Xero using the invoke method
+    const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
+      body: {
+        tenantId: business.tenant_id,
+        reportType: 'ProfitAndLoss'
       }
-      
-      return await fallbackResponse.json();
-    }
+    });
     
-    const result = await response.json();
+    if (functionError) {
+      throw new Error(`Failed to invoke Xero financial data function: ${functionError.message}`);
+    }
     
     if (!result.success) {
       throw new Error(`Failed to get P&L data from Xero: ${result.error}`);
@@ -161,24 +155,19 @@ export async function getMonthlyProfitAndLossData(businessId: string | null): Pr
     start.setMonth(start.getMonth() - 12);
     const startDate = start.toISOString().split('T')[0]; // Format as YYYY-MM-DD
 
-    // Get monthly P&L data from Xero
-    const response = await fetch(
-      `${supabase.functions.url}/xero-financial-data?tenantId=${business.tenant_id}&reportType=ProfitAndLoss&periodStart=${startDate}&periodEnd=${end}`
-    );
-    
-    if (!response.ok) {
-      // Fallback to local data if Xero API fails
-      console.warn(`Failed to fetch monthly P&L data from Xero, falling back to local data: ${response.status} ${response.statusText}`);
-      const fallbackResponse = await fetch(getFinancialDataPath(businessId, FinancialDataType.MONTHLY_BREAKDOWN));
-      
-      if (!fallbackResponse.ok) {
-        throw new Error(`Failed to load monthly profit and loss data for business ${businessId}: ${fallbackResponse.status} ${fallbackResponse.statusText}`);
+    // Get monthly P&L data from Xero using the invoke method
+    const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
+      body: {
+        tenantId: business.tenant_id,
+        reportType: 'ProfitAndLoss',
+        periodStart: startDate,
+        periodEnd: end
       }
-      
-      return await fallbackResponse.json();
-    }
+    });
     
-    const result = await response.json();
+    if (functionError) {
+      throw new Error(`Failed to invoke Xero financial data function: ${functionError.message}`);
+    }
     
     if (!result.success) {
       throw new Error(`Failed to get monthly P&L data from Xero: ${result.error}`);

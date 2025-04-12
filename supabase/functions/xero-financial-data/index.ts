@@ -22,6 +22,13 @@ interface XeroConnection {
   xero_token_id: string;
 }
 
+interface RequestBody {
+  tenantId: string;
+  reportType?: string;
+  periodStart?: string;
+  periodEnd?: string;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -29,11 +36,17 @@ serve(async (req) => {
   }
 
   try {
-    const url = new URL(req.url);
-    const tenantId = url.searchParams.get("tenantId");
-    const reportType = url.searchParams.get("reportType") || "ProfitAndLoss";
-    const periodStart = url.searchParams.get("periodStart");
-    const periodEnd = url.searchParams.get("periodEnd");
+    // Parse the request body
+    let body: RequestBody;
+    
+    try {
+      body = await req.json();
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      throw new Error("Invalid request format: unable to parse request body");
+    }
+    
+    const { tenantId, reportType = "ProfitAndLoss", periodStart, periodEnd } = body;
     
     if (!tenantId) {
       throw new Error("Tenant ID is required");
