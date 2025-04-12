@@ -7,6 +7,7 @@ export interface XeroConnection {
   tenantName: string;
   createdDateUtc: string;
   updatedDateUtc: string;
+  updatedAt?: string; // Added to track when connection was last synced
   xeroTokenId?: string; // Added to link connections to tokens
   clientBusinessId?: string; // Added to track which client business is using this connection
 }

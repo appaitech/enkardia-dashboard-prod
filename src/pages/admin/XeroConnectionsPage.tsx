@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Link, Search, RefreshCcw, Users, Info } from "lucide-react";
+import { Plus, Link, Search, RefreshCw, Users, Info } from "lucide-react";
 import AdminSidebar from "@/components/AdminSidebar";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -125,15 +124,12 @@ const XeroConnectionsPage: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const hasXeroAuthParams = searchParams.has('code') && searchParams.has('state');
 
-  // Calculate total pages for pagination
   const totalPages = Math.ceil(filteredConnections.length / itemsPerPage);
 
-  // Get current items for the current page
   const indexOfLastItem = currentPage * itemsPerPage;
   const indexOfFirstItem = indexOfLastItem - itemsPerPage;
   const currentItems = filteredConnections.slice(indexOfFirstItem, indexOfLastItem);
 
-  // Function to format dates
   const formatDate = (dateString: string): string => {
     try {
       return format(new Date(dateString), 'MMM dd, yyyy');
@@ -142,14 +138,75 @@ const XeroConnectionsPage: React.FC = () => {
     }
   };
 
-  // Function to render a readable token name
   const renderTokenName = (token: XeroToken): string => {
     return token.user_name || `Xero User (${token.id.substring(0, 6)}...)`;
   };
 
-  // Function to handle token selection
   const handleTokenSelect = (token: XeroToken): void => {
     setSelectedToken(token);
+  };
+
+  const getConnections = async (tokenId: string) => {
+    if (!tokenId) return;
+    
+    try {
+      setIsLoading(true);
+      
+      await supabase.functions.invoke('xero-auth', {
+        body: { 
+          action: 'get-connections',
+          tokenId
+        }
+      });
+      
+      const { data, error } = await supabase
+        .from("xero_connections")
+        .select("*")
+        .eq("xero_token_id", tokenId)
+        .order('updated_at', { ascending: false });
+      
+      if (error) {
+        console.error("Error fetching Xero connections:", error);
+        toast({
+          title: "Error",
+          description: "Failed to fetch Xero connections",
+          variant: "destructive",
+        });
+        setConnections([]);
+      } else {
+        const transformedConnections = data.map(conn => ({
+          id: conn.xero_id,
+          authEventId: "",
+          tenantId: conn.tenant_id,
+          tenantType: conn.tenant_type,
+          tenantName: conn.tenant_name,
+          createdDateUtc: conn.created_date_utc,
+          updatedDateUtc: conn.updated_date_utc,
+          updatedAt: conn.updated_at,
+          xeroTokenId: conn.xero_token_id
+        }));
+        
+        setConnections(transformedConnections);
+      }
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error("Error fetching Xero connections:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch Xero connections",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+    }
+  };
+
+  const handleRefreshConnections = async () => {
+    if (!selectedToken) return;
+    
+    setIsFetching(true);
+    await getConnections(selectedToken.id);
+    setIsFetching(false);
   };
 
   useEffect(() => {
@@ -181,60 +238,13 @@ const XeroConnectionsPage: React.FC = () => {
     if (!hasXeroAuthParams) {
       fetchTokens();
     }
-  }, [hasXeroAuthParams, isFetching]);
+  }, [hasXeroAuthParams]);
 
   useEffect(() => {
-    const fetchConnections = async () => {
-      if (!selectedToken) return;
-      
-      try {
-        setIsLoading(true);
-        
-        const { data, error } = await supabase
-          .from("xero_connections")
-          .select("*")
-          .eq("xero_token_id", selectedToken.id)
-          .order('updated_at', { ascending: false });
-        
-        if (error) {
-          console.error("Error fetching Xero connections:", error);
-          toast({
-            title: "Error",
-            description: "Failed to fetch Xero connections",
-            variant: "destructive",
-          });
-          setConnections([]);
-        } else {
-          const transformedConnections = data.map(conn => ({
-            id: conn.xero_id,
-            authEventId: "",
-            tenantId: conn.tenant_id,
-            tenantType: conn.tenant_type,
-            tenantName: conn.tenant_name,
-            createdDateUtc: conn.created_date_utc,
-            updatedDateUtc: conn.updated_date_utc,
-            xeroTokenId: conn.xero_token_id
-          }));
-          
-          setConnections(transformedConnections);
-        }
-        
-        setIsLoading(false);
-      } catch (error) {
-        console.error("Error fetching Xero connections:", error);
-        toast({
-          title: "Error",
-          description: "Failed to fetch Xero connections",
-          variant: "destructive",
-        });
-        setIsLoading(false);
-      }
-    };
-
-    if (!hasXeroAuthParams) {
-      fetchConnections();
+    if (!hasXeroAuthParams && selectedToken) {
+      getConnections(selectedToken.id);
     }
-  }, [hasXeroAuthParams, toast, isFetching, selectedToken]);
+  }, [hasXeroAuthParams, selectedToken]);
 
   useEffect(() => {
     const results = connections.filter(connection =>
@@ -392,12 +402,12 @@ const XeroConnectionsPage: React.FC = () => {
                       <Button
                         variant="outline"
                         size="icon"
-                        onClick={() => setIsFetching(prev => !prev)}
+                        onClick={handleRefreshConnections}
                         className="ml-2"
                         title="Refresh connections"
                         disabled={isFetching}
                       >
-                        <RefreshCcw size={16} className={isFetching ? "animate-spin" : ""} />
+                        <RefreshCw size={16} className={isFetching ? "animate-spin" : ""} />
                       </Button>
                     </div>
                     
@@ -409,7 +419,8 @@ const XeroConnectionsPage: React.FC = () => {
                             <TableHead className="font-semibold">Tenant ID</TableHead>
                             <TableHead className="font-semibold">Type</TableHead>
                             <TableHead className="font-semibold">Created</TableHead>
-                            <TableHead className="font-semibold">Last Updated</TableHead>
+                            <TableHead className="font-semibold">Last Updated (Xero)</TableHead>
+                            <TableHead className="font-semibold">Last Synced</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -426,11 +437,12 @@ const XeroConnectionsPage: React.FC = () => {
                                 <TableCell><Skeleton className="h-4 w-20" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                                 <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
                               </TableRow>
                             ))
                           ) : currentItems.length === 0 ? (
                             <TableRow>
-                              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                              <TableCell colSpan={6} className="text-center py-8 text-gray-500">
                                 {searchTerm 
                                   ? "No matching Xero connections found." 
                                   : selectedToken 
@@ -451,6 +463,11 @@ const XeroConnectionsPage: React.FC = () => {
                                 <TableCell>{connection.tenantType}</TableCell>
                                 <TableCell>{formatDate(connection.createdDateUtc)}</TableCell>
                                 <TableCell>{formatDate(connection.updatedDateUtc)}</TableCell>
+                                <TableCell>
+                                  {connection.updatedAt 
+                                    ? format(new Date(connection.updatedAt), 'MMM dd, yyyy HH:mm')
+                                    : 'Never'}
+                                </TableCell>
                               </TableRow>
                             ))
                           )}
