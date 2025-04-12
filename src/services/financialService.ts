@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ProfitAndLossRow {
@@ -75,16 +76,6 @@ export interface ReportParams {
 }
 
 /**
- * Constructs the file path for various financial data types (used for fallback)
- * @param businessId The client business ID
- * @param dataType The type of financial data to retrieve
- * @returns The constructed file path
- */
-const getFinancialDataPath = (businessId: string, dataType: FinancialDataType): string => {
-  return `/client_businesses/${businessId}/${dataType}.json`;
-};
-
-/**
  * Get the default start date (January 1st of current year)
  * @returns Date string in YYYY-MM-DD format
  */
@@ -141,69 +132,51 @@ export const getFirstDayLastQuarter = (): string => {
  * Fetches profit and loss data with custom parameters from Xero
  * @param businessId The client business ID
  * @param params Custom report parameters
- * @param fallbackType Optional fallback data type if API call fails
  * @returns Promise with the profit and loss data
  * @throws Error if businessId is null or if fetching fails
  */
 export async function getProfitAndLossWithParams(
   businessId: string | null,
   action: string = "basic-report",
-  params: ReportParams,
-  fallbackType?: FinancialDataType
+  params: ReportParams
 ): Promise<ProfitAndLossResponse> {
   if (!businessId) {
     throw new Error('No business ID provided');
   }
 
-  try {
-    // First, get the tenant ID for this business
-    const { data: business, error: businessError } = await supabase
-      .from('client_businesses')
-      .select('tenant_id')
-      .eq('id', businessId)
-      .single();
-    
-    if (businessError || !business?.tenant_id) {
-      throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
-    }
-
-    // Get P&L data from Xero using the invoke method with custom parameters
-    const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
-      body: {
-        tenantId: business.tenant_id,
-        action: action,
-        ...params
-      }
-    });
-    
-    if (functionError) {
-      throw new Error(`Failed to invoke Xero financial data function: ${functionError.message}`);
-    }
-    
-    if (!result.success) {
-      throw new Error(`Failed to get P&L data from Xero: ${result.error}`);
-    }
-    
-    return result.data;
-  } catch (error) {
-    console.error("Error fetching P&L data:", error);
-    
-    // Try fallback to local data if a fallback type is provided
-    if (fallbackType) {
-      try {
-        const fallbackResponse = await fetch(getFinancialDataPath(businessId, fallbackType));
-        if (!fallbackResponse.ok) {
-          throw error; // Throw original error if fallback also fails
-        }
-        return await fallbackResponse.json();
-      } catch (fallbackError) {
-        console.error("Fallback also failed:", fallbackError);
-        throw error; // Throw original error
-      }
-    }
-    
-    throw error;
+  // First, get the tenant ID for this business
+  const { data: business, error: businessError } = await supabase
+    .from('client_businesses')
+    .select('tenant_id')
+    .eq('id', businessId)
+    .single();
+  
+  if (businessError || !business?.tenant_id) {
+    throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
   }
+
+  if (!business.tenant_id) {
+    throw new Error(`Business ${businessId} has no Xero tenant ID configured. Please connect it to Xero first.`);
+  }
+
+  // Get P&L data from Xero using the invoke method with custom parameters
+  const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
+    body: {
+      tenantId: business.tenant_id,
+      action: action,
+      ...params
+    }
+  });
+  
+  if (functionError) {
+    throw new Error(`Failed to invoke Xero financial data function: ${functionError.message}`);
+  }
+  
+  if (!result.success) {
+    throw new Error(`Failed to get P&L data from Xero: ${result.error}`);
+  }
+  
+  return result.data;
 }
 
 /**
@@ -229,8 +202,7 @@ export async function getProfitAndLossData(
     {
       fromDate: startDate,
       toDate: endDate
-    },
-    FinancialDataType.BASIC_CURRENT_YEAR
+    }
   );
 }
 
@@ -262,8 +234,7 @@ export async function getMonthlyProfitAndLossData(
       periods: periods,
       timeframe: "MONTH",
       standardLayout: true
-    },
-    FinancialDataType.MONTHLY_BREAKDOWN
+    }
   ) as Promise<MonthlyProfitAndLoss>;
 }
 
@@ -294,8 +265,7 @@ export async function getAnnualComparisonData(
   return getProfitAndLossWithParams(
     businessId,
     "annual-comparison",
-    {},
-    FinancialDataType.BASIC_CURRENT_YEAR
+    {}
   );
 }
 
@@ -321,8 +291,7 @@ export async function getQuarterlyBreakdownData(
     {
       fromDate: startDate,
       toDate: endDate
-    },
-    FinancialDataType.MONTHLY_BREAKDOWN
+    }
   );
 }
 
@@ -346,8 +315,7 @@ export async function getDepartmentComparisonData(
     {
       date: reportDate,
       trackingCategoryID: trackingCategoryID
-    },
-    FinancialDataType.BASIC_CURRENT_YEAR
+    }
   );
 }
 
@@ -369,8 +337,7 @@ export async function getCustomDateRangeData(
     {
       fromDate: fromDate,
       toDate: toDate
-    },
-    FinancialDataType.BASIC_CURRENT_YEAR
+    }
   );
 }
 
@@ -392,8 +359,7 @@ export async function getCashVsAccrualData(
     "cash-basis",
     {
       date: reportDate
-    },
-    FinancialDataType.BASIC_CURRENT_YEAR
+    }
   );
 
   // Fetch accrual basis report (all transactions)
@@ -402,8 +368,7 @@ export async function getCashVsAccrualData(
     "accrual-basis",
     {
       date: reportDate
-    },
-    FinancialDataType.BASIC_CURRENT_YEAR
+    }
   );
 
   return [cashData, accrualData];

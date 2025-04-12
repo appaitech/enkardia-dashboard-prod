@@ -34,6 +34,8 @@ interface RequestBody {
   trackingOptionID?: string;
   standardLayout?: boolean;
   paymentsOnly?: boolean;
+  fromDate?: string;
+  toDate?: string;
 }
 
 serve(async (req) => {
@@ -64,7 +66,9 @@ serve(async (req) => {
       trackingCategoryID,
       trackingOptionID,
       standardLayout,
-      paymentsOnly
+      paymentsOnly,
+      fromDate,
+      toDate
     } = body;
     
     if (!tenantId) {
@@ -176,8 +180,8 @@ serve(async (req) => {
         
       case "quarterly-breakdown":
         // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?fromDate=X&toDate=Y&periods=4&timeframe=QUARTER
-        if (periodStart) urlParams.append('fromDate', periodStart);
-        if (periodEnd) urlParams.append('toDate', periodEnd);
+        if (fromDate) urlParams.append('fromDate', fromDate);
+        if (toDate) urlParams.append('toDate', toDate);
         urlParams.append('periods', '4');
         urlParams.append('timeframe', 'QUARTER');
         break;
@@ -190,8 +194,8 @@ serve(async (req) => {
         
       case "custom-date-range":
         // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?fromDate=X&toDate=Y&trackingOptionID=null&standardLayout=true
-        if (periodStart) urlParams.append('fromDate', periodStart);
-        if (periodEnd) urlParams.append('toDate', periodEnd);
+        if (fromDate) urlParams.append('fromDate', fromDate);
+        if (toDate) urlParams.append('toDate', toDate);
         urlParams.append('standardLayout', 'true');
         break;
         
@@ -213,8 +217,8 @@ serve(async (req) => {
         
       case "monthly-breakdown":
         // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?fromDate=X&toDate=Y&periods=Z&timeframe=MONTH
-        if (periodStart) urlParams.append('fromDate', periodStart);
-        if (periodEnd) urlParams.append('toDate', periodEnd);
+        if (fromDate) urlParams.append('fromDate', fromDate);
+        if (toDate) urlParams.append('toDate', toDate);
         if (periods) urlParams.append('periods', periods.toString());
         urlParams.append('timeframe', 'MONTH');
         urlParams.append('standardLayout', 'true');
@@ -223,8 +227,8 @@ serve(async (req) => {
       case "basic-report":
       default:
         // Add date parameters if provided for basic report
-        if (periodStart) urlParams.append('fromDate', periodStart);
-        if (periodEnd) urlParams.append('toDate', periodEnd);
+        if (fromDate) urlParams.append('fromDate', fromDate);
+        if (toDate) urlParams.append('toDate', toDate);
         
         // Add any other parameters that were passed
         if (periods) urlParams.append('periods', periods.toString());
@@ -278,8 +282,8 @@ serve(async (req) => {
         action,
         tenantId,
         params: {
-          periodStart,
-          periodEnd,
+          fromDate,
+          toDate,
           date,
           periods,
           timeframe,
