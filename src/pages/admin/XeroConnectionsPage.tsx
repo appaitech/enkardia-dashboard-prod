@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -123,6 +124,33 @@ const XeroConnectionsPage: React.FC = () => {
 
   const searchParams = new URLSearchParams(location.search);
   const hasXeroAuthParams = searchParams.has('code') && searchParams.has('state');
+
+  // Calculate total pages for pagination
+  const totalPages = Math.ceil(filteredConnections.length / itemsPerPage);
+
+  // Get current items for the current page
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentItems = filteredConnections.slice(indexOfFirstItem, indexOfLastItem);
+
+  // Function to format dates
+  const formatDate = (dateString: string): string => {
+    try {
+      return format(new Date(dateString), 'MMM dd, yyyy');
+    } catch (e) {
+      return 'Invalid date';
+    }
+  };
+
+  // Function to render a readable token name
+  const renderTokenName = (token: XeroToken): string => {
+    return token.user_name || `Xero User (${token.id.substring(0, 6)}...)`;
+  };
+
+  // Function to handle token selection
+  const handleTokenSelect = (token: XeroToken): void => {
+    setSelectedToken(token);
+  };
 
   useEffect(() => {
     const fetchTokens = async () => {
