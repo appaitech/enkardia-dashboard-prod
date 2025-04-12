@@ -1,8 +1,7 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { XeroToken, XeroConnection } from "@/types/xero";
 import { ClientBusiness } from "@/types/client";
 import { Button } from "@/components/ui/button";
 import {
@@ -29,30 +28,42 @@ interface XeroConnectionSelectorProps {
   onUpdate: () => void;
 }
 
+interface XeroToken {
+  id: string;
+  user_name?: string;
+  created_at: string;
+  updated_at: string;
+  token_expiry: string;
+}
+
+interface XeroConnection {
+  id: string;
+  xero_id: string;
+  tenant_id: string;
+  tenant_name: string;
+  tenant_type: string;
+  xero_token_id: string;
+}
+
 export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnectionSelectorProps) {
   const [selectedTokenId, setSelectedTokenId] = useState<string>("");
   const [selectedConnectionId, setSelectedConnectionId] = useState<string>("");
   const [isAssigning, setIsAssigning] = useState(false);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Fetch all Xero tokens
+  // Fetch all Xero tokens directly from the database
   const { data: tokens, isLoading: isLoadingTokens, refetch: refetchTokens } = useQuery({
     queryKey: ["xero-tokens"],
     queryFn: async () => {
       try {
-        // Use the Supabase Functions endpoint directly instead of accessing protected properties
-        const response = await fetch("https://itkpwdlqlfymxzjzymya.supabase.co/functions/v1/xero-auth?action=get-tokens", {
-          headers: {
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a3B3ZGxxbGZ5bXh6anp5bXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzMTg3ODIsImV4cCI6MjA1ODg5NDc4Mn0.fBffoWwpqnPySXDcrPOA5pfrCuSHmj6d7i3fjl5Sa_8`,
-          },
-        });
+        const { data, error } = await supabase
+          .from("xero_tokens")
+          .select("id, user_name, created_at, updated_at, token_expiry")
+          .order("created_at", { ascending: false });
         
-        if (!response.ok) {
-          throw new Error("Failed to fetch Xero tokens");
-        }
+        if (error) throw error;
         
-        const data = await response.json();
-        return data.tokens as XeroToken[];
+        return data as XeroToken[];
       } catch (error) {
         console.error("Error fetching Xero tokens:", error);
         return [];
@@ -60,40 +71,21 @@ export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnect
     },
   });
 
-  // Fetch connections for the selected token
+  // Fetch connections for the selected token directly from the database
   const { data: connections, isLoading: isLoadingConnections, refetch: refetchConnections } = useQuery({
     queryKey: ["xero-connections", selectedTokenId],
     queryFn: async () => {
       if (!selectedTokenId) return [];
       
       try {
-        // Use the Supabase Functions endpoint directly
-        const response = await fetch("https://itkpwdlqlfymxzjzymya.supabase.co/functions/v1/xero-auth?action=get-connections", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a3B3ZGxxbGZ5bXh6anp5bXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzMTg3ODIsImV4cCI6MjA1ODg5NDc4Mn0.fBffoWwpqnPySXDcrPOA5pfrCuSHmj6d7i3fjl5Sa_8`,
-          },
-          body: JSON.stringify({ tokenId: selectedTokenId }),
-        });
+        const { data, error } = await supabase
+          .from("xero_connections")
+          .select("id, xero_id, tenant_id, tenant_name, tenant_type, xero_token_id")
+          .eq("xero_token_id", selectedTokenId);
         
-        if (!response.ok) {
-          throw new Error("Failed to fetch Xero connections");
-        }
+        if (error) throw error;
         
-        const data = await response.json();
-        
-        // Transform the connections to our interface
-        return data.connections.map((conn: any) => ({
-          id: conn.id,
-          authEventId: data.tokenId,
-          tenantId: conn.tenantId,
-          tenantName: conn.tenantName,
-          tenantType: conn.tenantType,
-          createdDateUtc: conn.createdDateUtc,
-          updatedDateUtc: conn.updatedDateUtc,
-          xeroTokenId: data.tokenId
-        }));
+        return data as XeroConnection[];
       } catch (error) {
         console.error("Error fetching connections:", error);
         return [];
@@ -102,44 +94,38 @@ export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnect
     enabled: !!selectedTokenId,
   });
 
-  // Fetch assigned connection
+  // Fetch assigned connection information
   const { data: assignedConnection, isLoading: isLoadingAssigned, refetch: refetchAssigned } = useQuery({
-    queryKey: ["assigned-xero-connection", clientBusiness.id],
+    queryKey: ["assigned-xero-connection", clientBusiness?.id, clientBusiness?.tenantId],
     queryFn: async () => {
+      if (!clientBusiness?.tenantId) return null;
+      
       try {
         const { data, error } = await supabase
           .from("xero_connections")
-          .select("*")
-          .eq("tenant_id", clientBusiness.id)
+          .select("id, xero_id, tenant_id, tenant_name, tenant_type, xero_token_id")
+          .eq("tenant_id", clientBusiness.tenantId)
           .maybeSingle();
           
         if (error) throw error;
         
-        return data ? {
-          id: data.id,
-          tenantId: data.tenant_id,
-          tenantName: data.tenant_name,
-          tenantType: data.tenant_type,
-          createdDateUtc: data.created_date_utc,
-          updatedDateUtc: data.updated_date_utc,
-          xeroTokenId: data.xero_token_id,
-          authEventId: ""
-        } as XeroConnection : null;
+        return data as XeroConnection | null;
       } catch (error) {
         console.error("Error fetching assigned connection:", error);
         return null;
       }
     },
+    enabled: !!clientBusiness?.tenantId,
   });
 
   // Reset selected connection when token changes
-  useEffect(() => {
+  React.useEffect(() => {
     setSelectedConnectionId("");
   }, [selectedTokenId]);
 
   // Handle assigning connection to client business
   const handleAssignConnection = async () => {
-    if (!selectedConnectionId || !selectedTokenId) {
+    if (!selectedConnectionId) {
       toast.error("Please select a Xero connection");
       return;
     }
@@ -154,27 +140,16 @@ export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnect
         throw new Error("Selected connection not found");
       }
 
-      // Update client business with xero_connected flag
-      const { error: updateError } = await supabase
+      // Update client business with tenant_id
+      const { error: updateClientError } = await supabase
         .from("client_businesses")
         .update({ 
-          xero_connected: true,
+          tenant_id: selectedConnection.tenant_id,
           updated_at: new Date().toISOString()
         })
         .eq("id", clientBusiness.id);
 
-      if (updateError) throw updateError;
-
-      // Update xero_connection with client_business_id
-      const { error: connectionError } = await supabase
-        .from("xero_connections")
-        .update({
-          tenant_id: clientBusiness.id,
-          updated_at: new Date().toISOString()
-        })
-        .eq("xero_id", selectedConnection.id);
-
-      if (connectionError) throw connectionError;
+      if (updateClientError) throw updateClientError;
 
       toast.success("Xero connection assigned successfully");
       onUpdate();
@@ -190,34 +165,23 @@ export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnect
 
   // Handle removing connection from client business
   const handleRemoveConnection = async () => {
-    if (!assignedConnection) {
+    if (!clientBusiness?.tenantId) {
       return;
     }
 
     setIsAssigning(true);
 
     try {
-      // Update client business with xero_connected flag
+      // Update client business to remove tenant_id
       const { error: updateError } = await supabase
         .from("client_businesses")
         .update({ 
-          xero_connected: false,
+          tenant_id: null,
           updated_at: new Date().toISOString()
         })
         .eq("id", clientBusiness.id);
 
       if (updateError) throw updateError;
-
-      // Update xero_connection to remove client_business_id
-      const { error: connectionError } = await supabase
-        .from("xero_connections")
-        .update({
-          tenant_id: null,
-          updated_at: new Date().toISOString()
-        })
-        .eq("id", assignedConnection.id);
-
-      if (connectionError) throw connectionError;
 
       toast.success("Xero connection removed successfully");
       onUpdate();
@@ -230,8 +194,8 @@ export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnect
     }
   };
 
-  // Refresh connections
-  const handleRefreshConnections = () => {
+  // Refresh data
+  const handleRefreshData = () => {
     refetchTokens();
     refetchConnections();
     refetchAssigned();
@@ -257,7 +221,7 @@ export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnect
               <h4 className="font-medium">Connected to Xero</h4>
             </div>
             <p className="mt-1 text-sm text-slate-500">
-              This client is connected to Xero tenant: <span className="font-medium">{assignedConnection.tenantName}</span>
+              This client is connected to Xero tenant: <span className="font-medium">{assignedConnection.tenant_name}</span>
             </p>
           </div>
           <Button variant="outline" size="sm" onClick={handleRemoveConnection} disabled={isAssigning}>
@@ -335,8 +299,8 @@ export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnect
                   <Button 
                     variant="outline" 
                     size="icon" 
-                    onClick={handleRefreshConnections}
-                    title="Refresh tokens"
+                    onClick={handleRefreshData}
+                    title="Refresh data"
                   >
                     <RotateCw className="h-4 w-4" />
                   </Button>
@@ -364,7 +328,7 @@ export function XeroConnectionSelector({ clientBusiness, onUpdate }: XeroConnect
                       ) : connections && connections.length > 0 ? (
                         connections.map((connection) => (
                           <SelectItem key={connection.id} value={connection.id}>
-                            {connection.tenantName} ({connection.tenantType})
+                            {connection.tenant_name} ({connection.tenant_type})
                           </SelectItem>
                         ))
                       ) : (

@@ -38,7 +38,7 @@ function ClientDetail() {
         email: data.email,
         phone: data.phone || "",
         industry: data.industry || "",
-        xeroConnected: data.xero_connected,
+        tenantId: data.tenant_id, // Changed from xero_connected to tenant_id
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         createdBy: data.created_by

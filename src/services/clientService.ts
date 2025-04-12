@@ -10,7 +10,7 @@ const mapDbClientToClientBusiness = (dbClient: any): ClientBusiness => {
     email: dbClient.email,
     phone: dbClient.phone || undefined,
     industry: dbClient.industry || undefined,
-    xeroConnected: dbClient.xero_connected,
+    tenantId: dbClient.tenant_id || undefined,
     createdAt: dbClient.created_at,
     updatedAt: dbClient.updated_at,
     createdBy: dbClient.created_by || undefined
@@ -25,7 +25,7 @@ const mapClientBusinessToDbClient = (client: NewClientBusiness) => {
     email: client.email,
     phone: client.phone,
     industry: client.industry,
-    xero_connected: client.xeroConnected
+    tenant_id: client.tenantId
   };
 };
 
@@ -136,7 +136,7 @@ export const updateClientBusiness = async (id: string, updates: Partial<ClientBu
   if (updates.email) dbUpdates.email = updates.email;
   if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
   if (updates.industry !== undefined) dbUpdates.industry = updates.industry;
-  if (updates.xeroConnected !== undefined) dbUpdates.xero_connected = updates.xeroConnected;
+  if (updates.tenantId !== undefined) dbUpdates.tenant_id = updates.tenantId;
   
   const { data, error } = await supabase
     .from("client_businesses")
@@ -175,10 +175,9 @@ export const deleteClientBusiness = async (id: string): Promise<void> => {
  * Connect a client business to Xero
  * 
  * @param id The ID of the client business to connect to Xero
+ * @param tenantId The Xero tenant ID to connect to
  * @returns A promise that resolves when the client business is connected to Xero
  */
-export const connectClientBusinessToXero = async (id: string): Promise<ClientBusiness> => {
-  // In a real implementation, this would involve OAuth with Xero
-  // For now, we'll just update the xero_connected field
-  return updateClientBusiness(id, { xeroConnected: true });
+export const connectClientBusinessToXero = async (id: string, tenantId: string): Promise<ClientBusiness> => {
+  return updateClientBusiness(id, { tenantId });
 };

@@ -19,8 +19,8 @@ export type Database = {
           industry: string | null
           name: string
           phone: string | null
+          tenant_id: string | null
           updated_at: string
-          xero_connected: boolean
         }
         Insert: {
           contact_name: string
@@ -31,8 +31,8 @@ export type Database = {
           industry?: string | null
           name: string
           phone?: string | null
+          tenant_id?: string | null
           updated_at?: string
-          xero_connected?: boolean
         }
         Update: {
           contact_name?: string
@@ -43,8 +43,8 @@ export type Database = {
           industry?: string | null
           name?: string
           phone?: string | null
+          tenant_id?: string | null
           updated_at?: string
-          xero_connected?: boolean
         }
         Relationships: []
       }
