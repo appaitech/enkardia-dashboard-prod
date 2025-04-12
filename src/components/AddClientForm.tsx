@@ -172,24 +172,6 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
             />
           </div>
           
-          <FormField
-            control={form.control}
-            name="tenantId"
-            render={({ field }) => (
-              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                <FormControl>
-                  <Checkbox
-                    checked={field.value === "temp-id"}
-                    onCheckedChange={field.onChange}
-                  />
-                </FormControl>
-                <div className="space-y-1 leading-none">
-                  <FormLabel>Xero Connected</FormLabel>
-                </div>
-              </FormItem>
-            )}
-          />
-          
           <div className="flex justify-end space-x-2 pt-2">
             <Button 
               type="button" 
