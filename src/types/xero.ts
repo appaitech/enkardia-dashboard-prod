@@ -8,6 +8,7 @@ export interface XeroConnection {
   createdDateUtc: string;
   updatedDateUtc: string;
   xeroTokenId?: string; // Added to link connections to tokens
+  clientBusinessId?: string; // Added to track which client business is using this connection
 }
 
 export interface XeroToken {
@@ -25,4 +26,5 @@ export interface XeroToken {
   user_name?: string;  // Added to identify different Xero users
   authentication_event_id: string;
   token_expiry: string;
+  connections?: XeroConnection[]; // Added to track connections associated with this token
 }

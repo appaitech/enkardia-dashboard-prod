@@ -1,83 +1,79 @@
 
 import React, { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
+import { ClientBusiness } from "@/types/client";
 import { supabase } from "@/integrations/supabase/client";
 import AdminSidebar from "@/components/AdminSidebar";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon } from "lucide-react";
 import ClientDetailUsers from "@/components/ClientDetailUsers";
 import TasksManagement from "@/components/TasksManagement";
-import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { 
-  ArrowLeft, 
-  Building, 
-  Loader2, 
-  Users, 
-  FileUp, 
-  ListChecks, 
-  CalendarClock,
-  XCircle,
-  ArrowRight
-} from "lucide-react";
+import { XeroConnectionSelector } from "@/components/XeroConnectionSelector";
 
-const ClientDetail = () => {
+function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("overview");
 
-  const { data: clientBusiness, isLoading, error } = useQuery({
-    queryKey: ['client-business', id],
+  const { data: client, isLoading, isError, refetch } = useQuery({
+    queryKey: ["client", id],
     queryFn: async () => {
-      if (!id) throw new Error("No client ID provided");
-      
       const { data, error } = await supabase
-        .from('client_businesses')
-        .select('*')
-        .eq('id', id)
+        .from("client_businesses")
+        .select("*")
+        .eq("id", id)
         .single();
-        
-      if (error) throw error;
-      if (!data) throw new Error("Client not found");
       
-      return data;
+      if (error) throw error;
+      
+      // Convert from snake_case to camelCase
+      return {
+        id: data.id,
+        name: data.name,
+        contactName: data.contact_name,
+        email: data.email,
+        phone: data.phone || "",
+        industry: data.industry || "",
+        xeroConnected: data.xero_connected,
+        createdAt: data.created_at,
+        updatedAt: data.updated_at,
+        createdBy: data.created_by
+      } as ClientBusiness;
     },
-    enabled: !!id && !!user
   });
+
+  const handleRefresh = () => {
+    refetch();
+  };
 
   if (isLoading) {
     return (
       <div className="flex h-screen bg-slate-50">
-        <AdminSidebar activePath="/admin/clients" />
-        <div className="flex-1 p-8 flex items-center justify-center">
-          <div className="flex flex-col items-center">
-            <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-            <p className="mt-4 text-slate-500">Loading client data...</p>
+        <AdminSidebar activePath={location.pathname} />
+        <div className="flex-1 p-8">
+          <div className="flex justify-center items-center h-full">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
           </div>
         </div>
       </div>
     );
   }
 
-  if (error || !clientBusiness) {
+  if (isError || !client) {
     return (
       <div className="flex h-screen bg-slate-50">
-        <AdminSidebar activePath="/admin/clients" />
-        <div className="flex-1 p-8 flex items-center justify-center">
+        <AdminSidebar activePath={location.pathname} />
+        <div className="flex-1 p-8">
           <div className="text-center">
-            <XCircle className="h-12 w-12 text-red-500 mx-auto" />
-            <h2 className="mt-4 text-xl font-semibold">Error Loading Client</h2>
-            <p className="mt-2 text-slate-500">
-              {error instanceof Error ? error.message : "Client not found"}
-            </p>
+            <h1 className="text-2xl font-bold text-red-500">Error loading client</h1>
+            <p className="text-slate-500 mt-2">Could not load client information.</p>
             <Button 
-              onClick={() => navigate('/admin/clients')} 
+              variant="outline" 
+              onClick={() => navigate("/admin/clients")} 
               className="mt-4"
             >
               <ArrowLeft className="mr-2 h-4 w-4" />
@@ -91,138 +87,130 @@ const ClientDetail = () => {
 
   return (
     <div className="flex h-screen bg-slate-50">
-      <AdminSidebar activePath="/admin/clients" />
+      <AdminSidebar activePath={location.pathname} />
       
       <div className="flex-1 overflow-auto">
         <div className="p-8">
-          {/* Back button and header */}
-          <div className="flex flex-col space-y-4 mb-8">
-            <Button 
-              variant="ghost" 
-              className="self-start" 
-              onClick={() => navigate('/admin/clients')}
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Clients
-            </Button>
-            
-            <div className="flex justify-between items-start">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => navigate("/admin/clients")} 
+                className="mr-4"
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
               <div>
-                <h1 className="text-3xl font-bold flex items-center gap-2">
-                  <Building className="h-8 w-8 text-blue-600" />
-                  {clientBusiness.name}
-                </h1>
-                <p className="text-slate-500 mt-1">{clientBusiness.industry || 'No industry specified'}</p>
-              </div>
-              
-              <div className="space-x-2">
-                <Button variant="outline">
-                  Edit Client
-                </Button>
-                <Button>
-                  Connect to Xero
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Button>
+                <h1 className="text-2xl font-bold text-slate-800">{client.name}</h1>
+                <p className="text-slate-500">Client Business Details</p>
               </div>
             </div>
+            
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefresh}
+              >
+                <RefreshCw className="mr-2 h-3.5 w-3.5" />
+                Refresh
+              </Button>
+            </div>
           </div>
-          
-          {/* Tabs */}
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-            <TabsList className="grid grid-cols-4 w-full max-w-2xl">
-              <TabsTrigger value="overview" className="flex items-center gap-1">
-                <Building className="h-4 w-4" />
+
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <TabsList className="mb-6">
+              <TabsTrigger value="overview">
+                <Building className="h-4 w-4 mr-2" />
                 Overview
               </TabsTrigger>
-              <TabsTrigger value="users" className="flex items-center gap-1">
-                <Users className="h-4 w-4" />
+              <TabsTrigger value="users">
+                <Users className="h-4 w-4 mr-2" />
                 Users
               </TabsTrigger>
-              <TabsTrigger value="tasks" className="flex items-center gap-1">
-                <ListChecks className="h-4 w-4" />
+              <TabsTrigger value="tasks">
+                <ClipboardList className="h-4 w-4 mr-2" />
                 Tasks
-              </TabsTrigger>
-              <TabsTrigger value="documents" className="flex items-center gap-1">
-                <FileUp className="h-4 w-4" />
-                Documents
               </TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="bg-white p-6 rounded-lg border shadow-sm">
-                  <h3 className="text-lg font-medium mb-4">Business Information</h3>
-                  <div className="space-y-3">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Business Information</CardTitle>
+                  <CardDescription>
+                    Details about the client business
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <p className="text-sm text-slate-500">Business Name</p>
-                      <p className="font-medium">{clientBusiness.name}</p>
+                      <h3 className="text-sm font-medium text-slate-500 mb-1">Business Name</h3>
+                      <p className="text-slate-800">{client.name}</p>
                     </div>
+                    
                     <div>
-                      <p className="text-sm text-slate-500">Industry</p>
-                      <p className="font-medium">{clientBusiness.industry || 'Not specified'}</p>
+                      <h3 className="text-sm font-medium text-slate-500 mb-1">Industry</h3>
+                      <p className="text-slate-800">{client.industry || "Not specified"}</p>
                     </div>
+                    
                     <div>
-                      <p className="text-sm text-slate-500">Email</p>
-                      <p className="font-medium">{clientBusiness.email}</p>
+                      <h3 className="text-sm font-medium text-slate-500 mb-1">Contact Person</h3>
+                      <p className="text-slate-800">{client.contactName}</p>
                     </div>
+                    
                     <div>
-                      <p className="text-sm text-slate-500">Phone</p>
-                      <p className="font-medium">{clientBusiness.phone || 'Not specified'}</p>
+                      <h3 className="text-sm font-medium text-slate-500 mb-1">Email</h3>
+                      <p className="text-slate-800">{client.email}</p>
                     </div>
-                  </div>
-                </div>
-                
-                <div className="bg-white p-6 rounded-lg border shadow-sm">
-                  <h3 className="text-lg font-medium mb-4">Contact Person</h3>
-                  <div className="space-y-3">
+                    
                     <div>
-                      <p className="text-sm text-slate-500">Name</p>
-                      <p className="font-medium">{clientBusiness.contact_name}</p>
+                      <h3 className="text-sm font-medium text-slate-500 mb-1">Phone</h3>
+                      <p className="text-slate-800">{client.phone || "Not provided"}</p>
                     </div>
+                    
                     <div>
-                      <p className="text-sm text-slate-500">Xero Connection</p>
-                      <p className="font-medium">
-                        {clientBusiness.xero_connected ? 
-                          'Connected to Xero' : 
-                          'Not connected to Xero'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-slate-500">Created At</p>
-                      <p className="font-medium">
-                        {new Date(clientBusiness.created_at).toLocaleDateString()}
+                      <h3 className="text-sm font-medium text-slate-500 mb-1">Created</h3>
+                      <p className="text-slate-800">
+                        {new Date(client.createdAt).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
-                </div>
-              </div>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <LinkIcon className="mr-2 h-5 w-5 text-blue-500" />
+                    Xero Integration
+                  </CardTitle>
+                  <CardDescription>
+                    Manage Xero connection for this client
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <XeroConnectionSelector 
+                    clientBusiness={client} 
+                    onUpdate={handleRefresh}
+                  />
+                </CardContent>
+              </Card>
             </TabsContent>
             
             <TabsContent value="users">
-              <ClientDetailUsers clientId={id || ''} clientName={clientBusiness.name} />
+              <ClientDetailUsers clientId={client.id} />
             </TabsContent>
             
             <TabsContent value="tasks">
-              <TasksManagement clientId={id || ''} />
-            </TabsContent>
-            
-            <TabsContent value="documents">
-              <div className="bg-white p-8 rounded-lg border shadow-sm text-center">
-                <FileUp className="h-12 w-12 text-slate-300 mx-auto" />
-                <h3 className="mt-4 text-lg font-medium">Document Management</h3>
-                <p className="mt-2 text-slate-500 max-w-md mx-auto">
-                  This feature is coming soon. You'll be able to upload and manage documents for this client.
-                </p>
-                <Button variant="outline" className="mt-4" disabled>
-                  Coming Soon
-                </Button>
-              </div>
+              <TasksManagement clientId={client.id} />
             </TabsContent>
           </Tabs>
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default ClientDetail;

@@ -221,18 +221,6 @@ serve(async (req) => {
 
       // Store connections in database
       for (const connection of connections) {
-        const { error: updateError } = await supabase
-          .from("client_businesses")
-          .update({ 
-            xero_connected: true,
-            updated_at: new Date().toISOString()
-          })
-          .eq("tenantId", connection.tenantId);
-
-        if (updateError) {
-          console.error(`Error updating client business for tenant ${connection.tenantId}:`, updateError);
-        }
-        
         // Store connections in the xero_connections table
         const { error: connectionError } = await supabase
           .from("xero_connections")
@@ -245,7 +233,7 @@ serve(async (req) => {
             updated_date_utc: connection.updatedDateUtc,
             updated_at: new Date().toISOString(),
             xero_token_id: tokenRecord.id  // Link connection to token
-          }, { onConflict: 'tenant_id' });
+          }, { onConflict: 'xero_id' });
 
         if (connectionError) {
           console.error(`Error storing Xero connection for tenant ${connection.tenantId}:`, connectionError);
@@ -388,7 +376,7 @@ serve(async (req) => {
             updated_date_utc: connection.updatedDateUtc,
             updated_at: new Date().toISOString(),
             xero_token_id: token.id  // Link connection to token
-          }, { onConflict: 'tenant_id' });
+          }, { onConflict: 'xero_id' });
           
         if (connectionError) {
           console.error(`Error storing Xero connection for tenant ${connection.tenantId}:`, connectionError);
