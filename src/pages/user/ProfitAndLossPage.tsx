@@ -7,9 +7,17 @@ import {
   getProfitAndLossData, 
   getMonthlyProfitAndLossData,
   getVisualDashboardData,
+  getAnnualComparisonData,
+  getQuarterlyBreakdownData,
+  getDepartmentComparisonData,
+  getCustomDateRangeData,
+  getCashVsAccrualData,
   FinancialDataType,
   getDefaultStartDate,
-  getDefaultEndDate
+  getDefaultEndDate,
+  getCurrentDate,
+  getOneYearAgoDate,
+  getFirstDayLastQuarter
 } from "@/services/financialService";
 import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
 import ProfitAndLossSummary from "@/components/ProfitAndLoss/ProfitAndLossSummary";
@@ -17,7 +25,28 @@ import ProfitAndLossTable from "@/components/ProfitAndLoss/ProfitAndLossTable";
 import ProfitAndLossChart from "@/components/ProfitAndLoss/ProfitAndLossChart";
 import MonthlyProfitAndLossTable from "@/components/ProfitAndLoss/MonthlyProfitAndLossTable";
 import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
-import { Loader2, AlertTriangle, RefreshCcw, BarChart, DollarSign, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle, CalendarIcon } from "lucide-react";
+import AnnualComparisonView from "@/components/ProfitAndLoss/AnnualComparisonView";
+import QuarterlyBreakdownView from "@/components/ProfitAndLoss/QuarterlyBreakdownView";
+import DepartmentComparisonView from "@/components/ProfitAndLoss/DepartmentComparisonView";
+import CustomDateRangeView from "@/components/ProfitAndLoss/CustomDateRangeView";
+import CashVsAccrualView from "@/components/ProfitAndLoss/CashVsAccrualView";
+import { 
+  Loader2, 
+  AlertTriangle, 
+  RefreshCcw, 
+  BarChart, 
+  DollarSign, 
+  TrendingUp, 
+  TrendingDown, 
+  ArrowUpCircle, 
+  ArrowDownCircle, 
+  CalendarIcon,
+  CalendarDays,
+  Columns3,
+  FileText,
+  Grid3X3,
+  Cash
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,6 +72,14 @@ const ProfitAndLossPage: React.FC = () => {
   const [fromDateOpen, setFromDateOpen] = useState(false);
   const [toDateOpen, setToDateOpen] = useState(false);
 
+  // Additional date states for specific views
+  const [quarterlyStartDate, setQuarterlyStartDate] = useState<string>(getFirstDayLastQuarter());
+  const [quarterlyEndDate, setQuarterlyEndDate] = useState<string>(getCurrentDate());
+  const [customStartDate, setCustomStartDate] = useState<string>(getDefaultStartDate());
+  const [customEndDate, setCustomEndDate] = useState<string>(getCurrentDate());
+  const [cashVsAccrualDate, setCashVsAccrualDate] = useState<string>(getCurrentDate());
+  const [selectedTrackingCategoryId, setSelectedTrackingCategoryId] = useState<string>('');
+
   const { 
     data: clientBusinesses,
     isLoading: isLoadingBusinesses,
@@ -53,6 +90,7 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!user?.id,
   });
 
+  // Current Year P&L
   const {
     data: plData,
     isLoading: isLoadingPL,
@@ -61,9 +99,10 @@ const ProfitAndLossPage: React.FC = () => {
   } = useQuery({
     queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.BASIC_CURRENT_YEAR, startDate, endDate],
     queryFn: () => getProfitAndLossData(selectedBusinessId, startDate, endDate),
-    enabled: !!selectedBusinessId,
+    enabled: !!selectedBusinessId && activeTab === "current-year",
   });
 
+  // Monthly Breakdown
   const {
     data: monthlyData,
     isLoading: isLoadingMonthly,
@@ -75,6 +114,7 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "monthly",
   });
 
+  // Visual Dashboard
   const {
     data: visualData,
     isLoading: isLoadingVisual,
@@ -84,6 +124,66 @@ const ProfitAndLossPage: React.FC = () => {
     queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.VISUAL_DASHBOARD, startDate, endDate],
     queryFn: () => getVisualDashboardData(selectedBusinessId, startDate, endDate),
     enabled: !!selectedBusinessId && activeTab === "visual",
+  });
+
+  // Annual Comparison
+  const {
+    data: annualData,
+    isLoading: isLoadingAnnual,
+    isError: isErrorAnnual,
+    refetch: refetchAnnual
+  } = useQuery({
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.ANNUAL_COMPARISON],
+    queryFn: () => getAnnualComparisonData(selectedBusinessId),
+    enabled: !!selectedBusinessId && activeTab === "annual",
+  });
+
+  // Quarterly Breakdown
+  const {
+    data: quarterlyData,
+    isLoading: isLoadingQuarterly,
+    isError: isErrorQuarterly,
+    refetch: refetchQuarterly
+  } = useQuery({
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.QUARTERLY_BREAKDOWN, quarterlyStartDate, quarterlyEndDate],
+    queryFn: () => getQuarterlyBreakdownData(selectedBusinessId, quarterlyStartDate, quarterlyEndDate),
+    enabled: !!selectedBusinessId && activeTab === "quarterly",
+  });
+
+  // Department/Cost Center Comparison
+  const {
+    data: departmentData,
+    isLoading: isLoadingDepartment,
+    isError: isErrorDepartment,
+    refetch: refetchDepartment
+  } = useQuery({
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.DEPARTMENT_COMPARISON, selectedTrackingCategoryId],
+    queryFn: () => getDepartmentComparisonData(selectedBusinessId, selectedTrackingCategoryId),
+    enabled: !!selectedBusinessId && activeTab === "department" && !!selectedTrackingCategoryId,
+  });
+
+  // Custom Date Range Analysis
+  const {
+    data: customDateData,
+    isLoading: isLoadingCustomDate,
+    isError: isErrorCustomDate,
+    refetch: refetchCustomDate
+  } = useQuery({
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.CUSTOM_DATE_RANGE, customStartDate, customEndDate],
+    queryFn: () => getCustomDateRangeData(selectedBusinessId, customStartDate, customEndDate),
+    enabled: !!selectedBusinessId && activeTab === "custom-date",
+  });
+
+  // Cash vs Accrual Comparison
+  const {
+    data: cashVsAccrualData,
+    isLoading: isLoadingCashVsAccrual,
+    isError: isErrorCashVsAccrual,
+    refetch: refetchCashVsAccrual
+  } = useQuery({
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.CASH_VS_ACCRUAL, cashVsAccrualDate],
+    queryFn: () => getCashVsAccrualData(selectedBusinessId, cashVsAccrualDate),
+    enabled: !!selectedBusinessId && activeTab === "cash-vs-accrual",
   });
 
   useEffect(() => {
@@ -106,13 +206,36 @@ const ProfitAndLossPage: React.FC = () => {
     setActiveTab(value);
   };
 
+  const handleTrackingCategorySelect = (categoryId: string) => {
+    setSelectedTrackingCategoryId(categoryId);
+  };
+
   const handleRefresh = () => {
-    if (activeTab === "current-year") {
-      refetchPL();
-    } else if (activeTab === "monthly") {
-      refetchMonthly();
-    } else if (activeTab === "visual") {
-      refetchVisual();
+    switch (activeTab) {
+      case "current-year":
+        refetchPL();
+        break;
+      case "monthly":
+        refetchMonthly();
+        break;
+      case "visual":
+        refetchVisual();
+        break;
+      case "annual":
+        refetchAnnual();
+        break;
+      case "quarterly":
+        refetchQuarterly();
+        break;
+      case "department":
+        refetchDepartment();
+        break;
+      case "custom-date":
+        refetchCustomDate();
+        break;
+      case "cash-vs-accrual":
+        refetchCashVsAccrual();
+        break;
     }
   };
 
@@ -130,10 +253,45 @@ const ProfitAndLossPage: React.FC = () => {
     }
   };
 
+  const handleQuarterlyFromDateChange = (date: Date | undefined) => {
+    if (date) {
+      setQuarterlyStartDate(format(date, 'yyyy-MM-dd'));
+    }
+  };
+
+  const handleQuarterlyToDateChange = (date: Date | undefined) => {
+    if (date) {
+      setQuarterlyEndDate(format(date, 'yyyy-MM-dd'));
+    }
+  };
+
+  const handleCustomFromDateChange = (date: Date | undefined) => {
+    if (date) {
+      setCustomStartDate(format(date, 'yyyy-MM-dd'));
+    }
+  };
+
+  const handleCustomToDateChange = (date: Date | undefined) => {
+    if (date) {
+      setCustomEndDate(format(date, 'yyyy-MM-dd'));
+    }
+  };
+
+  const handleCashVsAccrualDateChange = (date: Date | undefined) => {
+    if (date) {
+      setCashVsAccrualDate(format(date, 'yyyy-MM-dd'));
+    }
+  };
+
   const isLoading = isLoadingBusinesses || 
     (isLoadingPL && activeTab === "current-year" && !!selectedBusinessId) ||
     (isLoadingMonthly && activeTab === "monthly" && !!selectedBusinessId) ||
-    (isLoadingVisual && activeTab === "visual" && !!selectedBusinessId);
+    (isLoadingVisual && activeTab === "visual" && !!selectedBusinessId) ||
+    (isLoadingAnnual && activeTab === "annual" && !!selectedBusinessId) ||
+    (isLoadingQuarterly && activeTab === "quarterly" && !!selectedBusinessId) ||
+    (isLoadingDepartment && activeTab === "department" && !!selectedBusinessId) ||
+    (isLoadingCustomDate && activeTab === "custom-date" && !!selectedBusinessId) ||
+    (isLoadingCashVsAccrual && activeTab === "cash-vs-accrual" && !!selectedBusinessId);
 
   if (isLoading) {
     return (
@@ -152,7 +310,12 @@ const ProfitAndLossPage: React.FC = () => {
   const hasError = isErrorBusinesses || 
     (isErrorPL && activeTab === "current-year" && !!selectedBusinessId) ||
     (isErrorMonthly && activeTab === "monthly" && !!selectedBusinessId) ||
-    (isErrorVisual && activeTab === "visual" && !!selectedBusinessId);
+    (isErrorVisual && activeTab === "visual" && !!selectedBusinessId) ||
+    (isErrorAnnual && activeTab === "annual" && !!selectedBusinessId) ||
+    (isErrorQuarterly && activeTab === "quarterly" && !!selectedBusinessId) ||
+    (isErrorDepartment && activeTab === "department" && !!selectedBusinessId) ||
+    (isErrorCustomDate && activeTab === "custom-date" && !!selectedBusinessId) ||
+    (isErrorCashVsAccrual && activeTab === "cash-vs-accrual" && !!selectedBusinessId);
 
   if (hasError) {
     return (
@@ -201,65 +364,307 @@ const ProfitAndLossPage: React.FC = () => {
     return null;
   }
 
-  if (!plData && selectedBusinessId && activeTab === "current-year") {
-    return (
-      <div className="flex h-screen bg-slate-50">
-        <UserSidebar activePath="/user/financial/profit-loss" />
-        <div className="flex-1 p-4 md:p-8 pt-14 md:pt-0">
-          <div className="mb-8 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-            <div>
-              <div className="flex items-center space-x-4">
-                <div className="bg-navy-100/50 p-3 rounded-xl">
-                  <BarChart className="h-8 w-8 text-navy-600" />
+  const renderDateRangeSelectors = () => {
+    switch (activeTab) {
+      case "current-year":
+      case "monthly":
+      case "visual":
+        return (
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
+            <div className="flex items-end gap-2">
+              <div className="grid items-center gap-1.5">
+                <Label htmlFor="from-date">From</Label>
+                <div className="flex">
+                  <Input
+                    id="from-date"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    className="rounded-r-none w-[130px]"
+                  />
+                  <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={startDate ? new Date(startDate) : undefined}
+                        onSelect={handleFromDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
-                <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-navy-800">
-                    Profit & Loss
-                  </h1>
-                  <p className="text-navy-600/80 mt-1">
-                    View your business's financial performance
-                  </p>
+              </div>
+              
+              <div className="grid items-center gap-1.5">
+                <Label htmlFor="to-date">To</Label>
+                <div className="flex">
+                  <Input 
+                    id="to-date"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    className="rounded-r-none w-[130px]"
+                  />
+                  <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={endDate ? new Date(endDate) : undefined}
+                        onSelect={handleToDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
               </div>
             </div>
             
-            {validBusinesses.length > 0 && (
-              <div className="w-full md:w-auto">
-                <ClientBusinessSelector 
-                  clientBusinesses={validBusinesses}
-                  selectedBusinessId={selectedBusinessId}
-                  onBusinessSelect={handleBusinessSelect}
-                />
+            <div className="flex items-center">
+              <div className="flex items-center space-x-2 mr-4">
+                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-sm font-medium text-navy-800">
+                  Connected to Xero
+                </span>
               </div>
-            )}
-          </div>
-          
-          <div className="mb-8">
-            <Card className="bg-white border-navy-100">
-              <CardContent className="pt-6">
-                <h2 className="text-xl md:text-2xl font-bold text-navy-800">
-                  {selectedBusiness.name}
-                </h2>
-                <div className="flex items-center mt-2">
-                  <Badge variant="outline" className="bg-navy-50 text-navy-700 border-navy-200">
-                    {selectedBusiness.industry || "No industry specified"}
-                  </Badge>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="flex h-[calc(100vh-200px)] items-center justify-center">
-            <div className="text-center">
-              <AlertTriangle className="h-12 w-12 text-slate-300 mx-auto" />
-              <h2 className="mt-4 text-xl font-semibold">No Financial Data Available</h2>
-              <p className="mt-2 text-slate-500">There is no profit and loss data for this business</p>
+              
+              <Button 
+                onClick={handleRefresh} 
+                variant="outline" 
+                size="sm"
+                className="bg-white hover:bg-navy-50 border-navy-200"
+              >
+                <RefreshCcw className="h-4 w-4 mr-1" />
+                Refresh
+              </Button>
             </div>
           </div>
-        </div>
-      </div>
-    );
-  }
+        );
+      case "quarterly":
+        return (
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
+            <div className="flex items-end gap-2">
+              <div className="grid items-center gap-1.5">
+                <Label htmlFor="quarterly-from-date">From</Label>
+                <div className="flex">
+                  <Input
+                    id="quarterly-from-date"
+                    value={quarterlyStartDate}
+                    onChange={(e) => setQuarterlyStartDate(e.target.value)}
+                    className="rounded-r-none w-[130px]"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={quarterlyStartDate ? new Date(quarterlyStartDate) : undefined}
+                        onSelect={handleQuarterlyFromDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
+              <div className="grid items-center gap-1.5">
+                <Label htmlFor="quarterly-to-date">To</Label>
+                <div className="flex">
+                  <Input 
+                    id="quarterly-to-date"
+                    value={quarterlyEndDate}
+                    onChange={(e) => setQuarterlyEndDate(e.target.value)}
+                    className="rounded-r-none w-[130px]"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={quarterlyEndDate ? new Date(quarterlyEndDate) : undefined}
+                        onSelect={handleQuarterlyToDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm" 
+              className="bg-white hover:bg-navy-50 border-navy-200"
+            >
+              <RefreshCcw className="h-4 w-4 mr-1" />
+              Refresh
+            </Button>
+          </div>
+        );
+      case "custom-date":
+        return (
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
+            <div className="flex items-end gap-2">
+              <div className="grid items-center gap-1.5">
+                <Label htmlFor="custom-from-date">From</Label>
+                <div className="flex">
+                  <Input
+                    id="custom-from-date"
+                    value={customStartDate}
+                    onChange={(e) => setCustomStartDate(e.target.value)}
+                    className="rounded-r-none w-[130px]"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={customStartDate ? new Date(customStartDate) : undefined}
+                        onSelect={handleCustomFromDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+              
+              <div className="grid items-center gap-1.5">
+                <Label htmlFor="custom-to-date">To</Label>
+                <div className="flex">
+                  <Input 
+                    id="custom-to-date"
+                    value={customEndDate}
+                    onChange={(e) => setCustomEndDate(e.target.value)}
+                    className="rounded-r-none w-[130px]"
+                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                        <CalendarIcon className="h-4 w-4" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={customEndDate ? new Date(customEndDate) : undefined}
+                        onSelect={handleCustomToDateChange}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm" 
+              className="bg-white hover:bg-navy-50 border-navy-200"
+            >
+              <RefreshCcw className="h-4 w-4 mr-1" />
+              Refresh
+            </Button>
+          </div>
+        );
+      case "cash-vs-accrual":
+        return (
+          <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
+            <div className="grid items-center gap-1.5">
+              <Label htmlFor="cash-accrual-date">Report Date</Label>
+              <div className="flex">
+                <Input
+                  id="cash-accrual-date"
+                  value={cashVsAccrualDate}
+                  onChange={(e) => setCashVsAccrualDate(e.target.value)}
+                  className="rounded-r-none w-[130px]"
+                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={cashVsAccrualDate ? new Date(cashVsAccrualDate) : undefined}
+                      onSelect={handleCashVsAccrualDateChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm" 
+              className="bg-white hover:bg-navy-50 border-navy-200"
+            >
+              <RefreshCcw className="h-4 w-4 mr-1" />
+              Refresh
+            </Button>
+          </div>
+        );
+      default:
+        return (
+          <div className="flex items-center">
+            <div className="flex items-center space-x-2 mr-4">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+              <span className="text-sm font-medium text-navy-800">
+                Connected to Xero
+              </span>
+            </div>
+            
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm"
+              className="bg-white hover:bg-navy-50 border-navy-200"
+            >
+              <RefreshCcw className="h-4 w-4 mr-1" />
+              Refresh
+            </Button>
+          </div>
+        );
+    }
+  };
+
+  const noDataMessage = (tabName: string) => (
+    <Card className="bg-navy-50/30 border-navy-100">
+      <CardContent className="flex flex-col items-center justify-center py-12">
+        <AlertTriangle className="h-12 w-12 text-navy-400" />
+        <h2 className="mt-4 text-lg font-semibold text-navy-700">
+          No {tabName} Data Available
+        </h2>
+        <p className="mt-2 text-navy-600/80">
+          There is no {tabName.toLowerCase()} data for this business
+        </p>
+      </CardContent>
+    </Card>
+  );
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
@@ -308,82 +713,7 @@ const ProfitAndLossPage: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
-                    <div className="flex items-end gap-2">
-                      <div className="grid items-center gap-1.5">
-                        <Label htmlFor="from-date">From</Label>
-                        <div className="flex">
-                          <Input
-                            id="from-date"
-                            value={startDate}
-                            onChange={(e) => setStartDate(e.target.value)}
-                            className="rounded-r-none w-[130px]"
-                          />
-                          <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className="rounded-l-none border-l-0 h-10">
-                                <CalendarIcon className="h-4 w-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <Calendar
-                                mode="single"
-                                selected={startDate ? new Date(startDate) : undefined}
-                                onSelect={handleFromDateChange}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      </div>
-                      
-                      <div className="grid items-center gap-1.5">
-                        <Label htmlFor="to-date">To</Label>
-                        <div className="flex">
-                          <Input 
-                            id="to-date"
-                            value={endDate}
-                            onChange={(e) => setEndDate(e.target.value)}
-                            className="rounded-r-none w-[130px]"
-                          />
-                          <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" className="rounded-l-none border-l-0 h-10">
-                                <CalendarIcon className="h-4 w-4" />
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0">
-                              <Calendar
-                                mode="single"
-                                selected={endDate ? new Date(endDate) : undefined}
-                                onSelect={handleToDateChange}
-                                initialFocus
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="flex items-center">
-                      <div className="flex items-center space-x-2 mr-4">
-                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                        <span className="text-sm font-medium text-navy-800">
-                          Connected to Xero
-                        </span>
-                      </div>
-                      
-                      <Button 
-                        onClick={handleRefresh} 
-                        variant="outline" 
-                        size="sm"
-                        className="bg-white hover:bg-navy-50 border-navy-200"
-                      >
-                        <RefreshCcw className="h-4 w-4 mr-1" />
-                        Refresh
-                      </Button>
-                    </div>
-                  </div>
+                  {renderDateRangeSelectors()}
                 </div>
               </CardContent>
             </Card>
@@ -395,26 +725,74 @@ const ProfitAndLossPage: React.FC = () => {
             onValueChange={handleTabChange}
             className="space-y-6"
           >
-            <TabsList className="inline-flex h-10 items-center justify-center rounded-md bg-navy-50/50 p-1 text-navy-600 w-full md:w-auto">
-              <TabsTrigger 
-                value="current-year"
-                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
-              >
-                Current Year
-              </TabsTrigger>
-              <TabsTrigger 
-                value="monthly"
-                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
-              >
-                Monthly Breakdown
-              </TabsTrigger>
-              <TabsTrigger 
-                value="visual"
-                className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm"
-              >
-                Visual Dashboard
-              </TabsTrigger>
-            </TabsList>
+            <div className="overflow-x-auto pb-2">
+              <TabsList className="inline-flex items-center justify-start rounded-md bg-navy-50/50 p-1 text-navy-600 min-w-full md:min-w-0 w-auto">
+                <TabsTrigger 
+                  value="current-year"
+                  className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                >
+                  <BarChart className="h-4 w-4" />
+                  <span className="hidden md:inline">Current Year</span>
+                  <span className="md:hidden">Current</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="visual"
+                  className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                >
+                  <DollarSign className="h-4 w-4" />
+                  <span className="hidden md:inline">Visual Dashboard</span>
+                  <span className="md:hidden">Visual</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="annual"
+                  className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                >
+                  <CalendarDays className="h-4 w-4" />
+                  <span className="hidden md:inline">Annual Comparison</span>
+                  <span className="md:hidden">Annual</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="quarterly"
+                  className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                >
+                  <Columns3 className="h-4 w-4" />
+                  <span className="hidden md:inline">Quarterly Breakdown</span>
+                  <span className="md:hidden">Quarterly</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="department"
+                  className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                >
+                  <Grid3X3 className="h-4 w-4" />
+                  <span className="hidden md:inline">Department Comparison</span>
+                  <span className="md:hidden">Dept.</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="custom-date"
+                  className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                >
+                  <FileText className="h-4 w-4" />
+                  <span className="hidden md:inline">Custom Date Range</span>
+                  <span className="md:hidden">Custom</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="cash-vs-accrual"
+                  className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                >
+                  <Cash className="h-4 w-4" />
+                  <span className="hidden md:inline">Cash vs Accrual</span>
+                  <span className="md:hidden">Cash/Accrual</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="monthly"
+                  className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                >
+                  <TrendingUp className="h-4 w-4" />
+                  <span className="hidden md:inline">Monthly Breakdown</span>
+                  <span className="md:hidden">Monthly</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
             
             <TabsContent value="current-year" className="space-y-6">
               {plData && (
@@ -457,19 +835,7 @@ const ProfitAndLossPage: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="monthly">
-              {activeTab === "monthly" && !monthlyData && (
-                <Card className="bg-navy-50/30 border-navy-100">
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <AlertTriangle className="h-12 w-12 text-navy-400" />
-                    <h2 className="mt-4 text-lg font-semibold text-navy-700">
-                      No Monthly Data Available
-                    </h2>
-                    <p className="mt-2 text-navy-600/80">
-                      There is no monthly breakdown data for this business
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
+              {activeTab === "monthly" && !monthlyData && noDataMessage("Monthly")}
               
               {monthlyData && (
                 <Card>
@@ -491,22 +857,59 @@ const ProfitAndLossPage: React.FC = () => {
             </TabsContent>
             
             <TabsContent value="visual">
-              {activeTab === "visual" && !visualData && (
-                <Card className="bg-navy-50/30 border-navy-100">
-                  <CardContent className="flex flex-col items-center justify-center py-12">
-                    <AlertTriangle className="h-12 w-12 text-navy-400" />
-                    <h2 className="mt-4 text-lg font-semibold text-navy-700">
-                      No Visual Dashboard Data Available
-                    </h2>
-                    <p className="mt-2 text-navy-600/80">
-                      There is no visual dashboard data for this business
-                    </p>
-                  </CardContent>
-                </Card>
-              )}
+              {activeTab === "visual" && !visualData && noDataMessage("Visual Dashboard")}
               
               {visualData && (
                 <VisualDashboard data={visualData} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="annual">
+              {activeTab === "annual" && !annualData && noDataMessage("Annual Comparison")}
+              
+              {annualData && (
+                <AnnualComparisonView data={annualData} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="quarterly">
+              {activeTab === "quarterly" && !quarterlyData && noDataMessage("Quarterly Breakdown")}
+              
+              {quarterlyData && (
+                <QuarterlyBreakdownView data={quarterlyData} />
+              )}
+            </TabsContent>
+
+            <TabsContent value="department">
+              <DepartmentComparisonView 
+                data={departmentData}
+                businessId={selectedBusinessId}
+                onTrackingCategorySelect={handleTrackingCategorySelect}
+                isLoading={isLoadingDepartment}
+              />
+            </TabsContent>
+
+            <TabsContent value="custom-date">
+              {activeTab === "custom-date" && !customDateData && noDataMessage("Custom Date Range")}
+              
+              {customDateData && (
+                <CustomDateRangeView 
+                  data={customDateData} 
+                  fromDate={customStartDate}
+                  toDate={customEndDate}
+                />
+              )}
+            </TabsContent>
+
+            <TabsContent value="cash-vs-accrual">
+              {activeTab === "cash-vs-accrual" && !cashVsAccrualData && noDataMessage("Cash vs Accrual")}
+              
+              {cashVsAccrualData && (
+                <CashVsAccrualView 
+                  cashData={cashVsAccrualData[0]} 
+                  accrualData={cashVsAccrualData[1]}
+                  date={cashVsAccrualDate}
+                />
               )}
             </TabsContent>
           </Tabs>

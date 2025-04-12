@@ -14,9 +14,14 @@ import {
   PieChart,
   Pie,
   Cell,
-  TooltipProps
+  TooltipProps,
+  LineChart,
+  Line,
+  AreaChart,
+  Area
 } from 'recharts';
 import { formatCurrency } from "@/lib/utils";
+import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
 
 interface VisualDashboardProps {
   data: VisualDashboardData;
@@ -69,6 +74,30 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     ?.Rows?.find(row => row.Cells?.[0]?.Value === 'Net Profit')
     ?.Cells?.[1]?.Value || '0';
 
+  // Calculate metrics
+  const totalIncomeValue = parseFloat(totalIncome.replace(/,/g, ''));
+  const totalExpensesValue = parseFloat(totalExpenses.replace(/,/g, ''));
+  const netProfitValue = parseFloat(netProfit.replace(/,/g, ''));
+  
+  const profitMargin = totalIncomeValue > 0 ? (netProfitValue / totalIncomeValue) * 100 : 0;
+  const expenseRatio = totalIncomeValue > 0 ? (totalExpensesValue / totalIncomeValue) * 100 : 0;
+
+  // Create a dataset for revenue vs expenses breakdown
+  const revenueVsExpensesData = [
+    {
+      name: 'Revenue',
+      value: totalIncomeValue
+    },
+    {
+      name: 'Expenses',
+      value: totalExpensesValue
+    },
+    {
+      name: 'Net Profit',
+      value: netProfitValue
+    }
+  ];
+
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#8DD1E1', '#A4DE6C', '#D0ED57'];
 
@@ -89,6 +118,10 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   // Extract the report date range
   const reportPeriod = report.ReportDate || 'Current Period';
 
+  // Calculate financial health indicators
+  const profitMarginHealth = profitMargin >= 15 ? 'excellent' : profitMargin >= 10 ? 'good' : profitMargin >= 5 ? 'fair' : 'poor';
+  const expenseRatioHealth = expenseRatio <= 70 ? 'excellent' : expenseRatio <= 80 ? 'good' : expenseRatio <= 90 ? 'fair' : 'poor';
+
   return (
     <div className="space-y-6">
       <Card>
@@ -99,20 +132,97 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
       </Card>
     
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 bg-blue-50">
-          <h3 className="text-sm font-medium text-slate-500">Total Income</h3>
-          <p className="text-2xl font-bold">{formatCurrency(parseFloat(totalIncome.replace(/,/g, '')))}</p>
+          <h3 className="text-sm font-medium text-slate-500">Total Revenue</h3>
+          <div className="flex items-center">
+            <p className="text-2xl font-bold">{formatCurrency(totalIncomeValue)}</p>
+            <TrendingUp className="ml-2 h-5 w-5 text-blue-600" />
+          </div>
+          <p className="text-xs text-slate-500 mt-1">{reportPeriod}</p>
         </Card>
+
         <Card className="p-4 bg-red-50">
           <h3 className="text-sm font-medium text-slate-500">Total Expenses</h3>
-          <p className="text-2xl font-bold">{formatCurrency(parseFloat(totalExpenses.replace(/,/g, '')))}</p>
+          <div className="flex items-center">
+            <p className="text-2xl font-bold">{formatCurrency(totalExpensesValue)}</p>
+            <TrendingDown className="ml-2 h-5 w-5 text-red-600" />
+          </div>
+          <p className="text-xs text-slate-500 mt-1">{expenseRatio.toFixed(1)}% of revenue</p>
         </Card>
-        <Card className="p-4 bg-green-50">
+
+        <Card className={`p-4 ${netProfitValue >= 0 ? 'bg-green-50' : 'bg-amber-50'}`}>
           <h3 className="text-sm font-medium text-slate-500">Net Profit</h3>
-          <p className="text-2xl font-bold">{formatCurrency(parseFloat(netProfit.replace(/,/g, '')))}</p>
+          <div className="flex items-center">
+            <p className="text-2xl font-bold">{formatCurrency(netProfitValue)}</p>
+            {netProfitValue >= 0 ? (
+              <ArrowUpRight className="ml-2 h-5 w-5 text-green-600" />
+            ) : (
+              <ArrowDownRight className="ml-2 h-5 w-5 text-amber-600" />
+            )}
+          </div>
+          <p className="text-xs text-slate-500 mt-1">{reportPeriod}</p>
+        </Card>
+
+        <Card className={`p-4 ${
+          profitMarginHealth === 'excellent' ? 'bg-green-50' : 
+          profitMarginHealth === 'good' ? 'bg-emerald-50' : 
+          profitMarginHealth === 'fair' ? 'bg-amber-50' : 
+          'bg-red-50'
+        }`}>
+          <h3 className="text-sm font-medium text-slate-500">Profit Margin</h3>
+          <div className="flex items-center">
+            <p className="text-2xl font-bold">{profitMargin.toFixed(1)}%</p>
+            {profitMargin >= 10 ? (
+              <TrendingUp className="ml-2 h-5 w-5 text-green-600" />
+            ) : (
+              <TrendingDown className="ml-2 h-5 w-5 text-amber-600" />
+            )}
+          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            {profitMarginHealth === 'excellent' ? 'Excellent' : 
+             profitMarginHealth === 'good' ? 'Good' : 
+             profitMarginHealth === 'fair' ? 'Fair' : 
+             'Needs improvement'}
+          </p>
         </Card>
       </div>
+
+      {/* Revenue & Expenses Overview */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Revenue & Expenses Overview</CardTitle>
+          <CardDescription>{reportPeriod}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[300px]">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={revenueVsExpensesData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis tickFormatter={(value) => formatCurrency(value, true)} />
+                <Tooltip formatter={(value) => formatCurrency(value as number)} />
+                <Legend />
+                <Bar 
+                  dataKey="value" 
+                  name="Amount"
+                  radius={[4, 4, 0, 0]}
+                >
+                  {revenueVsExpensesData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={index === 0 ? '#3b82f6' : index === 1 ? '#ef4444' : '#10b981'} 
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Top Expenses Bar Chart */}
       <Card className="p-4 col-span-1 lg:col-span-2">
@@ -125,11 +235,9 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
               margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
             >
               <CartesianGrid strokeDasharray="3 3" />
-              <XAxis type="number" />
+              <XAxis type="number" tickFormatter={(value) => formatCurrency(value, true)} />
               <YAxis type="category" dataKey="name" width={100} />
-              <Tooltip formatter={(value) => {
-                return typeof value === 'number' ? formatCurrency(value) : value;
-              }} />
+              <Tooltip formatter={(value) => formatCurrency(value as number)} />
               <Legend />
               <Bar dataKey="value" name="Amount">
                 {expenseData.slice(0, 5).map((entry, index) => (
@@ -166,9 +274,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => {
-                    return typeof value === 'number' ? formatCurrency(value) : value;
-                  }} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -199,9 +305,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => {
-                    return typeof value === 'number' ? formatCurrency(value) : value;
-                  }} />
+                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -209,6 +313,51 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
           </Card>
         )}
       </div>
+
+      {/* Financial Insights Card */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Financial Insights</CardTitle>
+          <CardDescription>{reportPeriod}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="p-4 bg-blue-50 rounded-lg">
+              <h3 className="font-medium mb-2">Revenue Analysis</h3>
+              <p className="text-slate-700">
+                {incomeData.length > 0 ? 
+                  `Your top revenue source is ${incomeData[0].name}, representing ${((incomeData[0].value / totalIncomeValue) * 100).toFixed(1)}% of total revenue.` :
+                  "No revenue data available for analysis."
+                }
+              </p>
+            </div>
+
+            <div className="p-4 bg-red-50 rounded-lg">
+              <h3 className="font-medium mb-2">Expense Analysis</h3>
+              <p className="text-slate-700">
+                {expenseData.length > 0 ? 
+                  `Your top expense is ${expenseData[0].name}, representing ${((expenseData[0].value / totalExpensesValue) * 100).toFixed(1)}% of total expenses.` :
+                  "No expense data available for analysis."
+                }
+              </p>
+            </div>
+
+            <div className={`p-4 rounded-lg ${profitMargin >= 10 ? 'bg-green-50' : 'bg-amber-50'}`}>
+              <h3 className="font-medium mb-2">Profitability</h3>
+              <p className="text-slate-700">
+                {profitMargin >= 15 ? 
+                  `Your profit margin of ${profitMargin.toFixed(1)}% is excellent. This indicates strong financial health.` :
+                  profitMargin >= 10 ?
+                  `Your profit margin of ${profitMargin.toFixed(1)}% is good. Continue monitoring expenses to maintain profitability.` :
+                  profitMargin >= 5 ?
+                  `Your profit margin of ${profitMargin.toFixed(1)}% is fair. Consider strategies to increase revenue or reduce expenses.` :
+                  `Your profit margin of ${profitMargin.toFixed(1)}% needs improvement. Review expenses and pricing strategy.`
+                }
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

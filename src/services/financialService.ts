@@ -55,7 +55,24 @@ export interface VisualDashboardData {
 export enum FinancialDataType {
   BASIC_CURRENT_YEAR = "basicCurrentFinancialYear",
   MONTHLY_BREAKDOWN = "monthByMonthBreakdownLast12Months",
-  VISUAL_DASHBOARD = "visualFriendlyPnlDashboardDisplay"
+  VISUAL_DASHBOARD = "visualFriendlyPnlDashboardDisplay",
+  ANNUAL_COMPARISON = "annualComparisonView",
+  QUARTERLY_BREAKDOWN = "quarterlyBreakdown",
+  DEPARTMENT_COMPARISON = "departmentCostCenterComparison",
+  CUSTOM_DATE_RANGE = "customDateRangeAnalysis",
+  CASH_VS_ACCRUAL = "cashVsAccrualComparison"
+}
+
+export interface ReportParams {
+  fromDate?: string;
+  toDate?: string;
+  date?: string;
+  periods?: number;
+  timeframe?: "MONTH" | "QUARTER" | "YEAR";
+  trackingCategoryID?: string;
+  trackingOptionID?: string;
+  standardLayout?: boolean;
+  paymentsOnly?: boolean;
 }
 
 /**
@@ -86,17 +103,53 @@ export const getDefaultEndDate = (): string => {
 };
 
 /**
- * Fetches the current financial year profit and loss data from Xero
+ * Get the current date
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getCurrentDate = (): string => {
+  return new Date().toISOString().split('T')[0];
+};
+
+/**
+ * Get the date from one year ago
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getOneYearAgoDate = (): string => {
+  const date = new Date();
+  date.setFullYear(date.getFullYear() - 1);
+  return date.toISOString().split('T')[0];
+};
+
+/**
+ * Get the date from first day of the last quarter
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getFirstDayLastQuarter = (): string => {
+  const date = new Date();
+  const currentMonth = date.getMonth();
+  const currentQuarter = Math.floor(currentMonth / 3);
+  const lastQuarter = currentQuarter === 0 ? 3 : currentQuarter - 1;
+  
+  // If last quarter is Q4 of previous year
+  const year = lastQuarter === 3 && currentQuarter === 0 ? date.getFullYear() - 1 : date.getFullYear();
+  
+  const month = lastQuarter * 3; // First month of the quarter (0, 3, 6, 9)
+  
+  return `${year}-${String(month + 1).padStart(2, '0')}-01`;
+};
+
+/**
+ * Fetches profit and loss data with custom parameters from Xero
  * @param businessId The client business ID
- * @param periodStart Optional start date in YYYY-MM-DD format
- * @param periodEnd Optional end date in YYYY-MM-DD format
+ * @param params Custom report parameters
+ * @param fallbackType Optional fallback data type if API call fails
  * @returns Promise with the profit and loss data
  * @throws Error if businessId is null or if fetching fails
  */
-export async function getProfitAndLossData(
-  businessId: string | null, 
-  periodStart?: string, 
-  periodEnd?: string
+export async function getProfitAndLossWithParams(
+  businessId: string | null,
+  params: ReportParams,
+  fallbackType?: FinancialDataType
 ): Promise<ProfitAndLossResponse> {
   if (!businessId) {
     throw new Error('No business ID provided');
@@ -114,17 +167,12 @@ export async function getProfitAndLossData(
       throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
     }
 
-    // Use provided dates or defaults
-    const startDate = periodStart || getDefaultStartDate();
-    const endDate = periodEnd || getDefaultEndDate();
-
-    // Get P&L data from Xero using the invoke method
+    // Get P&L data from Xero using the invoke method with custom parameters
     const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
       body: {
         tenantId: business.tenant_id,
         reportType: 'ProfitAndLoss',
-        periodStart: startDate,
-        periodEnd: endDate
+        ...params
       }
     });
     
@@ -140,18 +188,49 @@ export async function getProfitAndLossData(
   } catch (error) {
     console.error("Error fetching P&L data:", error);
     
-    // Try fallback to local data
-    try {
-      const fallbackResponse = await fetch(getFinancialDataPath(businessId, FinancialDataType.BASIC_CURRENT_YEAR));
-      if (!fallbackResponse.ok) {
-        throw error; // Throw original error if fallback also fails
+    // Try fallback to local data if a fallback type is provided
+    if (fallbackType) {
+      try {
+        const fallbackResponse = await fetch(getFinancialDataPath(businessId, fallbackType));
+        if (!fallbackResponse.ok) {
+          throw error; // Throw original error if fallback also fails
+        }
+        return await fallbackResponse.json();
+      } catch (fallbackError) {
+        console.error("Fallback also failed:", fallbackError);
+        throw error; // Throw original error
       }
-      return await fallbackResponse.json();
-    } catch (fallbackError) {
-      console.error("Fallback also failed:", fallbackError);
-      throw error; // Throw original error
     }
+    
+    throw error;
   }
+}
+
+/**
+ * Fetches the current financial year profit and loss data from Xero
+ * @param businessId The client business ID
+ * @param periodStart Optional start date in YYYY-MM-DD format
+ * @param periodEnd Optional end date in YYYY-MM-DD format
+ * @returns Promise with the profit and loss data
+ * @throws Error if businessId is null or if fetching fails
+ */
+export async function getProfitAndLossData(
+  businessId: string | null, 
+  periodStart?: string, 
+  periodEnd?: string
+): Promise<ProfitAndLossResponse> {
+  // Use provided dates or defaults
+  const startDate = periodStart || getDefaultStartDate();
+  const endDate = periodEnd || getDefaultEndDate();
+
+  return getProfitAndLossWithParams(
+    businessId,
+    {
+      fromDate: startDate,
+      toDate: endDate
+    },
+    FinancialDataType.BASIC_CURRENT_YEAR
+  );
 }
 
 /**
@@ -169,63 +248,21 @@ export async function getMonthlyProfitAndLossData(
   periodEnd?: string,
   periods: number = 6
 ): Promise<MonthlyProfitAndLoss> {
-  if (!businessId) {
-    throw new Error('No business ID provided');
-  }
+  // Use provided dates or defaults
+  const startDate = periodStart || getDefaultStartDate();
+  const endDate = periodEnd || getDefaultEndDate();
 
-  try {
-    // Get the tenant ID for this business
-    const { data: business, error: businessError } = await supabase
-      .from('client_businesses')
-      .select('tenant_id')
-      .eq('id', businessId)
-      .single();
-    
-    if (businessError || !business?.tenant_id) {
-      throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
-    }
-
-    // Use provided dates or defaults
-    const startDate = periodStart || getDefaultStartDate();
-    const endDate = periodEnd || getDefaultEndDate();
-
-    // Get monthly P&L data from Xero using the invoke method
-    const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
-      body: {
-        tenantId: business.tenant_id,
-        reportType: 'ProfitAndLoss',
-        periodStart: startDate,
-        periodEnd: endDate,
-        periods: periods,
-        timeframe: 'MONTH',
-        standardLayout: true
-      }
-    });
-    
-    if (functionError) {
-      throw new Error(`Failed to invoke Xero financial data function: ${functionError.message}`);
-    }
-    
-    if (!result.success) {
-      throw new Error(`Failed to get monthly P&L data from Xero: ${result.error}`);
-    }
-    
-    return result.data;
-  } catch (error) {
-    console.error("Error fetching monthly P&L data:", error);
-    
-    // Try fallback to local data
-    try {
-      const fallbackResponse = await fetch(getFinancialDataPath(businessId, FinancialDataType.MONTHLY_BREAKDOWN));
-      if (!fallbackResponse.ok) {
-        throw error; // Throw original error if fallback also fails
-      }
-      return await fallbackResponse.json();
-    } catch (fallbackError) {
-      console.error("Fallback also failed:", fallbackError);
-      throw error; // Throw original error
-    }
-  }
+  return getProfitAndLossWithParams(
+    businessId,
+    {
+      fromDate: startDate,
+      toDate: endDate,
+      periods: periods,
+      timeframe: "MONTH",
+      standardLayout: true
+    },
+    FinancialDataType.MONTHLY_BREAKDOWN
+  ) as Promise<MonthlyProfitAndLoss>;
 }
 
 /**
@@ -241,9 +278,140 @@ export async function getVisualDashboardData(
   periodStart?: string,
   periodEnd?: string
 ): Promise<VisualDashboardData> {
-  // For the visual dashboard, we'll use the same data as the profit and loss data
-  // with specified date ranges
   return getProfitAndLossData(businessId, periodStart, periodEnd) as Promise<VisualDashboardData>;
+}
+
+/**
+ * Fetches annual comparison P&L data (3 years) from Xero
+ * @param businessId The client business ID
+ * @returns Promise with the annual comparison data
+ */
+export async function getAnnualComparisonData(
+  businessId: string | null
+): Promise<ProfitAndLossResponse> {
+  return getProfitAndLossWithParams(
+    businessId,
+    {
+      periods: 3,
+      timeframe: "YEAR"
+    },
+    FinancialDataType.BASIC_CURRENT_YEAR
+  );
+}
+
+/**
+ * Fetches quarterly breakdown P&L data from Xero
+ * @param businessId The client business ID
+ * @param fromDate Optional start date in YYYY-MM-DD format
+ * @param toDate Optional end date in YYYY-MM-DD format
+ * @returns Promise with the quarterly breakdown data
+ */
+export async function getQuarterlyBreakdownData(
+  businessId: string | null,
+  fromDate?: string,
+  toDate?: string
+): Promise<ProfitAndLossResponse> {
+  // Default to last year if no dates provided
+  const startDate = fromDate || getOneYearAgoDate();
+  const endDate = toDate || getCurrentDate();
+
+  return getProfitAndLossWithParams(
+    businessId,
+    {
+      fromDate: startDate,
+      toDate: endDate,
+      periods: 4,
+      timeframe: "QUARTER"
+    },
+    FinancialDataType.MONTHLY_BREAKDOWN
+  );
+}
+
+/**
+ * Fetches department/cost center comparison P&L data from Xero
+ * @param businessId The client business ID
+ * @param trackingCategoryID The tracking category ID
+ * @param date Optional date in YYYY-MM-DD format
+ * @returns Promise with the department comparison data
+ */
+export async function getDepartmentComparisonData(
+  businessId: string | null,
+  trackingCategoryID: string,
+  date?: string
+): Promise<ProfitAndLossResponse> {
+  const reportDate = date || getCurrentDate();
+
+  return getProfitAndLossWithParams(
+    businessId,
+    {
+      date: reportDate,
+      trackingCategoryID: trackingCategoryID
+    },
+    FinancialDataType.BASIC_CURRENT_YEAR
+  );
+}
+
+/**
+ * Fetches custom date range P&L data from Xero
+ * @param businessId The client business ID
+ * @param fromDate Start date in YYYY-MM-DD format
+ * @param toDate End date in YYYY-MM-DD format
+ * @returns Promise with the custom date range data
+ */
+export async function getCustomDateRangeData(
+  businessId: string | null,
+  fromDate: string,
+  toDate: string
+): Promise<ProfitAndLossResponse> {
+  return getProfitAndLossWithParams(
+    businessId,
+    {
+      fromDate: fromDate,
+      toDate: toDate,
+      trackingOptionID: null,
+      standardLayout: true
+    },
+    FinancialDataType.BASIC_CURRENT_YEAR
+  );
+}
+
+/**
+ * Fetches cash vs accrual comparison P&L data from Xero
+ * @param businessId The client business ID
+ * @param date Optional date in YYYY-MM-DD format
+ * @returns Promise with the cash and accrual data in an array
+ */
+export async function getCashVsAccrualData(
+  businessId: string | null,
+  date?: string
+): Promise<[ProfitAndLossResponse, ProfitAndLossResponse]> {
+  const reportDate = date || getCurrentDate();
+
+  // Fetch cash basis report (payments only)
+  const cashData = await getProfitAndLossWithParams(
+    businessId,
+    {
+      date: reportDate,
+      periods: 1,
+      timeframe: "MONTH",
+      paymentsOnly: true
+    },
+    FinancialDataType.BASIC_CURRENT_YEAR
+  );
+
+  // Fetch accrual basis report (all transactions)
+  const accrualData = await getProfitAndLossWithParams(
+    businessId,
+    {
+      date: reportDate,
+      periods: 1,
+      timeframe: "MONTH",
+      paymentsOnly: false
+    },
+    FinancialDataType.BASIC_CURRENT_YEAR
+  );
+
+  return [cashData, accrualData];
 }
 
 /**
@@ -331,5 +499,46 @@ export async function getFinancialSummary(businessId: string | null): Promise<an
   } catch (error) {
     console.error("Error fetching financial summary:", error);
     throw error;
+  }
+}
+
+// Function to get tracking categories (departments/cost centers) for a business
+export async function getTrackingCategories(businessId: string | null): Promise<any[]> {
+  if (!businessId) {
+    throw new Error('No business ID provided');
+  }
+
+  try {
+    // First, get the tenant ID for this business
+    const { data: business, error: businessError } = await supabase
+      .from('client_businesses')
+      .select('tenant_id')
+      .eq('id', businessId)
+      .single();
+    
+    if (businessError || !business?.tenant_id) {
+      throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
+    }
+
+    // Call Xero API to get tracking categories
+    const { data: result, error: functionError } = await supabase.functions.invoke('xero-tracking-categories', {
+      body: {
+        tenantId: business.tenant_id
+      }
+    });
+    
+    if (functionError) {
+      throw new Error(`Failed to invoke Xero tracking categories function: ${functionError.message}`);
+    }
+    
+    if (!result.success) {
+      throw new Error(`Failed to get tracking categories from Xero: ${result.error}`);
+    }
+    
+    return result.data || [];
+  } catch (error) {
+    console.error("Error fetching tracking categories:", error);
+    // Return empty array instead of throwing to handle gracefully in UI
+    return [];
   }
 }
