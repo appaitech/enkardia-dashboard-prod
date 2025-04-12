@@ -53,13 +53,14 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
   async function onSubmit(data: ClientFormValues) {
     setIsSubmitting(true);
     try {
+      // Explicitly handle tenantId to ensure it's string or null
       const newClient: NewClientBusiness = {
         name: data.name,
         contactName: data.contactName,
         email: data.email,
         phone: data.phone,
         industry: data.industry,
-        tenantId: data.tenantId || null,
+        tenantId: data.tenantId === true ? "temp-id" : data.tenantId || null,
       };
       
       const result = await createClientBusiness(newClient);
