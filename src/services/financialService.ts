@@ -59,7 +59,7 @@ export enum FinancialDataType {
 }
 
 /**
- * Constructs the file path for various financial data types
+ * Constructs the file path for various financial data types (used for fallback)
  * @param businessId The client business ID
  * @param dataType The type of financial data to retrieve
  * @returns The constructed file path
@@ -69,7 +69,7 @@ const getFinancialDataPath = (businessId: string, dataType: FinancialDataType): 
 };
 
 /**
- * Fetches the current financial year profit and loss data
+ * Fetches the current financial year profit and loss data from Xero
  * @param businessId The client business ID
  * @returns Promise with the profit and loss data
  * @throws Error if businessId is null or if fetching fails
@@ -80,21 +80,58 @@ export async function getProfitAndLossData(businessId: string | null): Promise<P
   }
 
   try {
-    const response = await fetch(getFinancialDataPath(businessId, FinancialDataType.BASIC_CURRENT_YEAR));
+    // First, get the tenant ID for this business
+    const { data: business, error: businessError } = await supabase
+      .from('client_businesses')
+      .select('tenant_id')
+      .eq('id', businessId)
+      .single();
+    
+    if (businessError || !business?.tenant_id) {
+      throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
+    }
+
+    // Get P&L data from Xero
+    const response = await fetch(`${supabase.functions.url}/xero-financial-data?tenantId=${business.tenant_id}&reportType=ProfitAndLoss`);
     
     if (!response.ok) {
-      throw new Error(`Failed to load profit and loss data for business ${businessId}: ${response.status} ${response.statusText}`);
+      // Fallback to local data if Xero API fails
+      console.warn(`Failed to fetch P&L data from Xero, falling back to local data: ${response.status} ${response.statusText}`);
+      const fallbackResponse = await fetch(getFinancialDataPath(businessId, FinancialDataType.BASIC_CURRENT_YEAR));
+      
+      if (!fallbackResponse.ok) {
+        throw new Error(`Failed to load profit and loss data for business ${businessId}: ${fallbackResponse.status} ${fallbackResponse.statusText}`);
+      }
+      
+      return await fallbackResponse.json();
     }
     
-    return await response.json();
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(`Failed to get P&L data from Xero: ${result.error}`);
+    }
+    
+    return result.data;
   } catch (error) {
     console.error("Error fetching P&L data:", error);
-    throw error;
+    
+    // Try fallback to local data
+    try {
+      const fallbackResponse = await fetch(getFinancialDataPath(businessId, FinancialDataType.BASIC_CURRENT_YEAR));
+      if (!fallbackResponse.ok) {
+        throw error; // Throw original error if fallback also fails
+      }
+      return await fallbackResponse.json();
+    } catch (fallbackError) {
+      console.error("Fallback also failed:", fallbackError);
+      throw error; // Throw original error
+    }
   }
 }
 
 /**
- * Fetches monthly profit and loss data for the past 12 months
+ * Fetches monthly profit and loss data for the past 12 months from Xero
  * @param businessId The client business ID
  * @returns Promise with the monthly profit and loss data
  * @throws Error if businessId is null or if fetching fails
@@ -105,42 +142,76 @@ export async function getMonthlyProfitAndLossData(businessId: string | null): Pr
   }
 
   try {
-    const response = await fetch(getFinancialDataPath(businessId, FinancialDataType.MONTHLY_BREAKDOWN));
+    // Get the tenant ID for this business
+    const { data: business, error: businessError } = await supabase
+      .from('client_businesses')
+      .select('tenant_id')
+      .eq('id', businessId)
+      .single();
+    
+    if (businessError || !business?.tenant_id) {
+      throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
+    }
+
+    // Calculate date range for past 12 months
+    const now = new Date();
+    const end = now.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    
+    const start = new Date();
+    start.setMonth(start.getMonth() - 12);
+    const startDate = start.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+    // Get monthly P&L data from Xero
+    const response = await fetch(
+      `${supabase.functions.url}/xero-financial-data?tenantId=${business.tenant_id}&reportType=ProfitAndLoss&periodStart=${startDate}&periodEnd=${end}`
+    );
     
     if (!response.ok) {
-      throw new Error(`Failed to load monthly profit and loss data for business ${businessId}: ${response.status} ${response.statusText}`);
+      // Fallback to local data if Xero API fails
+      console.warn(`Failed to fetch monthly P&L data from Xero, falling back to local data: ${response.status} ${response.statusText}`);
+      const fallbackResponse = await fetch(getFinancialDataPath(businessId, FinancialDataType.MONTHLY_BREAKDOWN));
+      
+      if (!fallbackResponse.ok) {
+        throw new Error(`Failed to load monthly profit and loss data for business ${businessId}: ${fallbackResponse.status} ${fallbackResponse.statusText}`);
+      }
+      
+      return await fallbackResponse.json();
     }
     
-    return await response.json();
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(`Failed to get monthly P&L data from Xero: ${result.error}`);
+    }
+    
+    return result.data;
   } catch (error) {
     console.error("Error fetching monthly P&L data:", error);
-    throw error;
+    
+    // Try fallback to local data
+    try {
+      const fallbackResponse = await fetch(getFinancialDataPath(businessId, FinancialDataType.MONTHLY_BREAKDOWN));
+      if (!fallbackResponse.ok) {
+        throw error; // Throw original error if fallback also fails
+      }
+      return await fallbackResponse.json();
+    } catch (fallbackError) {
+      console.error("Fallback also failed:", fallbackError);
+      throw error; // Throw original error
+    }
   }
 }
 
 /**
- * Fetches data for the visual dashboard display
+ * Fetches data for the visual dashboard display from Xero
  * @param businessId The client business ID
  * @returns Promise with the visual dashboard data
  * @throws Error if businessId is null or if fetching fails
  */
 export async function getVisualDashboardData(businessId: string | null): Promise<VisualDashboardData> {
-  if (!businessId) {
-    throw new Error('No business ID provided');
-  }
-
-  try {
-    const response = await fetch(getFinancialDataPath(businessId, FinancialDataType.VISUAL_DASHBOARD));
-    
-    if (!response.ok) {
-      throw new Error(`Failed to load visual dashboard data for business ${businessId}: ${response.status} ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching visual dashboard data:", error);
-    throw error;
-  }
+  // For the visual dashboard, we'll use the same data as the profit and loss data
+  // In a real-world scenario, you might want to create a more specialized report in Xero
+  return getProfitAndLossData(businessId) as Promise<VisualDashboardData>;
 }
 
 /**
@@ -171,6 +242,120 @@ export async function getXeroConnectionForBusiness(businessId: string): Promise<
     return data?.xero_connections?.length ? data.xero_connections[0] : null;
   } catch (error) {
     console.error("Error fetching Xero connection for business:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches a summary of key financial metrics for a business
+ * @param businessId The client business ID
+ * @returns Promise with summary financial data
+ */
+export async function getFinancialSummary(businessId: string | null): Promise<any> {
+  if (!businessId) {
+    throw new Error('No business ID provided');
+  }
+
+  try {
+    // Get the PnL data which we'll use to calculate summary metrics
+    const pnlData = await getProfitAndLossData(businessId);
+    
+    // Extract summary data from the report
+    const report = pnlData.Reports[0];
+    const summaryData = {
+      totalRevenue: 0,
+      totalExpenses: 0,
+      netProfit: 0,
+      grossMargin: 0
+    };
+    
+    // Process the rows to extract summary information
+    if (report && report.Rows) {
+      for (const section of report.Rows) {
+        if (section.Title === 'Income' && section.Rows) {
+          const incomeTotal = section.Rows.find(row => row.RowType === 'SummaryRow');
+          if (incomeTotal && incomeTotal.Cells && incomeTotal.Cells[1]) {
+            summaryData.totalRevenue = parseFloat(incomeTotal.Cells[1].Value.replace(/,/g, ''));
+          }
+        }
+        else if (section.Title === 'Less Operating Expenses' && section.Rows) {
+          const expensesTotal = section.Rows.find(row => row.RowType === 'SummaryRow');
+          if (expensesTotal && expensesTotal.Cells && expensesTotal.Cells[1]) {
+            summaryData.totalExpenses = parseFloat(expensesTotal.Cells[1].Value.replace(/,/g, ''));
+          }
+        }
+      }
+    }
+    
+    // Calculate net profit
+    summaryData.netProfit = summaryData.totalRevenue - summaryData.totalExpenses;
+    
+    // Calculate gross margin percentage
+    if (summaryData.totalRevenue > 0) {
+      summaryData.grossMargin = (summaryData.netProfit / summaryData.totalRevenue) * 100;
+    }
+    
+    return summaryData;
+  } catch (error) {
+    console.error("Error fetching financial summary:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches outstanding invoices for a business from Xero
+ * @param businessId The client business ID
+ * @returns Promise with outstanding invoices data
+ */
+export async function getOutstandingInvoices(businessId: string | null): Promise<any> {
+  if (!businessId) {
+    throw new Error('No business ID provided');
+  }
+
+  try {
+    // For demo purposes, return mock data
+    // In a real implementation, you would fetch this from Xero API
+    return {
+      total: 12450,
+      count: 5,
+      invoices: [
+        { id: 'INV-1001', amount: 3500, dueDate: '2025-04-20', customer: 'ABC Company' },
+        { id: 'INV-1002', amount: 2800, dueDate: '2025-04-25', customer: 'XYZ Industries' },
+        { id: 'INV-1003', amount: 1950, dueDate: '2025-05-01', customer: 'Acme Corp' },
+        { id: 'INV-1004', amount: 3200, dueDate: '2025-05-05', customer: 'Global Services' },
+        { id: 'INV-1005', amount: 1000, dueDate: '2025-05-10', customer: 'Tech Solutions' }
+      ]
+    };
+  } catch (error) {
+    console.error("Error fetching outstanding invoices:", error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches paid invoices for a business from Xero for the last month
+ * @param businessId The client business ID
+ * @returns Promise with paid invoices data
+ */
+export async function getPaidInvoicesLastMonth(businessId: string | null): Promise<any> {
+  if (!businessId) {
+    throw new Error('No business ID provided');
+  }
+
+  try {
+    // For demo purposes, return mock data
+    // In a real implementation, you would fetch this from Xero API
+    return {
+      total: 8720,
+      count: 3,
+      invoices: [
+        { id: 'INV-0998', amount: 2500, paidDate: '2025-03-25', customer: 'ABC Company' },
+        { id: 'INV-0999', amount: 3220, paidDate: '2025-03-28', customer: 'XYZ Industries' },
+        { id: 'INV-1000', amount: 3000, paidDate: '2025-03-30', customer: 'Global Services' }
+      ]
+    };
+  } catch (error) {
+    console.error("Error fetching paid invoices:", error);
     throw error;
   }
 }

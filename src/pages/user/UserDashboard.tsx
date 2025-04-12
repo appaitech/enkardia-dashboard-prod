@@ -16,13 +16,11 @@ import {
   Loader2,
   RefreshCcw,
   AlertTriangle,
-  UserCircle,
-  BarChart
+  UserCircle
 } from "lucide-react";
 import { DbClientBusiness } from "@/types/client";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
-import { getVisualDashboardData } from "@/services/financialService";
-import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
+import FinancialDashboard from "@/components/FinancialDashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const UserDashboard = () => {
@@ -41,17 +39,6 @@ const UserDashboard = () => {
     enabled: !!user?.id,
   });
 
-  const {
-    data: visualData,
-    isLoading: isLoadingVisual,
-    isError: isVisualError,
-    refetch: refetchVisual
-  } = useQuery({
-    queryKey: ["visual-dashboard", selectedBusinessId],
-    queryFn: () => getVisualDashboardData(selectedBusinessId),
-    enabled: !!selectedBusinessId,
-  });
-
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
       const validBusinesses = clientBusinesses.filter(business => business !== null);
@@ -68,9 +55,9 @@ const UserDashboard = () => {
     saveSelectedClientBusinessId(businessId);
   };
 
-  const isLoading = isLoadingBusinesses || isLoadingVisual;
+  const isLoading = isLoadingBusinesses;
   
-  const isError = isBusinessError || isVisualError;
+  const isError = isBusinessError;
 
   if (isLoading) {
     return (
@@ -97,7 +84,6 @@ const UserDashboard = () => {
             <p className="mt-2 text-slate-500">There was a problem loading your dashboard data</p>
             <Button onClick={() => {
               refetchBusinesses();
-              refetchVisual();
             }} className="mt-4">
               <RefreshCcw className="mr-2 h-4 w-4" />
               Try Again
@@ -176,81 +162,23 @@ const UserDashboard = () => {
           </div>
           
           <div className="mb-8">
-            <div className="flex items-center mb-4">
-              <BarChart className="h-5 w-5 text-green-600 mr-2" />
-              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Financial Dashboard</h2>
-            </div>
-            
-            {visualData ? (
-              <div className="overflow-x-auto">
+            {selectedBusiness.tenant_id ? (
+              <div className={isMobile ? "overflow-x-auto" : ""}>
                 <div className={isMobile ? "min-w-[600px]" : ""}>
-                  <VisualDashboard data={visualData} />
+                  <FinancialDashboard businessId={selectedBusiness.id} />
                 </div>
               </div>
             ) : (
               <Card className="p-6 text-center">
                 <div className="flex flex-col items-center justify-center py-6">
                   <AlertTriangle className="h-12 w-12 text-slate-300" />
-                  <p className="mt-2 text-slate-500">No financial dashboard data available</p>
+                  <p className="mt-2 text-slate-500">No financial data available</p>
                   <p className="text-sm text-slate-400 text-center mt-1">
-                    Connect to Xero to see your financial dashboard
+                    This client isn't connected to Xero yet. Connect to Xero to see financial data.
                   </p>
                 </div>
               </Card>
             )}
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 mb-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Boxes className="mr-2 h-5 w-5" />
-                  Financial Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {selectedBusiness.tenant_id ? (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                      <div className="p-4 bg-slate-50 rounded-md">
-                        <div className="text-sm text-slate-500">Outstanding Invoices</div>
-                        <div className="text-xl md:text-2xl font-semibold">$12,450</div>
-                        <div className="text-xs text-slate-500">5 invoices</div>
-                      </div>
-                      <div className="p-4 bg-slate-50 rounded-md">
-                        <div className="text-sm text-slate-500">Paid Last Month</div>
-                        <div className="text-xl md:text-2xl font-semibold">$8,720</div>
-                        <div className="text-xs text-slate-500">3 invoices</div>
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-6">
-                    <AlertTriangle className="h-10 w-10 text-slate-300" />
-                    <p className="mt-2 text-sm md:text-base text-slate-500">No financial data available</p>
-                    <p className="text-xs md:text-sm text-slate-400 text-center mt-1">
-                      This client is not connected to Xero yet
-                    </p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  <div className="text-center text-slate-500 py-4">
-                    No recent activity to display
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
@@ -274,16 +202,16 @@ const UserDashboard = () => {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
-                  <Settings className="mr-2 h-5 w-5" />
-                  Account Settings
+                  <Calendar className="mr-2 h-5 w-5" />
+                  Recent Activity
                 </CardTitle>
               </CardHeader>
               <CardContent className="text-center text-slate-500 py-4">
-                Update your account preferences
+                No recent activity to display
               </CardContent>
               <CardFooter>
                 <Button variant="outline" className="w-full">
-                  Manage Settings
+                  View Activity
                 </Button>
               </CardFooter>
             </Card>
