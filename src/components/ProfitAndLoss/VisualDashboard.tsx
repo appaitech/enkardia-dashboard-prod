@@ -47,7 +47,8 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     .map(row => ({
       name: row.Cells?.[0]?.Value || '',
       value: parseFloat((row.Cells?.[1]?.Value || '0').replace(/,/g, ''))
-    }));
+    }))
+    .filter(item => item.value !== 0); // Filter out zero values
 
   // Process expense data
   const expenseRows = findRowsByType(report.Rows, 'Less Operating Expenses');
@@ -57,6 +58,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
       name: row.Cells?.[0]?.Value || '',
       value: parseFloat((row.Cells?.[1]?.Value || '0').replace(/,/g, ''))
     }))
+    .filter(item => item.value !== 0) // Filter out zero values
     .sort((a, b) => b.value - a.value); // Sort by value descending
 
   // Get summary values
@@ -70,7 +72,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#8DD1E1', '#A4DE6C', '#D0ED57'];
 
-  // First, let's define a nice color palette near the top of the component
+  // Define a nice color palette for expenses
   const EXPENSE_COLORS = [
     '#3b82f6', // blue
     '#14b8a6', // teal
@@ -83,20 +85,6 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     '#0284c7', // lightBlue
     '#059669'  // green
   ];
-
-  // Custom label formatter for the pie charts
-  const renderCustomizedLabel = (props: any) => {
-    const { name, percent } = props;
-    return `${name}: ${(percent * 100).toFixed(0)}%`;
-  };
-
-  // Custom tooltip formatter that handles number values
-  const customTooltipFormatter = (value: number | string) => {
-    if (typeof value === 'number') {
-      return formatCurrency(value);
-    }
-    return value;
-  };
 
   // Extract the report date range
   const reportPeriod = report.ReportDate || 'Current Period';
@@ -155,64 +143,71 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
 
       {/* Income and Expense Breakdown Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <Card className="p-4">
-          <h3 className="text-lg font-semibold mb-4">Income Breakdown</h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={incomeData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={true}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  nameKey="name"
-                  label={({ name, percent }) => {
-                    return `${name}: ${(typeof percent === 'number' ? (percent * 100).toFixed(0) : '0')}%`;
-                  }}
-                >
-                  {incomeData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => {
-                  return typeof value === 'number' ? formatCurrency(value) : value;
-                }} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        {incomeData.length > 0 && (
+          <Card className="p-4">
+            <h3 className="text-lg font-semibold mb-4">Income Breakdown</h3>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={incomeData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={true}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => {
+                      return percent && percent > 0.05 ? `${name}: ${(typeof percent === 'number' ? (percent * 100).toFixed(0) : '0')}%` : '';
+                    }}
+                  >
+                    {incomeData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => {
+                    return typeof value === 'number' ? formatCurrency(value) : value;
+                  }} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        )}
 
-        <Card className="p-4">
-          <h3 className="text-lg font-semibold mb-4">Expense Breakdown</h3>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={expenseData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  nameKey="name"
-                >
-                  {expenseData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => {
-                  return typeof value === 'number' ? formatCurrency(value) : value;
-                }} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </Card>
+        {expenseData.length > 0 && (
+          <Card className="p-4">
+            <h3 className="text-lg font-semibold mb-4">Expense Breakdown</h3>
+            <div className="h-[300px]">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={expenseData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    outerRadius={100}
+                    fill="#8884d8"
+                    dataKey="value"
+                    nameKey="name"
+                    label={({ name, percent }) => {
+                      return percent && percent > 0.05 ? `${name}: ${(typeof percent === 'number' ? (percent * 100).toFixed(0) : '0')}%` : '';
+                    }}
+                  >
+                    {expenseData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => {
+                    return typeof value === 'number' ? formatCurrency(value) : value;
+                  }} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </Card>
+        )}
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ProfitAndLossRow {
@@ -278,7 +279,7 @@ export async function getXeroConnectionForBusiness(businessId: string): Promise<
 }
 
 /**
- * Fetches a summary of key financial metrics for a business
+ * Fetches a summary of key financial metrics for a business from Xero data
  * @param businessId The client business ID
  * @returns Promise with summary financial data
  */
@@ -329,64 +330,6 @@ export async function getFinancialSummary(businessId: string | null): Promise<an
     return summaryData;
   } catch (error) {
     console.error("Error fetching financial summary:", error);
-    throw error;
-  }
-}
-
-/**
- * Fetches outstanding invoices for a business from Xero
- * @param businessId The client business ID
- * @returns Promise with outstanding invoices data
- */
-export async function getOutstandingInvoices(businessId: string | null): Promise<any> {
-  if (!businessId) {
-    throw new Error('No business ID provided');
-  }
-
-  try {
-    // For demo purposes, return mock data
-    // In a real implementation, you would fetch this from Xero API
-    return {
-      total: 12450,
-      count: 5,
-      invoices: [
-        { id: 'INV-1001', amount: 3500, dueDate: '2025-04-20', customer: 'ABC Company' },
-        { id: 'INV-1002', amount: 2800, dueDate: '2025-04-25', customer: 'XYZ Industries' },
-        { id: 'INV-1003', amount: 1950, dueDate: '2025-05-01', customer: 'Acme Corp' },
-        { id: 'INV-1004', amount: 3200, dueDate: '2025-05-05', customer: 'Global Services' },
-        { id: 'INV-1005', amount: 1000, dueDate: '2025-05-10', customer: 'Tech Solutions' }
-      ]
-    };
-  } catch (error) {
-    console.error("Error fetching outstanding invoices:", error);
-    throw error;
-  }
-}
-
-/**
- * Fetches paid invoices for a business from Xero for the last month
- * @param businessId The client business ID
- * @returns Promise with paid invoices data
- */
-export async function getPaidInvoicesLastMonth(businessId: string | null): Promise<any> {
-  if (!businessId) {
-    throw new Error('No business ID provided');
-  }
-
-  try {
-    // For demo purposes, return mock data
-    // In a real implementation, you would fetch this from Xero API
-    return {
-      total: 8720,
-      count: 3,
-      invoices: [
-        { id: 'INV-0998', amount: 2500, paidDate: '2025-03-25', customer: 'ABC Company' },
-        { id: 'INV-0999', amount: 3220, paidDate: '2025-03-28', customer: 'XYZ Industries' },
-        { id: 'INV-1000', amount: 3000, paidDate: '2025-03-30', customer: 'Global Services' }
-      ]
-    };
-  } catch (error) {
-    console.error("Error fetching paid invoices:", error);
     throw error;
   }
 }

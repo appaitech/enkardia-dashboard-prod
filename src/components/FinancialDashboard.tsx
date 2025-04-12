@@ -25,8 +25,6 @@ import {
   Loader2,
   BarChart3,
   RefreshCcw,
-  FileText,
-  ChevronRight,
   CalendarIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -39,12 +37,11 @@ import { format } from "date-fns";
 import {
   getVisualDashboardData,
   getFinancialSummary,
-  getOutstandingInvoices,
-  getPaidInvoicesLastMonth,
   getMonthlyProfitAndLossData,
   getDefaultStartDate,
   getDefaultEndDate
 } from "@/services/financialService";
+import { toast } from "sonner";
 
 interface FinancialDashboardProps {
   businessId: string;
@@ -92,36 +89,11 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
     enabled: !!businessId,
   });
 
-  // Fetch outstanding invoices
-  const {
-    data: outstandingInvoices,
-    isLoading: isLoadingOutstanding,
-    isError: isOutstandingError,
-    refetch: refetchOutstanding
-  } = useQuery({
-    queryKey: ["outstanding-invoices", businessId],
-    queryFn: () => getOutstandingInvoices(businessId),
-    enabled: !!businessId,
-  });
-
-  // Fetch paid invoices
-  const {
-    data: paidInvoices,
-    isLoading: isLoadingPaid,
-    isError: isPaidError,
-    refetch: refetchPaid
-  } = useQuery({
-    queryKey: ["paid-invoices", businessId],
-    queryFn: () => getPaidInvoicesLastMonth(businessId),
-    enabled: !!businessId,
-  });
-
   const handleRefresh = () => {
     refetchMonthly();
     refetchVisual();
     refetchSummary();
-    refetchOutstanding();
-    refetchPaid();
+    toast.success("Financial data refreshed");
   };
 
   const handleFromDateChange = (date: Date | undefined) => {
@@ -138,8 +110,8 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
     }
   };
 
-  const isLoading = isLoadingMonthly || isLoadingVisual || isLoadingSummary || isLoadingOutstanding || isLoadingPaid;
-  const isError = isMonthlyError || isVisualError || isSummaryError || isOutstandingError || isPaidError;
+  const isLoading = isLoadingMonthly || isLoadingVisual || isLoadingSummary;
+  const isError = isMonthlyError || isVisualError || isSummaryError;
 
   if (isLoading) {
     return (
@@ -237,6 +209,9 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
 
   // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
+
+  // Extract the report date range
+  const reportPeriod = visualData.Reports[0]?.ReportDate || `${startDate} to ${endDate}`;
 
   return (
     <div className="space-y-6">
@@ -359,7 +334,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
         <CardHeader className="pb-2">
           <CardTitle className="text-lg">Monthly Revenue Trend</CardTitle>
           <CardDescription>
-            {startDate} to {endDate}
+            {reportPeriod}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -415,83 +390,6 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
           </div>
         </CardContent>
       </Card>
-
-      {/* Invoices Summary */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Outstanding Invoices */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <FileText className="mr-2 h-5 w-5 text-amber-500" />
-              Outstanding Invoices
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(outstandingInvoices?.total || 0)}
-                </div>
-                <div className="text-sm text-slate-500">
-                  {outstandingInvoices?.count || 0} invoices pending
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" className="flex items-center">
-                View All <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-            {outstandingInvoices?.invoices && outstandingInvoices.invoices.slice(0, 3).map((invoice: any) => (
-              <div key={invoice.id} className="mt-4 p-3 bg-slate-50 rounded-md">
-                <div className="flex justify-between">
-                  <div className="font-medium">{invoice.id}</div>
-                  <div className="font-semibold">{formatCurrency(invoice.amount)}</div>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <div className="text-sm text-slate-500">{invoice.customer}</div>
-                  <div className="text-sm text-slate-500">Due: {invoice.dueDate}</div>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Paid Invoices */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <FileText className="mr-2 h-5 w-5 text-green-500" />
-              Paid Last Month
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between items-center">
-              <div>
-                <div className="text-2xl font-bold">
-                  {formatCurrency(paidInvoices?.total || 0)}
-                </div>
-                <div className="text-sm text-slate-500">
-                  {paidInvoices?.count || 0} invoices paid
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" className="flex items-center">
-                View All <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </div>
-            {paidInvoices?.invoices && paidInvoices.invoices.slice(0, 3).map((invoice: any) => (
-              <div key={invoice.id} className="mt-4 p-3 bg-slate-50 rounded-md">
-                <div className="flex justify-between">
-                  <div className="font-medium">{invoice.id}</div>
-                  <div className="font-semibold">{formatCurrency(invoice.amount)}</div>
-                </div>
-                <div className="flex justify-between mt-1">
-                  <div className="text-sm text-slate-500">{invoice.customer}</div>
-                  <div className="text-sm text-slate-500">Paid: {invoice.paidDate}</div>
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
-      </div>
     </div>
   );
 };
