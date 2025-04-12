@@ -217,7 +217,7 @@ const CustomDateRangeView: React.FC<CustomDateRangeViewProps> = ({ data, fromDat
                 margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis type="number" tickFormatter={(value) => formatCurrency(value, true)} />
+                <XAxis type="number" tickFormatter={(value) => formatCurrency(value)} />
                 <YAxis type="category" dataKey="name" width={120} />
                 <Tooltip formatter={(value) => formatCurrency(value as number)} />
                 <Bar dataKey="value" fill="#ef4444">

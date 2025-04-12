@@ -249,7 +249,7 @@ const DepartmentComparisonView: React.FC<DepartmentComparisonViewProps> = ({
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis 
-                  tickFormatter={(value) => formatCurrency(value, true)}
+                  tickFormatter={(value) => formatCurrency(value)}
                 />
                 <Tooltip 
                   formatter={(value, name) => {

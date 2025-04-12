@@ -142,7 +142,7 @@ const AnnualComparisonView: React.FC<AnnualComparisonViewProps> = ({ data }) => 
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis 
-                  tickFormatter={(value) => formatCurrency(value, true)}
+                  tickFormatter={(value) => formatCurrency(value)}
                 />
                 <Tooltip 
                   formatter={(value) => formatCurrency(value as number)}

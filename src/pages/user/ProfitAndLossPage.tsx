@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import UserSidebar from "@/components/UserSidebar";
@@ -45,7 +44,7 @@ import {
   Columns3,
   FileText,
   Grid3X3,
-  Cash
+  CreditCard
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -66,13 +65,11 @@ const ProfitAndLossPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("current-year");
   const isMobile = useIsMobile();
   
-  // Date range state
   const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
   const [endDate, setEndDate] = useState<string>(getDefaultEndDate());
   const [fromDateOpen, setFromDateOpen] = useState(false);
   const [toDateOpen, setToDateOpen] = useState(false);
 
-  // Additional date states for specific views
   const [quarterlyStartDate, setQuarterlyStartDate] = useState<string>(getFirstDayLastQuarter());
   const [quarterlyEndDate, setQuarterlyEndDate] = useState<string>(getCurrentDate());
   const [customStartDate, setCustomStartDate] = useState<string>(getDefaultStartDate());
@@ -90,7 +87,6 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!user?.id,
   });
 
-  // Current Year P&L
   const {
     data: plData,
     isLoading: isLoadingPL,
@@ -102,7 +98,6 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "current-year",
   });
 
-  // Monthly Breakdown
   const {
     data: monthlyData,
     isLoading: isLoadingMonthly,
@@ -114,7 +109,6 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "monthly",
   });
 
-  // Visual Dashboard
   const {
     data: visualData,
     isLoading: isLoadingVisual,
@@ -126,7 +120,6 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "visual",
   });
 
-  // Annual Comparison
   const {
     data: annualData,
     isLoading: isLoadingAnnual,
@@ -138,7 +131,6 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "annual",
   });
 
-  // Quarterly Breakdown
   const {
     data: quarterlyData,
     isLoading: isLoadingQuarterly,
@@ -150,7 +142,6 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "quarterly",
   });
 
-  // Department/Cost Center Comparison
   const {
     data: departmentData,
     isLoading: isLoadingDepartment,
@@ -162,7 +153,6 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "department" && !!selectedTrackingCategoryId,
   });
 
-  // Custom Date Range Analysis
   const {
     data: customDateData,
     isLoading: isLoadingCustomDate,
@@ -174,7 +164,6 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "custom-date",
   });
 
-  // Cash vs Accrual Comparison
   const {
     data: cashVsAccrualData,
     isLoading: isLoadingCashVsAccrual,
@@ -779,7 +768,7 @@ const ProfitAndLossPage: React.FC = () => {
                   value="cash-vs-accrual"
                   className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
                 >
-                  <Cash className="h-4 w-4" />
+                  <CreditCard className="h-4 w-4" />
                   <span className="hidden md:inline">Cash vs Accrual</span>
                   <span className="md:hidden">Cash/Accrual</span>
                 </TabsTrigger>
