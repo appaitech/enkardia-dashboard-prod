@@ -20,7 +20,11 @@ const clientSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   phone: z.string().optional(),
   industry: z.string().optional(),
-  tenantId: z.boolean().default(false).transform(val => val ? "temp-id" : null),
+  tenantId: z.union([z.string(), z.boolean()]).optional().transform(val => {
+    if (val === true) return "temp-id";
+    if (val === false) return null;
+    return val;
+  }),
 });
 
 type ClientFormValues = z.infer<typeof clientSchema>;
@@ -55,7 +59,7 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
         email: data.email,
         phone: data.phone,
         industry: data.industry,
-        tenantId: data.tenantId,
+        tenantId: data.tenantId || null,
       };
       
       const result = await createClientBusiness(newClient);

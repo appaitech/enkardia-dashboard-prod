@@ -6,7 +6,7 @@ export interface ClientBusiness {
   email: string;
   phone?: string;
   industry?: string;
-  tenantId?: string; // Changed from xeroConnected to tenantId
+  tenantId?: string | null; 
   createdAt: string;
   updatedAt: string;
   createdBy?: string;
@@ -18,7 +18,7 @@ export interface NewClientBusiness {
   email: string;
   phone?: string;
   industry?: string;
-  tenantId?: string; // Changed from xeroConnected to tenantId
+  tenantId?: string | null; 
 }
 
 export interface DbClientBusiness {
@@ -28,7 +28,7 @@ export interface DbClientBusiness {
   email: string;
   phone?: string;
   industry?: string;
-  tenant_id?: string; // Changed from xero_connected to tenant_id
+  tenant_id?: string | null;
   created_at: string;
   updated_at?: string;
 }
