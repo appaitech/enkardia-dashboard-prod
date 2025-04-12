@@ -46,7 +46,7 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
       email: "",
       phone: "",
       industry: "",
-      tenantId: false,
+      tenantId: null,
     },
   });
 
@@ -60,7 +60,7 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
         email: data.email,
         phone: data.phone,
         industry: data.industry,
-        tenantId: data.tenantId === true ? "temp-id" : data.tenantId || null,
+        tenantId: null,
       };
       
       const result = await createClientBusiness(newClient);
