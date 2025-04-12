@@ -80,6 +80,7 @@ serve(async (req) => {
     }
 
     console.log(`Executing action: ${action} for tenant: ${tenantId}`);
+    console.log(`Request parameters:`, JSON.stringify(body, null, 2));
     
     // Get the Xero connection for this tenant
     const { data: connections, error: connectionError } = await supabase
@@ -171,6 +172,79 @@ serve(async (req) => {
     let reportUrl = "https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss";
     const urlParams = new URLSearchParams();
     
+    // For cash vs accrual, we need to make two separate API calls
+    if (action === "cash-vs-accrual") {
+      // First call for cash basis (paymentsOnly=true)
+      const cashUrlParams = new URLSearchParams();
+      if (date) cashUrlParams.append('date', date);
+      cashUrlParams.append('paymentsOnly', 'true');
+      
+      console.log(`Calling Xero API (Cash Basis): ${reportUrl}?${cashUrlParams.toString()}`);
+      
+      const cashResponse = await fetch(`${reportUrl}?${cashUrlParams.toString()}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          "Xero-Tenant-Id": tenantId,
+        },
+      });
+      
+      if (!cashResponse.ok) {
+        const errorText = await cashResponse.text();
+        console.error(`Error fetching cash basis report from Xero:`, errorText);
+        console.error(`Status: ${cashResponse.status} ${cashResponse.statusText}`);
+        console.error(`Request URL: ${reportUrl}?${cashUrlParams.toString()}`);
+        throw new Error(`Failed to fetch cash basis report from Xero: ${cashResponse.status} ${cashResponse.statusText}`);
+      }
+      
+      const cashData = await cashResponse.json();
+      console.log("Successfully retrieved cash basis report");
+      
+      // Second call for accrual basis (paymentsOnly=false)
+      const accrualUrlParams = new URLSearchParams();
+      if (date) accrualUrlParams.append('date', date);
+      accrualUrlParams.append('paymentsOnly', 'false');
+      
+      console.log(`Calling Xero API (Accrual Basis): ${reportUrl}?${accrualUrlParams.toString()}`);
+      
+      const accrualResponse = await fetch(`${reportUrl}?${accrualUrlParams.toString()}`, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          Accept: "application/json",
+          "Xero-Tenant-Id": tenantId,
+        },
+      });
+      
+      if (!accrualResponse.ok) {
+        const errorText = await accrualResponse.text();
+        console.error(`Error fetching accrual basis report from Xero:`, errorText);
+        console.error(`Status: ${accrualResponse.status} ${accrualResponse.statusText}`);
+        console.error(`Request URL: ${reportUrl}?${accrualUrlParams.toString()}`);
+        throw new Error(`Failed to fetch accrual basis report from Xero: ${accrualResponse.status} ${accrualResponse.statusText}`);
+      }
+      
+      const accrualData = await accrualResponse.json();
+      console.log("Successfully retrieved accrual basis report");
+      
+      // Return both cash and accrual data
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          data: [cashData, accrualData],
+          action,
+          tenantId,
+          params: {
+            date,
+            paymentsOnly
+          }
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // For all other actions, use the standard flow
     switch (action) {
       case "annual-comparison":
         // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?periods=3&timeframe=YEAR
