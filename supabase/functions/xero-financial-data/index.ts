@@ -24,12 +24,16 @@ interface XeroConnection {
 
 interface RequestBody {
   tenantId: string;
-  reportType?: string;
+  action: string;
   periodStart?: string;
   periodEnd?: string;
+  date?: string;
   periods?: number;
   timeframe?: string;
+  trackingCategoryID?: string;
+  trackingOptionID?: string;
   standardLayout?: boolean;
+  paymentsOnly?: boolean;
 }
 
 serve(async (req) => {
@@ -51,20 +55,27 @@ serve(async (req) => {
     
     const { 
       tenantId, 
-      reportType = "ProfitAndLoss", 
+      action = "basic-report",
       periodStart, 
       periodEnd,
+      date,
       periods,
       timeframe,
-      standardLayout
+      trackingCategoryID,
+      trackingOptionID,
+      standardLayout,
+      paymentsOnly
     } = body;
     
     if (!tenantId) {
       throw new Error("Tenant ID is required");
     }
 
-    console.log(`Getting ${reportType} data for tenant: ${tenantId} with date range: ${periodStart} to ${periodEnd}`);
-    if (periods) console.log(`Using periods: ${periods}, timeframe: ${timeframe}`);
+    if (!action) {
+      throw new Error("Action is required");
+    }
+
+    console.log(`Executing action: ${action} for tenant: ${tenantId}`);
     
     // Get the Xero connection for this tenant
     const { data: connections, error: connectionError } = await supabase
@@ -152,16 +163,78 @@ serve(async (req) => {
       accessToken = refreshData.access_token;
     }
     
-    // Prepare the URL for the Xero API request
-    let reportUrl = `https://api.xero.com/api.xro/2.0/Reports/${reportType}`;
+    // Handle different actions
+    let reportUrl = "https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss";
     const urlParams = new URLSearchParams();
     
-    // Add date parameters if provided
-    if (periodStart) urlParams.append('fromDate', periodStart);
-    if (periodEnd) urlParams.append('toDate', periodEnd);
-    if (periods) urlParams.append('periods', periods.toString());
-    if (timeframe) urlParams.append('timeframe', timeframe);
-    if (standardLayout !== undefined) urlParams.append('standardLayout', standardLayout.toString());
+    switch (action) {
+      case "annual-comparison":
+        // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?periods=3&timeframe=YEAR
+        urlParams.append('periods', '3');
+        urlParams.append('timeframe', 'YEAR');
+        break;
+        
+      case "quarterly-breakdown":
+        // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?fromDate=X&toDate=Y&periods=4&timeframe=QUARTER
+        if (periodStart) urlParams.append('fromDate', periodStart);
+        if (periodEnd) urlParams.append('toDate', periodEnd);
+        urlParams.append('periods', '4');
+        urlParams.append('timeframe', 'QUARTER');
+        break;
+        
+      case "department-comparison":
+        // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?date=X&trackingCategoryID=Y
+        if (date) urlParams.append('date', date);
+        if (trackingCategoryID) urlParams.append('trackingCategoryID', trackingCategoryID);
+        break;
+        
+      case "custom-date-range":
+        // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?fromDate=X&toDate=Y&trackingOptionID=null&standardLayout=true
+        if (periodStart) urlParams.append('fromDate', periodStart);
+        if (periodEnd) urlParams.append('toDate', periodEnd);
+        urlParams.append('standardLayout', 'true');
+        break;
+        
+      case "cash-basis":
+        // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?date=X&periods=1&timeframe=MONTH&paymentsOnly=true
+        if (date) urlParams.append('date', date);
+        urlParams.append('periods', '1');
+        urlParams.append('timeframe', 'MONTH');
+        urlParams.append('paymentsOnly', 'true');
+        break;
+        
+      case "accrual-basis":
+        // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?date=X&periods=1&timeframe=MONTH&paymentsOnly=false
+        if (date) urlParams.append('date', date);
+        urlParams.append('periods', '1');
+        urlParams.append('timeframe', 'MONTH');
+        urlParams.append('paymentsOnly', 'false');
+        break;
+        
+      case "monthly-breakdown":
+        // GET https://api.xero.com/api.xro/2.0/Reports/ProfitAndLoss?fromDate=X&toDate=Y&periods=Z&timeframe=MONTH
+        if (periodStart) urlParams.append('fromDate', periodStart);
+        if (periodEnd) urlParams.append('toDate', periodEnd);
+        if (periods) urlParams.append('periods', periods.toString());
+        urlParams.append('timeframe', 'MONTH');
+        urlParams.append('standardLayout', 'true');
+        break;
+        
+      case "basic-report":
+      default:
+        // Add date parameters if provided for basic report
+        if (periodStart) urlParams.append('fromDate', periodStart);
+        if (periodEnd) urlParams.append('toDate', periodEnd);
+        
+        // Add any other parameters that were passed
+        if (periods) urlParams.append('periods', periods.toString());
+        if (timeframe) urlParams.append('timeframe', timeframe);
+        if (trackingCategoryID) urlParams.append('trackingCategoryID', trackingCategoryID);
+        if (trackingOptionID) urlParams.append('trackingOptionID', trackingOptionID);
+        if (standardLayout !== undefined) urlParams.append('standardLayout', standardLayout.toString());
+        if (paymentsOnly !== undefined) urlParams.append('paymentsOnly', paymentsOnly.toString());
+        break;
+    }
     
     // Append query parameters if any were provided
     if (urlParams.toString()) {
@@ -183,7 +256,7 @@ serve(async (req) => {
     
     if (!reportResponse.ok) {
       const errorText = await reportResponse.text();
-      console.error(`Error fetching ${reportType} from Xero:`, errorText);
+      console.error(`Error fetching report from Xero:`, errorText);
       console.error(`Status: ${reportResponse.status} ${reportResponse.statusText}`);
       console.error(`Request URL: ${reportUrl}`);
       console.error(`Headers used:`, {
@@ -192,24 +265,28 @@ serve(async (req) => {
         "Xero-Tenant-Id": tenantId,
       });
       
-      throw new Error(`Failed to fetch ${reportType} from Xero: ${reportResponse.status} ${reportResponse.statusText}`);
+      throw new Error(`Failed to fetch report from Xero: ${reportResponse.status} ${reportResponse.statusText}`);
     }
     
     const reportData = await reportResponse.json();
-    console.log(`Successfully retrieved ${reportType} data from Xero`);
+    console.log(`Successfully retrieved report data from Xero for action: ${action}`);
     
     return new Response(
       JSON.stringify({ 
         success: true, 
         data: reportData,
-        reportType,
+        action,
         tenantId,
         params: {
           periodStart,
           periodEnd,
+          date,
           periods,
           timeframe,
-          standardLayout
+          trackingCategoryID,
+          trackingOptionID,
+          standardLayout,
+          paymentsOnly
         }
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ProfitAndLossRow {
@@ -148,6 +147,7 @@ export const getFirstDayLastQuarter = (): string => {
  */
 export async function getProfitAndLossWithParams(
   businessId: string | null,
+  action: string = "basic-report",
   params: ReportParams,
   fallbackType?: FinancialDataType
 ): Promise<ProfitAndLossResponse> {
@@ -171,7 +171,7 @@ export async function getProfitAndLossWithParams(
     const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
       body: {
         tenantId: business.tenant_id,
-        reportType: 'ProfitAndLoss',
+        action: action,
         ...params
       }
     });
@@ -225,6 +225,7 @@ export async function getProfitAndLossData(
 
   return getProfitAndLossWithParams(
     businessId,
+    "basic-report",
     {
       fromDate: startDate,
       toDate: endDate
@@ -254,6 +255,7 @@ export async function getMonthlyProfitAndLossData(
 
   return getProfitAndLossWithParams(
     businessId,
+    "monthly-breakdown",
     {
       fromDate: startDate,
       toDate: endDate,
@@ -291,10 +293,8 @@ export async function getAnnualComparisonData(
 ): Promise<ProfitAndLossResponse> {
   return getProfitAndLossWithParams(
     businessId,
-    {
-      periods: 3,
-      timeframe: "YEAR"
-    },
+    "annual-comparison",
+    {},
     FinancialDataType.BASIC_CURRENT_YEAR
   );
 }
@@ -317,11 +317,10 @@ export async function getQuarterlyBreakdownData(
 
   return getProfitAndLossWithParams(
     businessId,
+    "quarterly-breakdown",
     {
       fromDate: startDate,
-      toDate: endDate,
-      periods: 4,
-      timeframe: "QUARTER"
+      toDate: endDate
     },
     FinancialDataType.MONTHLY_BREAKDOWN
   );
@@ -343,6 +342,7 @@ export async function getDepartmentComparisonData(
 
   return getProfitAndLossWithParams(
     businessId,
+    "department-comparison",
     {
       date: reportDate,
       trackingCategoryID: trackingCategoryID
@@ -365,11 +365,10 @@ export async function getCustomDateRangeData(
 ): Promise<ProfitAndLossResponse> {
   return getProfitAndLossWithParams(
     businessId,
+    "custom-date-range",
     {
       fromDate: fromDate,
-      toDate: toDate,
-      trackingOptionID: null,
-      standardLayout: true
+      toDate: toDate
     },
     FinancialDataType.BASIC_CURRENT_YEAR
   );
@@ -390,11 +389,9 @@ export async function getCashVsAccrualData(
   // Fetch cash basis report (payments only)
   const cashData = await getProfitAndLossWithParams(
     businessId,
+    "cash-basis",
     {
-      date: reportDate,
-      periods: 1,
-      timeframe: "MONTH",
-      paymentsOnly: true
+      date: reportDate
     },
     FinancialDataType.BASIC_CURRENT_YEAR
   );
@@ -402,11 +399,9 @@ export async function getCashVsAccrualData(
   // Fetch accrual basis report (all transactions)
   const accrualData = await getProfitAndLossWithParams(
     businessId,
+    "accrual-basis",
     {
-      date: reportDate,
-      periods: 1,
-      timeframe: "MONTH",
-      paymentsOnly: false
+      date: reportDate
     },
     FinancialDataType.BASIC_CURRENT_YEAR
   );
