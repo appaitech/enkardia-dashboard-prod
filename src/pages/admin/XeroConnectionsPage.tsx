@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Link, Search, RefreshCcw, Users } from "lucide-react";
+import { Plus, Link, Search, RefreshCcw, Users, Info } from "lucide-react";
 import AdminSidebar from "@/components/AdminSidebar";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +12,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const XeroSyncLoader: React.FC = () => {
@@ -38,7 +37,7 @@ const XeroSyncLoader: React.FC = () => {
     if (code && state && !isProcessing) {
       const processXeroAuth = async () => {
         try {
-          setIsProcessing(true); // Prevent duplicate processing
+          setIsProcessing(true);
           
           const response = await supabase.functions.invoke('xero-auth', {
             body: { 
@@ -57,7 +56,6 @@ const XeroSyncLoader: React.FC = () => {
             description: `Connected ${response.data.connections.length} organizations from Xero.`,
           });
           
-          // Clear the URL params and navigate back to the connections page
           navigate('/admin/xero-connections', { replace: true });
         } catch (error) {
           console.error('Error processing Xero auth:', error);
@@ -67,7 +65,6 @@ const XeroSyncLoader: React.FC = () => {
             variant: "destructive",
           });
           
-          // Clear the URL params and navigate back to the connections page
           navigate('/admin/xero-connections', { replace: true });
         }
       };
@@ -124,11 +121,9 @@ const XeroConnectionsPage: React.FC = () => {
   const location = useLocation();
   const { toast } = useToast();
 
-  // Check for Xero auth parameters in URL
   const searchParams = new URLSearchParams(location.search);
   const hasXeroAuthParams = searchParams.has('code') && searchParams.has('state');
 
-  // Fetch available Xero tokens
   useEffect(() => {
     const fetchTokens = async () => {
       try {
@@ -141,12 +136,17 @@ const XeroConnectionsPage: React.FC = () => {
           return;
         }
 
-        if (data.tokens && data.tokens.length > 0) {
-          setXeroTokens(data.tokens);
-          setSelectedToken(data.tokens[0]);
+        const tokens = data.tokens || [];
+        setXeroTokens(tokens);
+        
+        if (tokens.length > 0) {
+          setSelectedToken(tokens[0]);
         }
+        
+        setIsLoading(false);
       } catch (error) {
         console.error("Error fetching Xero tokens:", error);
+        setIsLoading(false);
       }
     };
 
@@ -155,7 +155,6 @@ const XeroConnectionsPage: React.FC = () => {
     }
   }, [hasXeroAuthParams, isFetching]);
 
-  // Fetch connections when selectedToken changes
   useEffect(() => {
     const fetchConnections = async () => {
       if (!selectedToken) return;
@@ -163,7 +162,6 @@ const XeroConnectionsPage: React.FC = () => {
       try {
         setIsLoading(true);
         
-        // Fetch connections for the selected token
         const { data, error } = await supabase
           .from("xero_connections")
           .select("*")
@@ -179,10 +177,9 @@ const XeroConnectionsPage: React.FC = () => {
           });
           setConnections([]);
         } else {
-          // Transform the data to match the XeroConnection interface
           const transformedConnections = data.map(conn => ({
             id: conn.xero_id,
-            authEventId: "",  // This field isn't stored but is part of the interface
+            authEventId: "",
             tenantId: conn.tenant_id,
             tenantType: conn.tenant_type,
             tenantName: conn.tenant_name,
@@ -212,39 +209,27 @@ const XeroConnectionsPage: React.FC = () => {
   }, [hasXeroAuthParams, toast, isFetching, selectedToken]);
 
   useEffect(() => {
-    // Filter connections based on search term
     const results = connections.filter(connection =>
       connection.tenantName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     setFilteredConnections(results);
-    setCurrentPage(1); // Reset to first page when searching
+    setCurrentPage(1);
   }, [searchTerm, connections]);
 
-  // Calculate pagination values
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentItems = filteredConnections.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredConnections.length / itemsPerPage);
-  
-  // Function to generate page numbers for pagination
   const getPageNumbers = () => {
     const pageNumbers = [];
     
     if (totalPages <= 5) {
-      // Show all pages if 5 or fewer
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i);
       }
     } else {
-      // Always show first page
       pageNumbers.push(1);
       
-      // Show dots if current page is more than 3
       if (currentPage > 3) {
         pageNumbers.push("ellipsis1");
       }
       
-      // Show current page and adjacent pages
       const startPage = Math.max(2, currentPage - 1);
       const endPage = Math.min(totalPages - 1, currentPage + 1);
       
@@ -254,12 +239,10 @@ const XeroConnectionsPage: React.FC = () => {
         }
       }
       
-      // Show dots if current page is less than total pages - 2
       if (currentPage < totalPages - 2) {
         pageNumbers.push("ellipsis2");
       }
       
-      // Always show last page
       if (totalPages > 1) {
         pageNumbers.push(totalPages);
       }
@@ -272,7 +255,6 @@ const XeroConnectionsPage: React.FC = () => {
     try {
       console.log("Initiating Xero auth...");
       
-      // Call the edge function with the action in the request body
       const { data, error } = await supabase.functions.invoke('xero-auth', {
         method: 'POST',
         body: { action: 'authorize' }
@@ -289,7 +271,6 @@ const XeroConnectionsPage: React.FC = () => {
         throw new Error('No authorization URL returned from Xero auth endpoint');
       }
       
-      // Redirect to Xero authorization page
       window.location.href = data.url;
     } catch (error) {
       console.error('Error initiating Xero auth:', error);
@@ -300,69 +281,6 @@ const XeroConnectionsPage: React.FC = () => {
       });
     }
   };
-  
-  const handleGetConnections = async () => {
-    try {
-      if (!selectedToken) {
-        toast({
-          title: "Error",
-          description: "No Xero token selected",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      setIsFetching(true);
-      
-      // Call the edge function to get connections for the selected token
-      const { data, error } = await supabase.functions.invoke('xero-auth', {
-        method: 'POST',
-        body: { 
-          action: 'get-connections',
-          tokenId: selectedToken.id
-        }
-      });
-      
-      if (error) {
-        console.error("Error getting Xero connections:", error);
-        throw new Error(error.message || "Failed to get Xero connections");
-      }
-      
-      toast({
-        title: "Success",
-        description: `Retrieved ${data.connections.length} connections from Xero for ${data.userName || 'selected user'}`,
-      });
-      
-      setIsFetching(false);
-    } catch (error) {
-      console.error('Error getting Xero connections:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to get Xero connections",
-        variant: "destructive",
-      });
-      setIsFetching(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      return format(new Date(dateString), "dd MMM yyyy, HH:mm");
-    } catch (error) {
-      return dateString;
-    }
-  };
-
-  const handleTokenSelect = (token: XeroToken) => {
-    setSelectedToken(token);
-  };
-
-  const renderTokenName = (token: XeroToken) => {
-    if (!token.user_name || token.user_name === "Xero User") {
-      return `Xero User (${formatDate(token.created_at)})`;
-    }
-    return token.user_name;
-  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -371,180 +289,186 @@ const XeroConnectionsPage: React.FC = () => {
         <main className="p-4 md:p-6 max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-6">
             <h1 className="text-2xl font-bold text-navy-700">Xero Connections</h1>
-            <div className="flex gap-3">
-              <Button 
-                onClick={handleGetConnections}
-                variant="outline"
-                disabled={isLoading || isFetching || hasXeroAuthParams || !selectedToken}
-                className="flex items-center gap-2"
-              >
-                <RefreshCcw size={16} className={isFetching ? "animate-spin" : ""} />
-                Refresh Connections
-              </Button>
-              <Button 
-                onClick={handleAddNewConnection}
-                className="flex items-center gap-2"
-                disabled={isLoading || isFetching || hasXeroAuthParams}
-              >
-                <Plus size={16} />
-                Add New Xero Connection
-              </Button>
-            </div>
+            <Button 
+              onClick={handleAddNewConnection}
+              className="flex items-center gap-2"
+            >
+              <Plus size={16} />
+              Add New Xero Connection
+            </Button>
           </div>
 
           {hasXeroAuthParams ? (
             <XeroSyncLoader />
           ) : (
             <Card>
-              <CardHeader className="pb-3">
-                <div className="flex justify-between items-end">
-                  <CardTitle>Connected Organisations</CardTitle>
-                  {xeroTokens.length > 0 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="flex items-center gap-2">
-                          <Users size={16} />
-                          {selectedToken ? renderTokenName(selectedToken) : "Select Xero User"}
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent>
-                        <DropdownMenuLabel>Xero Users</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {xeroTokens.map((token) => (
-                          <DropdownMenuItem 
-                            key={token.id} 
-                            onClick={() => handleTokenSelect(token)}
-                            className={selectedToken?.id === token.id ? "bg-navy-50" : ""}
-                          >
-                            {renderTokenName(token)}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  )}
-                </div>
-                <div className="text-sm text-navy-500 font-medium mt-2">
-                  Showing {currentItems.length} of {filteredConnections.length} organisations
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="mb-4 flex justify-between items-center">
-                  <div className="relative w-full sm:max-w-sm">
-                    <Input
-                      type="text"
-                      placeholder="Search organisations..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10 pr-4"
-                    />
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  </div>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => setIsFetching(prev => !prev)}  // Toggle to refresh the data
-                    className="ml-2"
-                    title="Refresh connections"
-                    disabled={isFetching}
-                  >
-                    <RefreshCcw size={16} className={isFetching ? "animate-spin" : ""} />
-                  </Button>
-                </div>
-              
-                <div className="rounded-md border overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-navy-50/80">
-                        <TableHead className="font-semibold">Organisation</TableHead>
-                        <TableHead className="font-semibold">Tenant ID</TableHead>
-                        <TableHead className="font-semibold">Type</TableHead>
-                        <TableHead className="font-semibold">Created</TableHead>
-                        <TableHead className="font-semibold">Last Updated</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {isLoading || isFetching ? (
-                        Array(3).fill(0).map((_, index) => (
-                          <TableRow key={`loading-${index}`}>
-                            <TableCell>
-                              <div className="flex items-center gap-2">
-                                <Skeleton className="h-4 w-4 rounded-full" />
-                                <Skeleton className="h-4 w-40" />
-                              </div>
-                            </TableCell>
-                            <TableCell><Skeleton className="h-4 w-24" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                            <TableCell><Skeleton className="h-4 w-32" /></TableCell>
-                          </TableRow>
-                        ))
-                      ) : currentItems.length === 0 ? (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                            {searchTerm 
-                              ? "No matching Xero connections found." 
-                              : selectedToken 
-                                ? "No Xero connections found for this user. Click \"Refresh Connections\" to update or add a new connection."
-                                : "No Xero tokens found. Click \"Add New Xero Connection\" to connect an organisation."}
-                          </TableCell>
-                        </TableRow>
-                      ) : (
-                        currentItems.map((connection) => (
-                          <TableRow key={connection.id} className="hover:bg-navy-50/20">
-                            <TableCell className="font-medium flex items-center gap-2">
-                              <Link size={16} className="text-navy-400" />
-                              {connection.tenantName}
-                            </TableCell>
-                            <TableCell className="font-mono text-sm text-navy-600">
-                              {connection.tenantId.substring(0, 8)}...
-                            </TableCell>
-                            <TableCell>{connection.tenantType}</TableCell>
-                            <TableCell>{formatDate(connection.createdDateUtc)}</TableCell>
-                            <TableCell>{formatDate(connection.updatedDateUtc)}</TableCell>
-                          </TableRow>
-                        ))
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
-                
-                {filteredConnections.length > 0 && (
-                  <div className="mt-4">
-                    <Pagination>
-                      <PaginationContent>
-                        <PaginationItem>
-                          <PaginationPrevious 
-                            onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                            className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                          />
-                        </PaginationItem>
-                        
-                        {getPageNumbers().map((pageNumber, index) => (
-                          <PaginationItem key={index}>
-                            {pageNumber === "ellipsis1" || pageNumber === "ellipsis2" ? (
-                              <PaginationEllipsis />
-                            ) : (
-                              <PaginationLink
-                                isActive={currentPage === pageNumber}
-                                onClick={() => typeof pageNumber === 'number' && setCurrentPage(pageNumber)}
+              {isLoading ? (
+                <CardContent className="flex justify-center items-center py-8">
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              ) : xeroTokens.length === 0 ? (
+                <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+                  <Info size={48} className="text-navy-500 mb-4" />
+                  <h2 className="text-xl font-semibold text-navy-700 mb-2">
+                    No Xero Tokens Found
+                  </h2>
+                  <p className="text-navy-500 mb-6">
+                    You haven't connected any Xero accounts yet. Click the "Add New Xero Connection" button to get started.
+                  </p>
+                </CardContent>
+              ) : (
+                <>
+                  <CardHeader className="pb-3">
+                    <div className="flex justify-between items-end">
+                      <CardTitle>Connected Organisations</CardTitle>
+                      {xeroTokens.length > 0 && (
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" className="flex items-center gap-2">
+                              <Users size={16} />
+                              {selectedToken ? renderTokenName(selectedToken) : "Select Xero User"}
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent>
+                            <DropdownMenuLabel>Xero Users</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            {xeroTokens.map((token) => (
+                              <DropdownMenuItem 
+                                key={token.id} 
+                                onClick={() => handleTokenSelect(token)}
+                                className={selectedToken?.id === token.id ? "bg-navy-50" : ""}
                               >
-                                {pageNumber}
-                              </PaginationLink>
-                            )}
-                          </PaginationItem>
-                        ))}
-                        
-                        <PaginationItem>
-                          <PaginationNext 
-                            onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                          />
-                        </PaginationItem>
-                      </PaginationContent>
-                    </Pagination>
-                  </div>
-                )}
-              </CardContent>
+                                {renderTokenName(token)}
+                              </DropdownMenuItem>
+                            ))}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      )}
+                    </div>
+                    <div className="text-sm text-navy-500 font-medium mt-2">
+                      Showing {currentItems.length} of {filteredConnections.length} organisations
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="mb-4 flex justify-between items-center">
+                      <div className="relative w-full sm:max-w-sm">
+                        <Input
+                          type="text"
+                          placeholder="Search organisations..."
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                          className="pl-10 pr-4"
+                        />
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={() => setIsFetching(prev => !prev)}
+                        className="ml-2"
+                        title="Refresh connections"
+                        disabled={isFetching}
+                      >
+                        <RefreshCcw size={16} className={isFetching ? "animate-spin" : ""} />
+                      </Button>
+                    </div>
+                    
+                    <div className="rounded-md border overflow-hidden">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-navy-50/80">
+                            <TableHead className="font-semibold">Organisation</TableHead>
+                            <TableHead className="font-semibold">Tenant ID</TableHead>
+                            <TableHead className="font-semibold">Type</TableHead>
+                            <TableHead className="font-semibold">Created</TableHead>
+                            <TableHead className="font-semibold">Last Updated</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {isLoading || isFetching ? (
+                            Array(3).fill(0).map((_, index) => (
+                              <TableRow key={`loading-${index}`}>
+                                <TableCell>
+                                  <div className="flex items-center gap-2">
+                                    <Skeleton className="h-4 w-4 rounded-full" />
+                                    <Skeleton className="h-4 w-40" />
+                                  </div>
+                                </TableCell>
+                                <TableCell><Skeleton className="h-4 w-24" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                                <TableCell><Skeleton className="h-4 w-32" /></TableCell>
+                              </TableRow>
+                            ))
+                          ) : currentItems.length === 0 ? (
+                            <TableRow>
+                              <TableCell colSpan={5} className="text-center py-8 text-gray-500">
+                                {searchTerm 
+                                  ? "No matching Xero connections found." 
+                                  : selectedToken 
+                                    ? "No Xero connections found for this user. Click \"Refresh Connections\" to update or add a new connection."
+                                    : "No Xero tokens found. Click \"Add New Xero Connection\" to connect an organisation."}
+                              </TableCell>
+                            </TableRow>
+                          ) : (
+                            currentItems.map((connection) => (
+                              <TableRow key={connection.id} className="hover:bg-navy-50/20">
+                                <TableCell className="font-medium flex items-center gap-2">
+                                  <Link size={16} className="text-navy-400" />
+                                  {connection.tenantName}
+                                </TableCell>
+                                <TableCell className="font-mono text-sm text-navy-600">
+                                  {connection.tenantId.substring(0, 8)}...
+                                </TableCell>
+                                <TableCell>{connection.tenantType}</TableCell>
+                                <TableCell>{formatDate(connection.createdDateUtc)}</TableCell>
+                                <TableCell>{formatDate(connection.updatedDateUtc)}</TableCell>
+                              </TableRow>
+                            ))
+                          )}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    
+                    {filteredConnections.length > 0 && (
+                      <div className="mt-4">
+                        <Pagination>
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious 
+                                onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                              />
+                            </PaginationItem>
+                            
+                            {getPageNumbers().map((pageNumber, index) => (
+                              <PaginationItem key={index}>
+                                {pageNumber === "ellipsis1" || pageNumber === "ellipsis2" ? (
+                                  <PaginationEllipsis />
+                                ) : (
+                                  <PaginationLink
+                                    isActive={currentPage === pageNumber}
+                                    onClick={() => typeof pageNumber === 'number' && setCurrentPage(pageNumber)}
+                                  >
+                                    {pageNumber}
+                                  </PaginationLink>
+                                )}
+                              </PaginationItem>
+                            ))}
+                            
+                            <PaginationItem>
+                              <PaginationNext 
+                                onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
+                      </div>
+                    )}
+                  </CardContent>
+                </>
+              )}
             </Card>
           )}
         </main>
