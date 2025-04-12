@@ -200,7 +200,7 @@ function ClientDetail() {
             </TabsContent>
             
             <TabsContent value="users">
-              <ClientDetailUsers clientId={client.id} />
+              <ClientDetailUsers clientId={client.id} clientName={client.name} />
             </TabsContent>
             
             <TabsContent value="tasks">
