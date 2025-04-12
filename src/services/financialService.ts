@@ -142,3 +142,35 @@ export async function getVisualDashboardData(businessId: string | null): Promise
     throw error;
   }
 }
+
+/**
+ * Gets the Xero connection associated with a client business
+ * @param businessId The client business ID
+ * @returns Promise with the Xero connection if found
+ */
+export async function getXeroConnectionForBusiness(businessId: string): Promise<any> {
+  if (!businessId) {
+    throw new Error('No business ID provided');
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('client_businesses')
+      .select(`
+        id,
+        tenant_id,
+        xero_connections:xero_connections(*)
+      `)
+      .eq('id', businessId)
+      .single();
+      
+    if (error) {
+      throw error;
+    }
+    
+    return data?.xero_connections?.length ? data.xero_connections[0] : null;
+  } catch (error) {
+    console.error("Error fetching Xero connection for business:", error);
+    throw error;
+  }
+}

@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 import { corsHeaders } from "../_shared/cors.ts";
@@ -221,6 +220,22 @@ serve(async (req) => {
 
       // Store connections in database
       for (const connection of connections) {
+        // Check if there's a client business with this tenant ID
+        const { data: clientBusinesses, error: businessError } = await supabase
+          .from("client_businesses")
+          .select("id")
+          .eq("tenant_id", connection.tenantId)
+          .limit(1);
+          
+        let clientBusinessId = null;
+        
+        if (businessError) {
+          console.error("Error checking client businesses:", businessError);
+        } else if (clientBusinesses && clientBusinesses.length > 0) {
+          clientBusinessId = clientBusinesses[0].id;
+          console.log(`Found matching client business ${clientBusinessId} for tenant ${connection.tenantId}`);
+        }
+
         // Store connections in the xero_connections table
         const { error: connectionError } = await supabase
           .from("xero_connections")
@@ -232,7 +247,8 @@ serve(async (req) => {
             created_date_utc: connection.createdDateUtc,
             updated_date_utc: connection.updatedDateUtc,
             updated_at: new Date().toISOString(),
-            xero_token_id: tokenRecord.id  // Link connection to token
+            xero_token_id: tokenRecord.id,  // Link connection to token
+            client_business_id: clientBusinessId  // Link connection to client business if found
           }, { onConflict: 'xero_id' });
 
         if (connectionError) {
@@ -364,6 +380,22 @@ serve(async (req) => {
       
       // Store connections in database
       for (const connection of connections) {
+        // Check if there's a client business with this tenant ID
+        const { data: clientBusinesses, error: businessError } = await supabase
+          .from("client_businesses")
+          .select("id")
+          .eq("tenant_id", connection.tenantId)
+          .limit(1);
+          
+        let clientBusinessId = null;
+        
+        if (businessError) {
+          console.error("Error checking client businesses:", businessError);
+        } else if (clientBusinesses && clientBusinesses.length > 0) {
+          clientBusinessId = clientBusinesses[0].id;
+          console.log(`Found matching client business ${clientBusinessId} for tenant ${connection.tenantId}`);
+        }
+        
         // Store connections in the xero_connections table
         const { error: connectionError } = await supabase
           .from("xero_connections")
@@ -375,7 +407,8 @@ serve(async (req) => {
             created_date_utc: connection.createdDateUtc,
             updated_date_utc: connection.updatedDateUtc,
             updated_at: new Date().toISOString(),
-            xero_token_id: token.id  // Link connection to token
+            xero_token_id: token.id,  // Link connection to token
+            client_business_id: clientBusinessId  // Link connection to client business if found
           }, { onConflict: 'xero_id' });
           
         if (connectionError) {
