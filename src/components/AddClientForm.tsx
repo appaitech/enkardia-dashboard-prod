@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,7 +20,7 @@ const clientSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   phone: z.string().optional(),
   industry: z.string().optional(),
-  xeroConnected: z.boolean().default(false),
+  tenantId: z.boolean().default(false).transform(val => val ? "temp-id" : null),
 });
 
 type ClientFormValues = z.infer<typeof clientSchema>;
@@ -41,7 +42,7 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
       email: "",
       phone: "",
       industry: "",
-      xeroConnected: false,
+      tenantId: false,
     },
   });
 
@@ -54,7 +55,7 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
         email: data.email,
         phone: data.phone,
         industry: data.industry,
-        xeroConnected: data.xeroConnected,
+        tenantId: data.tenantId,
       };
       
       const result = await createClientBusiness(newClient);
@@ -168,12 +169,12 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
           
           <FormField
             control={form.control}
-            name="xeroConnected"
+            name="tenantId"
             render={({ field }) => (
               <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                 <FormControl>
                   <Checkbox
-                    checked={field.value}
+                    checked={field.value === "temp-id"}
                     onCheckedChange={field.onChange}
                   />
                 </FormControl>

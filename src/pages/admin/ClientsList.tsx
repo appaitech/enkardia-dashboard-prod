@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -205,7 +206,7 @@ const ClientsList = () => {
                         )}
                       </TableCell>
                       <TableCell>
-                        {client.xeroConnected ? (
+                        {client.tenantId ? (
                           <Badge className="bg-green-100 text-green-800 hover:bg-green-200">
                             <CheckCircle2 className="mr-1 h-3.5 w-3.5" />
                             Connected

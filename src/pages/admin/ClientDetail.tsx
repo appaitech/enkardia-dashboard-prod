@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -30,7 +29,6 @@ function ClientDetail() {
       
       if (error) throw error;
       
-      // Convert from snake_case to camelCase
       return {
         id: data.id,
         name: data.name,
@@ -38,7 +36,7 @@ function ClientDetail() {
         email: data.email,
         phone: data.phone || "",
         industry: data.industry || "",
-        tenantId: data.tenant_id, // Changed from xero_connected to tenant_id
+        tenantId: data.tenant_id,
         createdAt: data.created_at,
         updatedAt: data.updated_at,
         createdBy: data.created_by

@@ -27,7 +27,7 @@ export const getUserClientBusinesses = async (userId: string): Promise<DbClientB
         email, 
         phone, 
         industry, 
-        xero_connected, 
+        tenant_id, 
         created_at, 
         updated_at
       )
