@@ -7,6 +7,7 @@ export interface XeroConnection {
   tenantName: string;
   createdDateUtc: string;
   updatedDateUtc: string;
+  xeroTokenId?: string; // Added to link connections to tokens
 }
 
 export interface XeroToken {
@@ -21,6 +22,7 @@ export interface XeroToken {
   updated_at: string;
   client_id?: string;
   xero_userid?: string;
+  user_name?: string;  // Added to identify different Xero users
   authentication_event_id: string;
   token_expiry: string;
 }

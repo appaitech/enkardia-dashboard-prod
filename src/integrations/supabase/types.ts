@@ -213,6 +213,7 @@ export type Database = {
           updated_at: string
           updated_date_utc: string
           xero_id: string
+          xero_token_id: string | null
         }
         Insert: {
           connection_status?: string
@@ -225,6 +226,7 @@ export type Database = {
           updated_at?: string
           updated_date_utc: string
           xero_id: string
+          xero_token_id?: string | null
         }
         Update: {
           connection_status?: string
@@ -237,8 +239,17 @@ export type Database = {
           updated_at?: string
           updated_date_utc?: string
           xero_id?: string
+          xero_token_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "xero_connections_xero_token_id_fkey"
+            columns: ["xero_token_id"]
+            isOneToOne: false
+            referencedRelation: "xero_tokens"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       xero_tokens: {
         Row: {
@@ -254,6 +265,7 @@ export type Database = {
           token_expiry: string
           token_type: string
           updated_at: string
+          user_name: string | null
           xero_userid: string | null
         }
         Insert: {
@@ -269,6 +281,7 @@ export type Database = {
           token_expiry: string
           token_type: string
           updated_at?: string
+          user_name?: string | null
           xero_userid?: string | null
         }
         Update: {
@@ -284,6 +297,7 @@ export type Database = {
           token_expiry?: string
           token_type?: string
           updated_at?: string
+          user_name?: string | null
           xero_userid?: string | null
         }
         Relationships: []

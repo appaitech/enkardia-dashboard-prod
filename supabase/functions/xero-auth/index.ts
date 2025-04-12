@@ -100,65 +100,46 @@ serve(async (req) => {
       const tokenExpiry = new Date();
       tokenExpiry.setSeconds(tokenExpiry.getSeconds() + expiresIn);
 
-      // Check if any token exists in the table by querying the first record
-      const { data: existingTokens, error: queryError } = await supabase
+      // Get user information from id_token if available
+      let userName = "Xero User";
+      if (tokenData.id_token) {
+        try {
+          // Extract user info from id_token (JWT)
+          const base64Url = tokenData.id_token.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+          }).join(''));
+          
+          const payload = JSON.parse(jsonPayload);
+          if (payload.email) {
+            userName = payload.email;
+          } else if (payload.preferred_username) {
+            userName = payload.preferred_username;
+          } else if (payload.name) {
+            userName = payload.name;
+          }
+        } catch (error) {
+          console.error("Error parsing id_token:", error);
+        }
+      }
+
+      // Create a new token record
+      const { data: tokenRecord, error: tokenError } = await supabase
         .from("xero_tokens")
+        .insert({
+          authentication_event_id: state,
+          access_token: tokenData.access_token,
+          expires_in: tokenData.expires_in,
+          token_type: tokenData.token_type,
+          refresh_token: tokenData.refresh_token,
+          scope: tokenData.scope,
+          id_token: tokenData.id_token,
+          token_expiry: tokenExpiry.toISOString(),
+          user_name: userName
+        })
         .select("id")
-        .limit(1);
-
-      if (queryError) {
-        console.error("Error checking for existing tokens:", queryError);
-      }
-
-      let tokenRecord;
-      let tokenError;
-
-      // If any token exists, update it instead of inserting a new one
-      if (existingTokens && existingTokens.length > 0) {
-        console.log("Updating existing token");
-        const firstTokenId = existingTokens[0].id;
-        
-        // Update the first token
-        const { data, error } = await supabase
-          .from("xero_tokens")
-          .update({
-            authentication_event_id: state,
-            access_token: tokenData.access_token,
-            expires_in: tokenData.expires_in,
-            token_type: tokenData.token_type,
-            refresh_token: tokenData.refresh_token,
-            scope: tokenData.scope,
-            id_token: tokenData.id_token,
-            token_expiry: tokenExpiry.toISOString(),
-            updated_at: new Date().toISOString()
-          })
-          .eq("id", firstTokenId)
-          .select("id")
-          .single();
-          
-        tokenRecord = data;
-        tokenError = error;
-      } else {
-        // Otherwise insert a new token
-        console.log("Creating new token");
-        const { data, error } = await supabase
-          .from("xero_tokens")
-          .insert({
-            authentication_event_id: state,
-            access_token: tokenData.access_token,
-            expires_in: tokenData.expires_in,
-            token_type: tokenData.token_type,
-            refresh_token: tokenData.refresh_token,
-            scope: tokenData.scope,
-            id_token: tokenData.id_token,
-            token_expiry: tokenExpiry.toISOString(),
-          })
-          .select("id")
-          .single();
-          
-        tokenRecord = data;
-        tokenError = error;
-      }
+        .single();
 
       if (tokenError) {
         console.error("Error storing token:", tokenError);
@@ -205,7 +186,8 @@ serve(async (req) => {
             tenant_name: connection.tenantName,
             created_date_utc: connection.createdDateUtc,
             updated_date_utc: connection.updatedDateUtc,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            xero_token_id: tokenRecord.id  // Link connection to token
           }, { onConflict: 'tenant_id' });
 
         if (connectionError) {
@@ -224,17 +206,34 @@ serve(async (req) => {
       );
     }
     
-    // Get connections from Xero using the current token
+    // Get connections from Xero using a specific token or the latest token
     if (action === "get-connections") {
       console.log("Fetching Xero connections");
       
-      // Get the first token from the database
-      const { data: token, error: tokenError } = await supabase
+      // Parse request body if not already parsed
+      if (!requestData) {
+        try {
+          requestData = await req.json();
+        } catch (error) {
+          console.error("Error parsing request body:", error);
+        }
+      }
+      
+      // Use specified token ID or get the latest token
+      const tokenId = requestData?.tokenId;
+      let tokenQuery = supabase
         .from("xero_tokens")
-        .select("*")
-        .order('created_at', { ascending: false })
-        .limit(1)
-        .single();
+        .select("*");
+        
+      if (tokenId) {
+        tokenQuery = tokenQuery.eq("id", tokenId);
+      } else {
+        tokenQuery = tokenQuery.order('created_at', { ascending: false });
+      }
+      
+      tokenQuery = tokenQuery.limit(1);
+      
+      const { data: token, error: tokenError } = await tokenQuery.single();
       
       if (tokenError) {
         console.error("Error fetching token:", tokenError);
@@ -330,7 +329,8 @@ serve(async (req) => {
             tenant_name: connection.tenantName,
             created_date_utc: connection.createdDateUtc,
             updated_date_utc: connection.updatedDateUtc,
-            updated_at: new Date().toISOString()
+            updated_at: new Date().toISOString(),
+            xero_token_id: token.id  // Link connection to token
           }, { onConflict: 'tenant_id' });
           
         if (connectionError) {
@@ -342,7 +342,30 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: "Xero connections fetched successfully", 
-          connections 
+          connections,
+          tokenId: token.id,
+          userName: token.user_name
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    
+    // Get all token records
+    if (action === "get-tokens") {
+      const { data: tokens, error: tokensError } = await supabase
+        .from("xero_tokens")
+        .select("id, user_name, created_at, updated_at, token_expiry")
+        .order('created_at', { ascending: false });
+      
+      if (tokensError) {
+        console.error("Error fetching tokens:", tokensError);
+        throw new Error("Failed to fetch Xero tokens");
+      }
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          tokens
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );

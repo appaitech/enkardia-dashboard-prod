@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Link, Search, RefreshCcw } from "lucide-react";
+import { Plus, Link, Search, RefreshCcw, Users } from "lucide-react";
 import AdminSidebar from "@/components/AdminSidebar";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { XeroConnection } from "@/types/xero";
+import { XeroConnection, XeroToken } from "@/types/xero";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 const XeroSyncLoader: React.FC = () => {
   const [progress, setProgress] = useState(30);
@@ -118,6 +119,8 @@ const XeroConnectionsPage: React.FC = () => {
   const [itemsPerPage] = useState(5);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetching, setIsFetching] = useState(false);
+  const [xeroTokens, setXeroTokens] = useState<XeroToken[]>([]);
+  const [selectedToken, setSelectedToken] = useState<XeroToken | null>(null);
   const location = useLocation();
   const { toast } = useToast();
 
@@ -125,15 +128,46 @@ const XeroConnectionsPage: React.FC = () => {
   const searchParams = new URLSearchParams(location.search);
   const hasXeroAuthParams = searchParams.has('code') && searchParams.has('state');
 
+  // Fetch available Xero tokens
+  useEffect(() => {
+    const fetchTokens = async () => {
+      try {
+        const { data, error } = await supabase.functions.invoke('xero-auth', {
+          body: { action: 'get-tokens' }
+        });
+
+        if (error) {
+          console.error("Error fetching Xero tokens:", error);
+          return;
+        }
+
+        if (data.tokens && data.tokens.length > 0) {
+          setXeroTokens(data.tokens);
+          setSelectedToken(data.tokens[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching Xero tokens:", error);
+      }
+    };
+
+    if (!hasXeroAuthParams) {
+      fetchTokens();
+    }
+  }, [hasXeroAuthParams, isFetching]);
+
+  // Fetch connections when selectedToken changes
   useEffect(() => {
     const fetchConnections = async () => {
+      if (!selectedToken) return;
+      
       try {
         setIsLoading(true);
         
-        // Fetch real connections from the database
+        // Fetch connections for the selected token
         const { data, error } = await supabase
           .from("xero_connections")
           .select("*")
+          .eq("xero_token_id", selectedToken.id)
           .order('updated_at', { ascending: false });
         
         if (error) {
@@ -153,7 +187,8 @@ const XeroConnectionsPage: React.FC = () => {
             tenantType: conn.tenant_type,
             tenantName: conn.tenant_name,
             createdDateUtc: conn.created_date_utc,
-            updatedDateUtc: conn.updated_date_utc
+            updatedDateUtc: conn.updated_date_utc,
+            xeroTokenId: conn.xero_token_id
           }));
           
           setConnections(transformedConnections);
@@ -174,7 +209,7 @@ const XeroConnectionsPage: React.FC = () => {
     if (!hasXeroAuthParams) {
       fetchConnections();
     }
-  }, [hasXeroAuthParams, toast, isFetching]);
+  }, [hasXeroAuthParams, toast, isFetching, selectedToken]);
 
   useEffect(() => {
     // Filter connections based on search term
@@ -268,12 +303,24 @@ const XeroConnectionsPage: React.FC = () => {
   
   const handleGetConnections = async () => {
     try {
+      if (!selectedToken) {
+        toast({
+          title: "Error",
+          description: "No Xero token selected",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setIsFetching(true);
       
-      // Call the edge function to get connections
+      // Call the edge function to get connections for the selected token
       const { data, error } = await supabase.functions.invoke('xero-auth', {
         method: 'POST',
-        body: { action: 'get-connections' }
+        body: { 
+          action: 'get-connections',
+          tokenId: selectedToken.id
+        }
       });
       
       if (error) {
@@ -283,7 +330,7 @@ const XeroConnectionsPage: React.FC = () => {
       
       toast({
         title: "Success",
-        description: `Retrieved ${data.connections.length} connections from Xero`,
+        description: `Retrieved ${data.connections.length} connections from Xero for ${data.userName || 'selected user'}`,
       });
       
       setIsFetching(false);
@@ -306,6 +353,17 @@ const XeroConnectionsPage: React.FC = () => {
     }
   };
 
+  const handleTokenSelect = (token: XeroToken) => {
+    setSelectedToken(token);
+  };
+
+  const renderTokenName = (token: XeroToken) => {
+    if (!token.user_name || token.user_name === "Xero User") {
+      return `Xero User (${formatDate(token.created_at)})`;
+    }
+    return token.user_name;
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <AdminSidebar activePath="/admin/xero-connections" />
@@ -317,11 +375,11 @@ const XeroConnectionsPage: React.FC = () => {
               <Button 
                 onClick={handleGetConnections}
                 variant="outline"
-                disabled={isLoading || isFetching || hasXeroAuthParams}
+                disabled={isLoading || isFetching || hasXeroAuthParams || !selectedToken}
                 className="flex items-center gap-2"
               >
                 <RefreshCcw size={16} className={isFetching ? "animate-spin" : ""} />
-                Get Connections
+                Refresh Connections
               </Button>
               <Button 
                 onClick={handleAddNewConnection}
@@ -341,9 +399,32 @@ const XeroConnectionsPage: React.FC = () => {
               <CardHeader className="pb-3">
                 <div className="flex justify-between items-end">
                   <CardTitle>Connected Organisations</CardTitle>
-                  <div className="text-sm text-navy-500 font-medium">
-                    Showing {currentItems.length} of {filteredConnections.length} organisations
-                  </div>
+                  {xeroTokens.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="flex items-center gap-2">
+                          <Users size={16} />
+                          {selectedToken ? renderTokenName(selectedToken) : "Select Xero User"}
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent>
+                        <DropdownMenuLabel>Xero Users</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {xeroTokens.map((token) => (
+                          <DropdownMenuItem 
+                            key={token.id} 
+                            onClick={() => handleTokenSelect(token)}
+                            className={selectedToken?.id === token.id ? "bg-navy-50" : ""}
+                          >
+                            {renderTokenName(token)}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+                <div className="text-sm text-navy-500 font-medium mt-2">
+                  Showing {currentItems.length} of {filteredConnections.length} organisations
                 </div>
               </CardHeader>
               <CardContent>
@@ -361,7 +442,7 @@ const XeroConnectionsPage: React.FC = () => {
                   <Button
                     variant="outline"
                     size="icon"
-                    onClick={() => setIsFetching(true)}
+                    onClick={() => setIsFetching(prev => !prev)}  // Toggle to refresh the data
                     className="ml-2"
                     title="Refresh connections"
                     disabled={isFetching}
@@ -400,7 +481,11 @@ const XeroConnectionsPage: React.FC = () => {
                       ) : currentItems.length === 0 ? (
                         <TableRow>
                           <TableCell colSpan={5} className="text-center py-8 text-gray-500">
-                            {searchTerm ? "No matching Xero connections found." : "No Xero connections found. Click \"Add New Xero Connection\" to connect an organisation."}
+                            {searchTerm 
+                              ? "No matching Xero connections found." 
+                              : selectedToken 
+                                ? "No Xero connections found for this user. Click \"Refresh Connections\" to update or add a new connection."
+                                : "No Xero tokens found. Click \"Add New Xero Connection\" to connect an organisation."}
                           </TableCell>
                         </TableRow>
                       ) : (
