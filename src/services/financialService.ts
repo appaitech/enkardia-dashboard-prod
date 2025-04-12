@@ -68,12 +68,35 @@ const getFinancialDataPath = (businessId: string, dataType: FinancialDataType): 
 };
 
 /**
+ * Get the default start date (January 1st of current year)
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getDefaultStartDate = (): string => {
+  const currentDate = new Date();
+  return `${currentDate.getFullYear()}-01-01`;
+};
+
+/**
+ * Get the default end date (today)
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getDefaultEndDate = (): string => {
+  return new Date().toISOString().split('T')[0];
+};
+
+/**
  * Fetches the current financial year profit and loss data from Xero
  * @param businessId The client business ID
+ * @param periodStart Optional start date in YYYY-MM-DD format
+ * @param periodEnd Optional end date in YYYY-MM-DD format
  * @returns Promise with the profit and loss data
  * @throws Error if businessId is null or if fetching fails
  */
-export async function getProfitAndLossData(businessId: string | null): Promise<ProfitAndLossResponse> {
+export async function getProfitAndLossData(
+  businessId: string | null, 
+  periodStart?: string, 
+  periodEnd?: string
+): Promise<ProfitAndLossResponse> {
   if (!businessId) {
     throw new Error('No business ID provided');
   }
@@ -90,11 +113,17 @@ export async function getProfitAndLossData(businessId: string | null): Promise<P
       throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
     }
 
+    // Use provided dates or defaults
+    const startDate = periodStart || getDefaultStartDate();
+    const endDate = periodEnd || getDefaultEndDate();
+
     // Get P&L data from Xero using the invoke method
     const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
       body: {
         tenantId: business.tenant_id,
-        reportType: 'ProfitAndLoss'
+        reportType: 'ProfitAndLoss',
+        periodStart: startDate,
+        periodEnd: endDate
       }
     });
     
@@ -127,10 +156,18 @@ export async function getProfitAndLossData(businessId: string | null): Promise<P
 /**
  * Fetches monthly profit and loss data for the past 12 months from Xero
  * @param businessId The client business ID
+ * @param periodStart Optional start date in YYYY-MM-DD format
+ * @param periodEnd Optional end date in YYYY-MM-DD format
+ * @param periods Optional number of periods to include
  * @returns Promise with the monthly profit and loss data
  * @throws Error if businessId is null or if fetching fails
  */
-export async function getMonthlyProfitAndLossData(businessId: string | null): Promise<MonthlyProfitAndLoss> {
+export async function getMonthlyProfitAndLossData(
+  businessId: string | null,
+  periodStart?: string,
+  periodEnd?: string,
+  periods: number = 6
+): Promise<MonthlyProfitAndLoss> {
   if (!businessId) {
     throw new Error('No business ID provided');
   }
@@ -147,13 +184,9 @@ export async function getMonthlyProfitAndLossData(businessId: string | null): Pr
       throw new Error(`Failed to get tenant ID for business ${businessId}: ${businessError?.message || 'No tenant ID found'}`);
     }
 
-    // Calculate date range for past 12 months
-    const now = new Date();
-    const end = now.toISOString().split('T')[0]; // Format as YYYY-MM-DD
-    
-    const start = new Date();
-    start.setMonth(start.getMonth() - 12);
-    const startDate = start.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+    // Use provided dates or defaults
+    const startDate = periodStart || getDefaultStartDate();
+    const endDate = periodEnd || getDefaultEndDate();
 
     // Get monthly P&L data from Xero using the invoke method
     const { data: result, error: functionError } = await supabase.functions.invoke('xero-financial-data', {
@@ -161,7 +194,10 @@ export async function getMonthlyProfitAndLossData(businessId: string | null): Pr
         tenantId: business.tenant_id,
         reportType: 'ProfitAndLoss',
         periodStart: startDate,
-        periodEnd: end
+        periodEnd: endDate,
+        periods: periods,
+        timeframe: 'MONTH',
+        standardLayout: true
       }
     });
     
@@ -194,13 +230,19 @@ export async function getMonthlyProfitAndLossData(businessId: string | null): Pr
 /**
  * Fetches data for the visual dashboard display from Xero
  * @param businessId The client business ID
+ * @param periodStart Optional start date in YYYY-MM-DD format
+ * @param periodEnd Optional end date in YYYY-MM-DD format
  * @returns Promise with the visual dashboard data
  * @throws Error if businessId is null or if fetching fails
  */
-export async function getVisualDashboardData(businessId: string | null): Promise<VisualDashboardData> {
+export async function getVisualDashboardData(
+  businessId: string | null,
+  periodStart?: string,
+  periodEnd?: string
+): Promise<VisualDashboardData> {
   // For the visual dashboard, we'll use the same data as the profit and loss data
-  // In a real-world scenario, you might want to create a more specialized report in Xero
-  return getProfitAndLossData(businessId) as Promise<VisualDashboardData>;
+  // with specified date ranges
+  return getProfitAndLossData(businessId, periodStart, periodEnd) as Promise<VisualDashboardData>;
 }
 
 /**

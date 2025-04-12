@@ -1,7 +1,7 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { 
   BarChart, 
   Bar, 
@@ -26,15 +26,24 @@ import {
   BarChart3,
   RefreshCcw,
   FileText,
-  ChevronRight
+  ChevronRight,
+  CalendarIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import {
   getVisualDashboardData,
   getFinancialSummary,
   getOutstandingInvoices,
-  getPaidInvoicesLastMonth
+  getPaidInvoicesLastMonth,
+  getMonthlyProfitAndLossData,
+  getDefaultStartDate,
+  getDefaultEndDate
 } from "@/services/financialService";
 
 interface FinancialDashboardProps {
@@ -42,6 +51,23 @@ interface FinancialDashboardProps {
 }
 
 const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) => {
+  const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
+  const [endDate, setEndDate] = useState<string>(getDefaultEndDate());
+  const [fromDateOpen, setFromDateOpen] = useState(false);
+  const [toDateOpen, setToDateOpen] = useState(false);
+
+  // Fetch monthly report data
+  const { 
+    data: monthlyData, 
+    isLoading: isLoadingMonthly, 
+    isError: isMonthlyError,
+    refetch: refetchMonthly 
+  } = useQuery({
+    queryKey: ["monthly-financial-data", businessId, startDate, endDate],
+    queryFn: () => getMonthlyProfitAndLossData(businessId, startDate, endDate, 6),
+    enabled: !!businessId,
+  });
+
   // Fetch visual dashboard data
   const { 
     data: visualData, 
@@ -49,8 +75,8 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
     isError: isVisualError,
     refetch: refetchVisual 
   } = useQuery({
-    queryKey: ["visual-dashboard", businessId],
-    queryFn: () => getVisualDashboardData(businessId),
+    queryKey: ["visual-dashboard", businessId, startDate, endDate],
+    queryFn: () => getVisualDashboardData(businessId, startDate, endDate),
     enabled: !!businessId,
   });
 
@@ -61,7 +87,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
     isError: isSummaryError,
     refetch: refetchSummary
   } = useQuery({
-    queryKey: ["financial-summary", businessId],
+    queryKey: ["financial-summary", businessId, startDate, endDate],
     queryFn: () => getFinancialSummary(businessId),
     enabled: !!businessId,
   });
@@ -91,14 +117,29 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
   });
 
   const handleRefresh = () => {
+    refetchMonthly();
     refetchVisual();
     refetchSummary();
     refetchOutstanding();
     refetchPaid();
   };
 
-  const isLoading = isLoadingVisual || isLoadingSummary || isLoadingOutstanding || isLoadingPaid;
-  const isError = isVisualError || isSummaryError || isOutstandingError || isPaidError;
+  const handleFromDateChange = (date: Date | undefined) => {
+    if (date) {
+      setStartDate(format(date, 'yyyy-MM-dd'));
+      setFromDateOpen(false);
+    }
+  };
+
+  const handleToDateChange = (date: Date | undefined) => {
+    if (date) {
+      setEndDate(format(date, 'yyyy-MM-dd'));
+      setToDateOpen(false);
+    }
+  };
+
+  const isLoading = isLoadingMonthly || isLoadingVisual || isLoadingSummary || isLoadingOutstanding || isLoadingPaid;
+  const isError = isMonthlyError || isVisualError || isSummaryError || isOutstandingError || isPaidError;
 
   if (isLoading) {
     return (
@@ -122,7 +163,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
     );
   }
 
-  if (!visualData || !summaryData) {
+  if (!visualData || !summaryData || !monthlyData) {
     return (
       <div className="flex flex-col items-center justify-center p-8">
         <AlertTriangle className="h-12 w-12 text-slate-300" />
@@ -131,22 +172,41 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
     );
   }
 
-  // Prepare data for revenue trend chart
-  const processDataForTrend = () => {
-    if (!visualData || !visualData.Reports || !visualData.Reports[0]) {
+  // Prepare data for revenue trend chart from monthly data
+  const processMonthlyData = () => {
+    if (!monthlyData || !monthlyData.Reports || !monthlyData.Reports[0]) {
       return [];
     }
 
-    // In a real implementation, you would extract monthly data
-    // For this example, we'll create sample data
-    return [
-      { month: 'Jan', revenue: 35000 },
-      { month: 'Feb', revenue: 38500 },
-      { month: 'Mar', revenue: 42000 },
-      { month: 'Apr', revenue: 39000 },
-      { month: 'May', revenue: 44000 },
-      { month: 'Jun', revenue: 48000 },
-    ];
+    // Extract the column headers (months) from the report
+    const report = monthlyData.Reports[0];
+    const headers = report.Rows[0]?.Cells?.map(cell => cell.Value) || [];
+    
+    // Skip the first header (usually "Account")
+    const monthHeaders = headers.slice(1);
+    
+    // Find the "Total Income" row for revenue
+    const incomeSection = report.Rows.find(section => section.Title === 'Income' || section.Title === 'Revenue');
+    const totalIncomeRow = incomeSection?.Rows?.find(row => 
+      row.RowType === 'SummaryRow' || row.Cells?.[0]?.Value?.includes('Total')
+    );
+    
+    if (!totalIncomeRow || !totalIncomeRow.Cells) {
+      return [];
+    }
+    
+    // Map the values to the chart data format
+    return monthHeaders.map((month, index) => {
+      // Skip the first cell (label) and map the value for this month
+      const value = totalIncomeRow.Cells?.[index + 1]?.Value || '0';
+      // Remove commas and convert to number
+      const revenue = parseFloat(value.replace(/,/g, ''));
+      
+      return {
+        month,
+        revenue
+      };
+    });
   };
 
   // Prepare data for expenses pie chart
@@ -172,7 +232,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
       .slice(0, 5); // Get top 5 expenses
   };
 
-  const revenueTrendData = processDataForTrend();
+  const revenueTrendData = processMonthlyData();
   const expensesData = processExpensesData();
 
   // Colors for charts
@@ -180,15 +240,74 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="flex items-center space-x-2">
           <BarChart3 className="h-5 w-5 text-green-600" />
           <h2 className="text-lg md:text-xl font-semibold text-slate-800">Financial Dashboard</h2>
         </div>
-        <Button variant="outline" size="sm" onClick={handleRefresh}>
-          <RefreshCcw className="mr-2 h-4 w-4" />
-          Refresh Data
-        </Button>
+        
+        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+          <div className="flex items-end gap-2">
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="from-date">From Date</Label>
+              <div className="flex">
+                <Input
+                  id="from-date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="rounded-r-none"
+                />
+                <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="rounded-l-none border-l-0">
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={startDate ? new Date(startDate) : undefined}
+                      onSelect={handleFromDateChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <div className="grid w-full max-w-sm items-center gap-1.5">
+              <Label htmlFor="to-date">To Date</Label>
+              <div className="flex">
+                <Input 
+                  id="to-date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="rounded-r-none"
+                />
+                <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="rounded-l-none border-l-0">
+                      <CalendarIcon className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={endDate ? new Date(endDate) : undefined}
+                      onSelect={handleToDateChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+            
+            <Button onClick={handleRefresh} className="mb-1">
+              <RefreshCcw className="mr-2 h-4 w-4" />
+              Refresh
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Financial Summary Cards */}
@@ -238,12 +357,15 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
       {/* Revenue Trend Chart */}
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Revenue Trend</CardTitle>
+          <CardTitle className="text-lg">Monthly Revenue Trend</CardTitle>
+          <CardDescription>
+            {startDate} to {endDate}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
+              <BarChart
                 data={revenueTrendData}
                 margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
               >
@@ -252,14 +374,12 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
                 <YAxis />
                 <Tooltip formatter={(value) => formatCurrency(value as number)} />
                 <Legend />
-                <Line 
-                  type="monotone" 
+                <Bar 
                   dataKey="revenue" 
                   name="Revenue" 
-                  stroke="#0088FE" 
-                  activeDot={{ r: 8 }} 
+                  fill="#0088FE" 
                 />
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
           </div>
         </CardContent>

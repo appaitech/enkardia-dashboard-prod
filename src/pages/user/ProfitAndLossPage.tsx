@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import UserSidebar from "@/components/UserSidebar";
@@ -6,7 +7,9 @@ import {
   getProfitAndLossData, 
   getMonthlyProfitAndLossData,
   getVisualDashboardData,
-  FinancialDataType
+  FinancialDataType,
+  getDefaultStartDate,
+  getDefaultEndDate
 } from "@/services/financialService";
 import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
 import ProfitAndLossSummary from "@/components/ProfitAndLoss/ProfitAndLossSummary";
@@ -14,8 +17,13 @@ import ProfitAndLossTable from "@/components/ProfitAndLoss/ProfitAndLossTable";
 import ProfitAndLossChart from "@/components/ProfitAndLoss/ProfitAndLossChart";
 import MonthlyProfitAndLossTable from "@/components/ProfitAndLoss/MonthlyProfitAndLossTable";
 import VisualDashboard from "@/components/ProfitAndLoss/VisualDashboard";
-import { Loader2, AlertTriangle, RefreshCcw, BarChart, DollarSign, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Loader2, AlertTriangle, RefreshCcw, BarChart, DollarSign, TrendingUp, TrendingDown, ArrowUpCircle, ArrowDownCircle, CalendarIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -28,6 +36,12 @@ const ProfitAndLossPage: React.FC = () => {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
   const [activeTab, setActiveTab] = useState<string>("current-year");
   const isMobile = useIsMobile();
+  
+  // Date range state
+  const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
+  const [endDate, setEndDate] = useState<string>(getDefaultEndDate());
+  const [fromDateOpen, setFromDateOpen] = useState(false);
+  const [toDateOpen, setToDateOpen] = useState(false);
 
   const { 
     data: clientBusinesses,
@@ -45,8 +59,8 @@ const ProfitAndLossPage: React.FC = () => {
     isError: isErrorPL,
     refetch: refetchPL
   } = useQuery({
-    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.BASIC_CURRENT_YEAR],
-    queryFn: () => getProfitAndLossData(selectedBusinessId),
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.BASIC_CURRENT_YEAR, startDate, endDate],
+    queryFn: () => getProfitAndLossData(selectedBusinessId, startDate, endDate),
     enabled: !!selectedBusinessId,
   });
 
@@ -54,9 +68,10 @@ const ProfitAndLossPage: React.FC = () => {
     data: monthlyData,
     isLoading: isLoadingMonthly,
     isError: isErrorMonthly,
+    refetch: refetchMonthly
   } = useQuery({
-    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.MONTHLY_BREAKDOWN],
-    queryFn: () => getMonthlyProfitAndLossData(selectedBusinessId),
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.MONTHLY_BREAKDOWN, startDate, endDate],
+    queryFn: () => getMonthlyProfitAndLossData(selectedBusinessId, startDate, endDate, 6),
     enabled: !!selectedBusinessId && activeTab === "monthly",
   });
 
@@ -64,9 +79,10 @@ const ProfitAndLossPage: React.FC = () => {
     data: visualData,
     isLoading: isLoadingVisual,
     isError: isErrorVisual,
+    refetch: refetchVisual
   } = useQuery({
-    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.VISUAL_DASHBOARD],
-    queryFn: () => getVisualDashboardData(selectedBusinessId),
+    queryKey: ["profit-and-loss", selectedBusinessId, FinancialDataType.VISUAL_DASHBOARD, startDate, endDate],
+    queryFn: () => getVisualDashboardData(selectedBusinessId, startDate, endDate),
     enabled: !!selectedBusinessId && activeTab === "visual",
   });
 
@@ -88,6 +104,30 @@ const ProfitAndLossPage: React.FC = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+  };
+
+  const handleRefresh = () => {
+    if (activeTab === "current-year") {
+      refetchPL();
+    } else if (activeTab === "monthly") {
+      refetchMonthly();
+    } else if (activeTab === "visual") {
+      refetchVisual();
+    }
+  };
+
+  const handleFromDateChange = (date: Date | undefined) => {
+    if (date) {
+      setStartDate(format(date, 'yyyy-MM-dd'));
+      setFromDateOpen(false);
+    }
+  };
+
+  const handleToDateChange = (date: Date | undefined) => {
+    if (date) {
+      setEndDate(format(date, 'yyyy-MM-dd'));
+      setToDateOpen(false);
+    }
   };
 
   const isLoading = isLoadingBusinesses || 
@@ -123,7 +163,7 @@ const ProfitAndLossPage: React.FC = () => {
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">Error Loading Data</h2>
             <p className="mt-2 text-slate-500">There was a problem loading your financial data</p>
-            <Button onClick={() => refetchPL()} className="mt-4">
+            <Button onClick={handleRefresh} className="mt-4">
               <RefreshCcw className="mr-2 h-4 w-4" />
               Try Again
             </Button>
@@ -256,7 +296,7 @@ const ProfitAndLossPage: React.FC = () => {
           {selectedBusiness && (
             <Card className="mb-8 bg-white border-navy-100">
               <CardContent className="pt-6">
-                <div className="flex items-center justify-between">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                   <div>
                     <h2 className="text-xl font-semibold text-navy-800">
                       {selectedBusiness.name}
@@ -267,28 +307,82 @@ const ProfitAndLossPage: React.FC = () => {
                       </Badge>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-4">
-                    <div className="flex flex-col items-end">
-                      <div className="flex items-center space-x-2">
+                  
+                  <div className="flex flex-col md:flex-row items-end md:items-center gap-4">
+                    <div className="flex items-end gap-2">
+                      <div className="grid items-center gap-1.5">
+                        <Label htmlFor="from-date">From</Label>
+                        <div className="flex">
+                          <Input
+                            id="from-date"
+                            value={startDate}
+                            onChange={(e) => setStartDate(e.target.value)}
+                            className="rounded-r-none w-[130px]"
+                          />
+                          <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                                <CalendarIcon className="h-4 w-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={startDate ? new Date(startDate) : undefined}
+                                onSelect={handleFromDateChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                      
+                      <div className="grid items-center gap-1.5">
+                        <Label htmlFor="to-date">To</Label>
+                        <div className="flex">
+                          <Input 
+                            id="to-date"
+                            value={endDate}
+                            onChange={(e) => setEndDate(e.target.value)}
+                            className="rounded-r-none w-[130px]"
+                          />
+                          <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="rounded-l-none border-l-0 h-10">
+                                <CalendarIcon className="h-4 w-4" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0">
+                              <Calendar
+                                mode="single"
+                                selected={endDate ? new Date(endDate) : undefined}
+                                onSelect={handleToDateChange}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center">
+                      <div className="flex items-center space-x-2 mr-4">
                         <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
                         <span className="text-sm font-medium text-navy-800">
                           Connected to Xero
                         </span>
                       </div>
-                      <span className="text-xs text-navy-600/70 mt-1">
-                        Last synced: {new Date().toLocaleString()}
-                      </span>
+                      
+                      <Button 
+                        onClick={handleRefresh} 
+                        variant="outline" 
+                        size="sm"
+                        className="bg-white hover:bg-navy-50 border-navy-200"
+                      >
+                        <RefreshCcw className="h-4 w-4 mr-1" />
+                        Refresh
+                      </Button>
                     </div>
-                    
-                    <Button 
-                      onClick={() => refetchPL()} 
-                      variant="outline" 
-                      size="sm"
-                      className="bg-white hover:bg-navy-50 border-navy-200"
-                    >
-                      <RefreshCcw className="h-4 w-4 mr-1" />
-                      Refresh
-                    </Button>
                   </div>
                 </div>
               </CardContent>
@@ -345,6 +439,9 @@ const ProfitAndLossPage: React.FC = () => {
                       <CardTitle className="text-xl font-semibold text-navy-800">
                         Detailed Statement
                       </CardTitle>
+                      <CardDescription>
+                        {startDate} to {endDate}
+                      </CardDescription>
                     </CardHeader>
                     <CardContent className="overflow-x-auto">
                       <div className="max-w-[800px] mx-auto">
@@ -380,6 +477,9 @@ const ProfitAndLossPage: React.FC = () => {
                     <CardTitle className="text-xl font-semibold text-navy-800">
                       Monthly Breakdown
                     </CardTitle>
+                    <CardDescription>
+                      {startDate} to {endDate}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="overflow-x-auto">
                     <div className="min-w-[700px]">

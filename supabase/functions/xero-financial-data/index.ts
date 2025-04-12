@@ -27,6 +27,9 @@ interface RequestBody {
   reportType?: string;
   periodStart?: string;
   periodEnd?: string;
+  periods?: number;
+  timeframe?: string;
+  standardLayout?: boolean;
 }
 
 serve(async (req) => {
@@ -46,13 +49,22 @@ serve(async (req) => {
       throw new Error("Invalid request format: unable to parse request body");
     }
     
-    const { tenantId, reportType = "ProfitAndLoss", periodStart, periodEnd } = body;
+    const { 
+      tenantId, 
+      reportType = "ProfitAndLoss", 
+      periodStart, 
+      periodEnd,
+      periods,
+      timeframe,
+      standardLayout
+    } = body;
     
     if (!tenantId) {
       throw new Error("Tenant ID is required");
     }
 
-    console.log(`Getting ${reportType} data for tenant: ${tenantId}`);
+    console.log(`Getting ${reportType} data for tenant: ${tenantId} with date range: ${periodStart} to ${periodEnd}`);
+    if (periods) console.log(`Using periods: ${periods}, timeframe: ${timeframe}`);
     
     // Get the Xero connection for this tenant
     const { data: connections, error: connectionError } = await supabase
@@ -142,10 +154,18 @@ serve(async (req) => {
     
     // Prepare the URL for the Xero API request
     let reportUrl = `https://api.xero.com/api.xro/2.0/Reports/${reportType}`;
+    const urlParams = new URLSearchParams();
     
     // Add date parameters if provided
-    if (periodStart && periodEnd) {
-      reportUrl += `?fromDate=${periodStart}&toDate=${periodEnd}`;
+    if (periodStart) urlParams.append('fromDate', periodStart);
+    if (periodEnd) urlParams.append('toDate', periodEnd);
+    if (periods) urlParams.append('periods', periods.toString());
+    if (timeframe) urlParams.append('timeframe', timeframe);
+    if (standardLayout !== undefined) urlParams.append('standardLayout', standardLayout.toString());
+    
+    // Append query parameters if any were provided
+    if (urlParams.toString()) {
+      reportUrl += `?${urlParams.toString()}`;
     }
     
     console.log(`Calling Xero API: ${reportUrl}`);
@@ -183,7 +203,14 @@ serve(async (req) => {
         success: true, 
         data: reportData,
         reportType,
-        tenantId
+        tenantId,
+        params: {
+          periodStart,
+          periodEnd,
+          periods,
+          timeframe,
+          standardLayout
+        }
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
