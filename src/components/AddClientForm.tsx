@@ -10,7 +10,6 @@ import { X } from "lucide-react";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { NewClientBusiness } from "@/types/client";
 import { createClientBusiness } from "@/services/clientService";
 
@@ -20,11 +19,6 @@ const clientSchema = z.object({
   email: z.string().email({ message: "Invalid email address" }),
   phone: z.string().optional(),
   industry: z.string().optional(),
-  tenantId: z.union([z.string(), z.boolean()]).optional().transform(val => {
-    if (val === true) return "temp-id";
-    if (val === false) return null;
-    return val;
-  }),
 });
 
 type ClientFormValues = z.infer<typeof clientSchema>;
@@ -46,24 +40,18 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
       email: "",
       phone: "",
       industry: "",
-      tenantId: null,
     },
   });
 
   async function onSubmit(data: ClientFormValues) {
     setIsSubmitting(true);
     try {
-      // Ensure tenantId is string or null
-      const tenantIdValue = data.tenantId === true ? "temp-id" : (data.tenantId === false ? null : data.tenantId);
-      
-      // Explicitly handle tenantId to ensure it's string or null
       const newClient: NewClientBusiness = {
         name: data.name,
         contactName: data.contactName,
         email: data.email,
         phone: data.phone,
         industry: data.industry,
-        tenantId: tenantIdValue as string | null,
       };
       
       const result = await createClientBusiness(newClient);
