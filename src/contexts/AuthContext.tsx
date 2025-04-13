@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -21,7 +20,13 @@ interface AuthContextProps {
   isAuthenticated: boolean;
   signIn: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
-  signUp: (email: string, password: string, name?: string, accountType?: AccountType, role?: UserRole) => Promise<string | undefined>;
+  signup: (
+    email: string, 
+    password: string, 
+    name?: string, 
+    accountType?: AccountType, 
+    role?: UserRole
+  ) => Promise<string | undefined>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   updateUserProfile: (userId: string, updates: any) => Promise<any>;
@@ -278,7 +283,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     isLoading,
     isAuthenticated,
     signIn,
-    signUp,
+    signup,
     signOut,
     login,
     logout,
