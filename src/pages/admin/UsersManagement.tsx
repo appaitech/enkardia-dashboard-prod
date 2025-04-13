@@ -37,6 +37,16 @@ interface UserData {
   created_at: string;
 }
 
+const userAccountTypeRank = {
+  'CONSOLE': 0,
+  'CLIENT': 1
+};
+
+const userRoleRank = {
+  'ADMIN': 0,
+  'STANDARD': 1
+};
+
 const UsersManagement = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -60,16 +70,28 @@ const UsersManagement = () => {
     
     // Users can always edit themselves
     if (userData.id === user.id) return true;
+
+    const loggedInUserAccountTypeRank = userAccountTypeRank[user?.accountType];
+    const loggedInUserRoleRank = userRoleRank[user?.role];
+    const targetUserAccountTypeRank = userAccountTypeRank[userData?.account_type];
+    const targetUserRoleRank = userRoleRank[userData?.role];
     
-    // Only CONSOLE ADMIN users can edit other users
-    if (isAdmin && isConsole) {
-      // CONSOLE ADMIN users cannot edit other CONSOLE ADMIN users
-      if (userData.account_type === "CONSOLE" && userData.role === "ADMIN") {
-        return false;
-      }
+    console.log('loggedInUserAccountTypeRank', loggedInUserAccountTypeRank);
+    console.log('loggedInUserRoleRank', loggedInUserRoleRank);
+    console.log('targetUserAccountTypeRank', targetUserAccountTypeRank);
+    console.log('targetUserRoleRank', targetUserRoleRank);
+
+    // If logged-in user has higher account type rank (lower number)
+    if (loggedInUserAccountTypeRank < targetUserAccountTypeRank) {
       return true;
     }
     
+    // If account types are equal, check role rank
+    if (loggedInUserAccountTypeRank === targetUserAccountTypeRank && 
+        loggedInUserRoleRank < targetUserRoleRank) {
+      return true;
+    }
+
     return false;
   };
 
