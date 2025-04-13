@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -23,9 +22,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { User, UserPlus, Pencil, Trash2, Search, ShieldAlert, Shield, UserCog } from "lucide-react";
+import { User, UserPlus, Eye, Trash2, Search, ShieldAlert, Shield, UserCog } from "lucide-react";
 import CreateUserDialog from "@/components/admin/CreateUserDialog";
-import EditUserDialog from "@/components/admin/EditUserDialog";
+import ViewUserDialog from "@/components/admin/ViewUserDialog";
 import DeleteUserDialog from "@/components/admin/DeleteUserDialog";
 
 interface UserData {
@@ -57,7 +56,7 @@ const UsersManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserData | null>(null);
 
@@ -76,11 +75,6 @@ const UsersManagement = () => {
     const targetUserAccountTypeRank = userAccountTypeRank[userData?.account_type];
     const targetUserRoleRank = userRoleRank[userData?.role];
     
-    console.log('loggedInUserAccountTypeRank', loggedInUserAccountTypeRank);
-    console.log('loggedInUserRoleRank', loggedInUserRoleRank);
-    console.log('targetUserAccountTypeRank', targetUserAccountTypeRank);
-    console.log('targetUserRoleRank', targetUserRoleRank);
-
     // If logged-in user has higher account type rank (lower number)
     if (loggedInUserAccountTypeRank < targetUserAccountTypeRank) {
       return true;
@@ -163,15 +157,10 @@ const UsersManagement = () => {
     setCreateDialogOpen(true);
   };
 
-  const handleEditUser = (userData: UserData) => {
-    if (!canEditUser(userData)) {
-      toast.error("You don't have permission to edit this user");
-      return;
-    }
-    
-    console.log("Editing user:", userData);
+  const handleViewUser = (userData: UserData) => {
+    console.log("Viewing user:", userData);
     setSelectedUser(userData);
-    setEditDialogOpen(true);
+    setViewDialogOpen(true);
   };
 
   const handleDeleteUser = (userData: UserData) => {
@@ -197,7 +186,7 @@ const UsersManagement = () => {
 
   const onUserEdited = () => {
     fetchUsers();
-    setEditDialogOpen(false);
+    setViewDialogOpen(false);
     setSelectedUser(null);
   };
 
@@ -314,12 +303,10 @@ const UsersManagement = () => {
                                 <Button
                                   variant="ghost"
                                   size="icon"
-                                  onClick={() => handleEditUser(userData)}
-                                  title={canEditUser(userData) ? "Edit User" : "No permission to edit"}
-                                  disabled={!canEditUser(userData)}
-                                  className={!canEditUser(userData) ? "opacity-30 cursor-not-allowed" : ""}
+                                  onClick={() => handleViewUser(userData)}
+                                  title="View User"
                                 >
-                                  <Pencil className="h-4 w-4" />
+                                  <Eye className="h-4 w-4" />
                                 </Button>
                                 
                                 {userData.id !== user?.id && (
@@ -358,12 +345,18 @@ const UsersManagement = () => {
       
       {selectedUser && (
         <>
-          <EditUserDialog
-            open={editDialogOpen}
-            onOpenChange={setEditDialogOpen}
+          <ViewUserDialog
+            open={viewDialogOpen}
+            onOpenChange={setViewDialogOpen}
             user={selectedUser}
             onUserEdited={onUserEdited}
             isAdmin={isAdmin}
+            canEdit={canEditUser(selectedUser)}
+            canDelete={canDeleteUser(selectedUser)}
+            onDeleteClick={() => {
+              setViewDialogOpen(false);
+              setDeleteDialogOpen(true);
+            }}
           />
           
           <DeleteUserDialog
