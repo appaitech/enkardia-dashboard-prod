@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -36,16 +37,6 @@ interface UserData {
   created_at: string;
 }
 
-const userAccountTypeRank = {
-  'CONSOLE': 0,
-  'CLIENT': 1
-};
-
-const userRoleRank = {
-  'ADMIN': 0,
-  'STANDARD': 1
-};
-
 const UsersManagement = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -69,23 +60,17 @@ const UsersManagement = () => {
     
     // Users can always edit themselves
     if (userData.id === user.id) return true;
-
-    const loggedInUserAccountTypeRank = userAccountTypeRank[user?.accountType];
-    const loggedInUserRoleRank = userRoleRank[user?.role];
-    const targetUserAccountTypeRank = userAccountTypeRank[userData?.account_type];
-    const targetUserRoleRank = userRoleRank[userData?.role];
     
-    // If logged-in user has higher account type rank (lower number)
-    if (loggedInUserAccountTypeRank < targetUserAccountTypeRank) {
+    // All CONSOLE users can edit CLIENT users
+    if (user.accountType === "CONSOLE" && userData.account_type === "CLIENT") {
       return true;
     }
     
-    // If account types are equal, check role rank
-    if (loggedInUserAccountTypeRank === targetUserAccountTypeRank && 
-        loggedInUserRoleRank < targetUserRoleRank) {
+    // CONSOLE ADMINs can edit other CONSOLE users
+    if (user.accountType === "CONSOLE" && user.role === "ADMIN" && userData.account_type === "CONSOLE") {
       return true;
     }
-
+    
     return false;
   };
 

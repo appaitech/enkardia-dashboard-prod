@@ -79,21 +79,27 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
   const { user: currentUser, updateUserProfile } = useAuth();
   const [editMode, setEditMode] = useState(false);
   
-  const isCurrentUserConsoleAdmin = currentUser?.accountType === "CONSOLE" && currentUser?.role === "ADMIN";
+  const isCurrentUserConsole = currentUser?.accountType === "CONSOLE";
+  const isCurrentUserConsoleAdmin = isCurrentUserConsole && currentUser?.role === "ADMIN";
   const isTargetUserConsoleAdmin = user.account_type === "CONSOLE" && user.role === "ADMIN";
+  const isTargetUserClient = user.account_type === "CLIENT";
   
   // Determine if current user is editing themselves
   const isEditingSelf = currentUser?.id === user.id;
   
+  // New permission structure:
+  // 1. All CONSOLE users can edit CLIENT users
+  // 2. Only CONSOLE ADMINs can edit account_type
+  // 3. CONSOLE users can still edit themselves
+  // 4. CONSOLE users cannot edit other CONSOLE users (unless they are ADMIN)
+  
   // Determine if the current user can edit the account type
-  // Only CONSOLE ADMINs can edit account type, but they cannot change other CONSOLE ADMINs
-  const canEditAccountType = isCurrentUserConsoleAdmin && 
-    (!isTargetUserConsoleAdmin || isEditingSelf);
+  // Only CONSOLE ADMINs can edit account type
+  const canEditAccountType = isCurrentUserConsoleAdmin;
   
   // Determine if the current user can edit the role
-  // Only CONSOLE ADMINs can edit role, but they cannot change other CONSOLE ADMINs
-  const canEditRole = isCurrentUserConsoleAdmin && 
-    (!isTargetUserConsoleAdmin || isEditingSelf);
+  // All CONSOLE users can edit CLIENT users' roles
+  const canEditRole = isCurrentUserConsole && (isTargetUserClient || isEditingSelf || isCurrentUserConsoleAdmin);
   
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -131,9 +137,9 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
         updates.name = data.name;
       }
       
-      // Check if user is trying to edit a CONSOLE ADMIN and they themselves are not the user
-      if (!isEditingSelf && isTargetUserConsoleAdmin && isCurrentUserConsoleAdmin) {
-        toast.error("You cannot modify other CONSOLE ADMIN users");
+      // Check if user is trying to edit a CONSOLE user and they themselves are not ADMIN
+      if (!isEditingSelf && !isTargetUserClient && !isCurrentUserConsoleAdmin) {
+        toast.error("You cannot modify other CONSOLE users unless you are a CONSOLE ADMIN");
         return;
       }
       
@@ -172,14 +178,14 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
               ? "Update user details and permissions."
               : "View user information and manage settings."
             }
-            {!isCurrentUserConsoleAdmin && editMode && (
+            {!isCurrentUserConsole && editMode && (
               <div className="mt-2 text-amber-500 text-xs">
                 Note: Some fields are disabled based on your permissions.
               </div>
             )}
-            {isCurrentUserConsoleAdmin && isTargetUserConsoleAdmin && !isEditingSelf && editMode && (
+            {isCurrentUserConsole && !isCurrentUserConsoleAdmin && !isTargetUserClient && !isEditingSelf && editMode && (
               <div className="mt-2 text-amber-500 text-xs">
-                Note: You cannot modify other CONSOLE ADMIN users.
+                Note: You cannot modify other CONSOLE users unless you are a CONSOLE ADMIN.
               </div>
             )}
           </DialogDescription>
@@ -248,9 +254,9 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
                   </Select>
                   {!canEditRole && editMode && (
                     <FormDescription className="text-amber-500">
-                      {isTargetUserConsoleAdmin && !isEditingSelf 
-                        ? "You cannot modify other CONSOLE ADMIN users"
-                        : "You don't have permission to change role"}
+                      {!isCurrentUserConsole
+                        ? "You don't have permission to change role"
+                        : "You don't have permission to change this user's role"}
                     </FormDescription>
                   )}
                   {(!editMode || canEditRole) && (
@@ -296,9 +302,7 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
                   </Select>
                   {!canEditAccountType && editMode && (
                     <FormDescription className="text-amber-500">
-                      {isTargetUserConsoleAdmin && !isEditingSelf 
-                        ? "You cannot modify other CONSOLE ADMIN users"
-                        : "Only CONSOLE ADMIN users can change account type"}
+                      Only CONSOLE ADMIN users can change account type
                     </FormDescription>
                   )}
                   {(!editMode || canEditAccountType) && (
@@ -357,7 +361,7 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
                   </Button>
                   <Button 
                     type="submit" 
-                    disabled={isSubmitting || (isTargetUserConsoleAdmin && !isEditingSelf && isCurrentUserConsoleAdmin)}
+                    disabled={isSubmitting || (!isTargetUserClient && !isEditingSelf && !isCurrentUserConsoleAdmin)}
                   >
                     {isSubmitting ? (
                       <>
