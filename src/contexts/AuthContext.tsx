@@ -33,6 +33,13 @@ interface AuthContextProps {
   refreshUserData: () => Promise<void>;
   accountType: string | null;
   role: string | null;
+  signUp: (
+    email: string, 
+    password: string, 
+    name?: string, 
+    accountType?: AccountType, 
+    role?: UserRole
+  ) => Promise<string | undefined>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -190,6 +197,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Alias for signOut to match component naming
   const signOut = async () => {
     setIsLoading(true);
     try {
@@ -277,6 +285,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Alias methods to match different naming conventions
+  const signup = signUp;
+
   const value = {
     user,
     session,
@@ -291,6 +302,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     refreshUserData,
     accountType,
     role,
+    signUp,
   };
 
   return (
