@@ -656,255 +656,257 @@ const ProfitAndLossPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-slate-50">
-  <UserSidebar activePath="/user/financial/profit-loss" />
-  <div className="flex-1 w-full">
-    <div className="p-4 md:p-8">
-      <div className="mb-8 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
-        <div className="flex items-center space-x-4">
-          <div className="bg-navy-100/50 p-3 rounded-xl">
-            <BarChart className="h-8 w-8 text-navy-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold text-navy-800">
-              Profit & Loss
-            </h1>
-            <p className="text-navy-600/80 mt-1">
-              Track your financial performance
-            </p>
-          </div>
-        </div>
-        
-        {validBusinesses.length > 0 && (
-          <div className="w-full md:w-[300px]">
-            <ClientBusinessSelector 
-              clientBusinesses={validBusinesses}
-              selectedBusinessId={selectedBusinessId}
-              onBusinessSelect={handleBusinessSelect}
-              className="w-full"
-            />
-          </div>
-        )}
-      </div>
-
-      {selectedBusiness && (
-        <Card className="mb-8 bg-white border-navy-100">
-          <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-              <div>
-                <h2 className="text-xl font-semibold text-navy-800">
-                  {selectedBusiness.name}
-                </h2>
-                <div className="flex items-center mt-2">
-                  <Badge variant="outline" className="bg-navy-50 text-navy-700 border-navy-200">
-                    {selectedBusiness.industry || "No industry specified"}
-                  </Badge>
-                </div>
+    <div className="flex min-h-screen bg-slate-50">
+      <UserSidebar activePath="/user/financial/profit-loss" />
+      <div className="flex-1 w-full overflow-x-hidden pt-14 lg:pt-0 lg:pl-[70px] transition-all duration-300">
+        <div className="p-4 md:p-8">
+          <div className="mb-8 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div className="flex items-center space-x-4">
+              <div className="bg-navy-100/50 p-3 rounded-xl">
+                <BarChart className="h-8 w-8 text-navy-600" />
               </div>
-              
-              {renderDateRangeSelectors()}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-navy-800">
+                  Profit & Loss
+                </h1>
+                <p className="text-navy-600/80 mt-1">
+                  Track your financial performance
+                </p>
+              </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
-      
-      <Tabs 
-        defaultValue="current-year" 
-        value={activeTab}
-        onValueChange={handleTabChange}
-        className="space-y-6"
-      >
-        <div className="overflow-x-auto pb-2">
-          <TabsList className="inline-flex items-center justify-start rounded-md bg-navy-50/50 p-1 text-navy-600 min-w-full md:min-w-0 w-auto">
-            <TabsTrigger 
-              value="current-year"
-              className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-            >
-              <BarChart className="h-4 w-4" />
-              <span className="hidden md:inline">Current Year</span>
-              <span className="md:hidden">Current</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="visual"
-              className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-            >
-              <DollarSign className="h-4 w-4" />
-              <span className="hidden md:inline">Visual Dashboard</span>
-              <span className="md:hidden">Visual</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="annual"
-              className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-            >
-              <CalendarDays className="h-4 w-4" />
-              <span className="hidden md:inline">Annual Comparison</span>
-              <span className="md:hidden">Annual</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="quarterly"
-              className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-            >
-              <Columns3 className="h-4 w-4" />
-              <span className="hidden md:inline">Quarterly Breakdown</span>
-              <span className="md:hidden">Quarterly</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="department"
-              className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-            >
-              <Grid3X3 className="h-4 w-4" />
-              <span className="hidden md:inline">Department Comparison</span>
-              <span className="md:hidden">Dept.</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="custom-date"
-              className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-            >
-              <FileText className="h-4 w-4" />
-              <span className="hidden md:inline">Custom Date Range</span>
-              <span className="md:hidden">Custom</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="cash-vs-accrual"
-              className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-            >
-              <CreditCard className="h-4 w-4" />
-              <span className="hidden md:inline">Cash vs Accrual</span>
-              <span className="md:hidden">Cash/Accrual</span>
-            </TabsTrigger>
-            <TabsTrigger 
-              value="monthly"
-              className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-            >
-              <TrendingUp className="h-4 w-4" />
-              <span className="hidden md:inline">Monthly Breakdown</span>
-              <span className="md:hidden">Monthly</span>
-            </TabsTrigger>
-          </TabsList>
-        </div>
-        
-        <TabsContent value="current-year" className="space-y-6">
-          {plData && (
-            <div className="grid gap-6">
-              <ProfitAndLossSummary report={plData.Reports[0]} />
+            
+            {clientBusinesses && clientBusinesses.length > 0 && (
+              <div className="w-full md:w-[300px]">
+                <ClientBusinessSelector 
+                  clientBusinesses={clientBusinesses.filter(business => business !== null) || []}
+                  selectedBusinessId={selectedBusinessId}
+                  onBusinessSelect={handleBusinessSelect}
+                  className="w-full"
+                />
+              </div>
+            )}
+          </div>
 
-              <Card className="bg-white border-navy-100">
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold text-navy-800">
-                    Revenue & Expenses
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="overflow-x-auto">
-                  <div className="min-w-[500px] max-w-[900px] mx-auto">
-                    <ProfitAndLossChart rows={plData.Reports[0].Rows} />
+          {selectedBusinessId && (
+            <Card className="mb-8 bg-white border-navy-100">
+              <CardContent className="pt-6">
+                <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div>
+                    <h2 className="text-xl font-semibold text-navy-800">
+                      {clientBusinesses?.find(b => b?.id === selectedBusinessId)?.name || "Selected Business"}
+                    </h2>
+                    <div className="flex items-center mt-2">
+                      <Badge variant="outline" className="bg-navy-50 text-navy-700 border-navy-200">
+                        {clientBusinesses?.find(b => b?.id === selectedBusinessId)?.industry || "No industry specified"}
+                      </Badge>
+                    </div>
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card className="bg-white border-navy-100">
-                <CardHeader>
-                  <CardTitle className="text-xl font-semibold text-navy-800">
-                    Detailed Statement
-                  </CardTitle>
-                  <CardDescription>
-                    {startDate} to {endDate}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="overflow-x-auto">
-                  <div className="max-w-[800px] mx-auto">
-                    <ProfitAndLossTable 
-                      rows={plData.Reports[0].Rows} 
-                      period={plData.Reports[0].ReportDate} 
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="monthly">
-          {activeTab === "monthly" && !monthlyData && noDataMessage("Monthly")}
-          
-          {monthlyData && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-xl font-semibold text-navy-800">
-                  Monthly Breakdown
-                </CardTitle>
-                <CardDescription>
-                  {startDate} to {endDate}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="overflow-x-auto">
-                <div className="min-w-[700px]">
-                  <MonthlyProfitAndLossTable data={monthlyData} />
+                  
+                  {renderDateRangeSelectors()}
                 </div>
               </CardContent>
             </Card>
           )}
-        </TabsContent>
-        
-        <TabsContent value="visual">
-          {activeTab === "visual" && !visualData && noDataMessage("Visual Dashboard")}
           
-          {visualData && (
-            <VisualDashboard data={visualData} />
-          )}
-        </TabsContent>
+          <div className="w-full overflow-x-auto">
+            <Tabs 
+              defaultValue="current-year" 
+              value={activeTab}
+              onValueChange={handleTabChange}
+              className="space-y-6"
+            >
+              <div className="overflow-x-auto pb-2">
+                <TabsList className="inline-flex items-center justify-start rounded-md bg-navy-50/50 p-1 text-navy-600 w-auto">
+                  <TabsTrigger 
+                    value="current-year"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <BarChart className="h-4 w-4" />
+                    <span className="hidden md:inline">Current Year</span>
+                    <span className="md:hidden">Current</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="visual"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <DollarSign className="h-4 w-4" />
+                    <span className="hidden md:inline">Visual Dashboard</span>
+                    <span className="md:hidden">Visual</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="annual"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <CalendarDays className="h-4 w-4" />
+                    <span className="hidden md:inline">Annual Comparison</span>
+                    <span className="md:hidden">Annual</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="quarterly"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <Columns3 className="h-4 w-4" />
+                    <span className="hidden md:inline">Quarterly Breakdown</span>
+                    <span className="md:hidden">Quarterly</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="department"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                    <span className="hidden md:inline">Department Comparison</span>
+                    <span className="md:hidden">Dept.</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="custom-date"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span className="hidden md:inline">Custom Date Range</span>
+                    <span className="md:hidden">Custom</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="cash-vs-accrual"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    <span className="hidden md:inline">Cash vs Accrual</span>
+                    <span className="md:hidden">Cash/Accrual</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="monthly"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <TrendingUp className="h-4 w-4" />
+                    <span className="hidden md:inline">Monthly Breakdown</span>
+                    <span className="md:hidden">Monthly</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <TabsContent value="current-year" className="space-y-6">
+                {plData && (
+                  <div className="grid gap-6">
+                    <ProfitAndLossSummary report={plData.Reports[0]} />
 
-        <TabsContent value="annual">
-          {activeTab === "annual" && !annualData && noDataMessage("Annual Comparison")}
-          
-          {annualData && (
-            <AnnualComparisonView data={annualData} />
-          )}
-        </TabsContent>
+                    <Card className="bg-white border-navy-100">
+                      <CardHeader>
+                        <CardTitle className="text-xl font-semibold text-navy-800">
+                          Revenue & Expenses
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="overflow-x-auto">
+                        <div className="min-w-[500px] max-w-[900px] mx-auto">
+                          <ProfitAndLossChart rows={plData.Reports[0].Rows} />
+                        </div>
+                      </CardContent>
+                    </Card>
 
-        <TabsContent value="quarterly">
-          {activeTab === "quarterly" && !quarterlyData && noDataMessage("Quarterly Breakdown")}
-          
-          {quarterlyData && (
-            <QuarterlyBreakdownView data={quarterlyData} />
-          )}
-        </TabsContent>
+                    <Card className="bg-white border-navy-100">
+                      <CardHeader>
+                        <CardTitle className="text-xl font-semibold text-navy-800">
+                          Detailed Statement
+                        </CardTitle>
+                        <CardDescription>
+                          {startDate} to {endDate}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="overflow-x-auto">
+                        <div className="max-w-[800px] mx-auto">
+                          <ProfitAndLossTable 
+                            rows={plData.Reports[0].Rows} 
+                            period={plData.Reports[0].ReportDate} 
+                          />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="monthly">
+                {activeTab === "monthly" && !monthlyData && noDataMessage("Monthly")}
+                
+                {monthlyData && (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-xl font-semibold text-navy-800">
+                        Monthly Breakdown
+                      </CardTitle>
+                      <CardDescription>
+                        {startDate} to {endDate}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="overflow-x-auto">
+                      <div className="min-w-[700px]">
+                        <MonthlyProfitAndLossTable data={monthlyData} />
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="visual">
+                {activeTab === "visual" && !visualData && noDataMessage("Visual Dashboard")}
+                
+                {visualData && (
+                  <VisualDashboard data={visualData} />
+                )}
+              </TabsContent>
 
-        <TabsContent value="department">
-          <DepartmentComparisonView 
-            data={departmentData}
-            businessId={selectedBusinessId}
-            onTrackingCategorySelect={handleTrackingCategorySelect}
-            isLoading={isLoadingDepartment}
-          />
-        </TabsContent>
+              <TabsContent value="annual">
+                {activeTab === "annual" && !annualData && noDataMessage("Annual Comparison")}
+                
+                {annualData && (
+                  <AnnualComparisonView data={annualData} />
+                )}
+              </TabsContent>
 
-        <TabsContent value="custom-date">
-          {activeTab === "custom-date" && !customDateData && noDataMessage("Custom Date Range")}
-          
-          {customDateData && (
-            <CustomDateRangeView 
-              data={customDateData} 
-              fromDate={customStartDate}
-              toDate={customEndDate}
-            />
-          )}
-        </TabsContent>
+              <TabsContent value="quarterly">
+                {activeTab === "quarterly" && !quarterlyData && noDataMessage("Quarterly Breakdown")}
+                
+                {quarterlyData && (
+                  <QuarterlyBreakdownView data={quarterlyData} />
+                )}
+              </TabsContent>
 
-        <TabsContent value="cash-vs-accrual">
-          {activeTab === "cash-vs-accrual" && !cashVsAccrualData && noDataMessage("Cash vs Accrual")}
-          
-          {cashVsAccrualData && (
-            <CashVsAccrualView 
-              cashData={cashVsAccrualData[0]} 
-              accrualData={cashVsAccrualData[1]}
-              date={cashVsAccrualDate}
-            />
-          )}
-        </TabsContent>
-      </Tabs>
+              <TabsContent value="department">
+                <DepartmentComparisonView 
+                  data={departmentData}
+                  businessId={selectedBusinessId}
+                  onTrackingCategorySelect={handleTrackingCategorySelect}
+                  isLoading={isLoadingDepartment}
+                />
+              </TabsContent>
+
+              <TabsContent value="custom-date">
+                {activeTab === "custom-date" && !customDateData && noDataMessage("Custom Date Range")}
+                
+                {customDateData && (
+                  <CustomDateRangeView 
+                    data={customDateData} 
+                    fromDate={customStartDate}
+                    toDate={customEndDate}
+                  />
+                )}
+              </TabsContent>
+
+              <TabsContent value="cash-vs-accrual">
+                {activeTab === "cash-vs-accrual" && !cashVsAccrualData && noDataMessage("Cash vs Accrual")}
+                
+                {cashVsAccrualData && (
+                  <CashVsAccrualView 
+                    cashData={cashVsAccrualData[0]} 
+                    accrualData={cashVsAccrualData[1]}
+                    date={cashVsAccrualDate}
+                  />
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
   );
 };
 

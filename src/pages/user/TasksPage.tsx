@@ -112,7 +112,7 @@ const TasksPage: React.FC = () => {
     return (
       <div className="flex min-h-screen bg-slate-50">
         <UserSidebar activePath={location.pathname} />
-        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pl-64 lg:pt-0">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pt-0 lg:pl-[70px]">
           <div className="flex flex-col items-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
             <p className="mt-4 text-slate-500">Loading your client businesses...</p>
@@ -126,7 +126,7 @@ const TasksPage: React.FC = () => {
     return (
       <div className="flex min-h-screen bg-slate-50">
         <UserSidebar activePath={location.pathname} />
-        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pl-64 lg:pt-0">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pt-0 lg:pl-[70px]">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">Error Loading Data</h2>
@@ -147,7 +147,7 @@ const TasksPage: React.FC = () => {
     return (
       <div className="flex min-h-screen bg-slate-50">
         <UserSidebar activePath={location.pathname} />
-        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pl-64 lg:pt-0">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pt-0 lg:pl-[70px]">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-slate-300 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">No Client Businesses</h2>
@@ -172,7 +172,7 @@ const TasksPage: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-slate-50">
       <UserSidebar activePath={location.pathname} />
-      <div className="flex-1">
+      <div className="flex-1 overflow-x-hidden pt-14 lg:pt-0 lg:pl-[70px] transition-all duration-300">
         <div className="p-4 md:p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
@@ -203,67 +203,69 @@ const TasksPage: React.FC = () => {
             </div>
           </div>
 
-          {isLoadingTasks ? (
-            <div className="flex items-center justify-center p-12 bg-white rounded-lg border">
-              <div className="flex flex-col items-center">
-                <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-                <p className="mt-4 text-slate-500">Loading tasks...</p>
+          <div className="w-full overflow-x-auto">
+            {isLoadingTasks ? (
+              <div className="flex items-center justify-center p-12 bg-white rounded-lg border">
+                <div className="flex flex-col items-center">
+                  <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+                  <p className="mt-4 text-slate-500">Loading tasks...</p>
+                </div>
               </div>
-            </div>
-          ) : isErrorTasks ? (
-            <div className="text-center py-12 bg-white rounded-lg border">
-              <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
-              <h2 className="mt-4 text-xl font-semibold">Error Loading Tasks</h2>
-              <p className="mt-2 text-slate-500">There was a problem loading your tasks</p>
-              <Button onClick={() => refetchTasks()} className="mt-4">
-                <RefreshCcw className="mr-2 h-4 w-4" />
-                Try Again
-              </Button>
-            </div>
-          ) : tasks && tasks.length > 0 ? (
-            <div className="bg-white p-4 md:p-6 rounded-lg border shadow-sm overflow-x-auto">
-              <div className="min-w-full">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Title</TableHead>
-                      <TableHead className="hidden md:table-cell">Description</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead className="hidden md:table-cell">Start Date</TableHead>
-                      <TableHead>Due Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {tasks.map((task) => (
-                      <TableRow key={task.id}>
-                        <TableCell className="font-medium">{task.title}</TableCell>
-                        <TableCell className="hidden md:table-cell">{task.description}</TableCell>
-                        <TableCell>
-                          <Badge variant={getStatusBadgeVariant(task.status)}>
-                            {task.status}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="hidden md:table-cell">
-                          {task.start_date 
-                            ? format(new Date(task.start_date), 'MMM dd, yyyy') 
-                            : 'Not set'}
-                        </TableCell>
-                        <TableCell>
-                          {task.due_date 
-                            ? format(new Date(task.due_date), 'MMM dd, yyyy') 
-                            : 'Not set'}
-                        </TableCell>
+            ) : isErrorTasks ? (
+              <div className="text-center py-12 bg-white rounded-lg border">
+                <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
+                <h2 className="mt-4 text-xl font-semibold">Error Loading Tasks</h2>
+                <p className="mt-2 text-slate-500">There was a problem loading your tasks</p>
+                <Button onClick={() => refetchTasks()} className="mt-4">
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  Try Again
+                </Button>
+              </div>
+            ) : tasks && tasks.length > 0 ? (
+              <div className="bg-white p-4 md:p-6 rounded-lg border shadow-sm overflow-x-auto">
+                <div className="min-w-full">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead className="hidden md:table-cell">Description</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="hidden md:table-cell">Start Date</TableHead>
+                        <TableHead>Due Date</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {tasks.map((task) => (
+                        <TableRow key={task.id}>
+                          <TableCell className="font-medium">{task.title}</TableCell>
+                          <TableCell className="hidden md:table-cell">{task.description}</TableCell>
+                          <TableCell>
+                            <Badge variant={getStatusBadgeVariant(task.status)}>
+                              {task.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell">
+                            {task.start_date 
+                              ? format(new Date(task.start_date), 'MMM dd, yyyy') 
+                              : 'Not set'}
+                          </TableCell>
+                          <TableCell>
+                            {task.due_date 
+                              ? format(new Date(task.due_date), 'MMM dd, yyyy') 
+                              : 'Not set'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
-            </div>
-          ) : (
-            <div className="text-center py-12 bg-white rounded-lg border">
-              <p className="text-muted-foreground">No tasks found for this business.</p>
-            </div>
-          )}
+            ) : (
+              <div className="text-center py-12 bg-white rounded-lg border">
+                <p className="text-muted-foreground">No tasks found for this business.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
