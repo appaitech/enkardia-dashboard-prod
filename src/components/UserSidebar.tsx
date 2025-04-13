@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -14,18 +14,35 @@ import {
   ChevronDown,
   Bell
 } from "lucide-react";
+import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
+import { DbClientBusiness } from "@/types/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface UserSidebarProps {
   activePath: string;
 }
 
 const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isFinancialSubmenuOpen, setIsFinancialSubmenuOpen] = useState(
     activePath.includes("/user/financial")
   );
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
+    getSelectedClientBusinessId()
+  );
+
+  const { data: clientBusinesses = [] } = useQuery({
+    queryKey: ['clientBusinesses', user?.id],
+    queryFn: () => getUserClientBusinesses(user?.id || ''),
+    enabled: !!user?.id,
+  });
+
+  const handleBusinessSelect = (businessId: string) => {
+    setSelectedBusinessId(businessId);
+    saveSelectedClientBusinessId(businessId);
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -70,7 +87,11 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
   const NavContent = () => (
     <>
       <div className="px-2 py-4">
-        <ClientBusinessSelector />
+        <ClientBusinessSelector 
+          clientBusinesses={clientBusinesses}
+          selectedBusinessId={selectedBusinessId}
+          onBusinessSelect={handleBusinessSelect}
+        />
       </div>
 
       <div className="space-y-1 px-2">
