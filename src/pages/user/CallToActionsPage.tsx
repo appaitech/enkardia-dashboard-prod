@@ -1,5 +1,4 @@
 
-import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Bell } from "lucide-react";
@@ -49,11 +48,11 @@ function CallToActionsPage() {
     <div className="flex h-screen bg-slate-50">
       <UserSidebar activePath={location.pathname} />
       
-      <div className="flex-1 overflow-auto lg:ml-64">
+      <div className="flex-1 overflow-auto pt-14 lg:pt-0 lg:ml-64">
         <div className="p-8">
           <div className="mb-6">
             <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
+              <Bell className="h-5 w-5 text-blue-600" />
               <h1 className="text-2xl font-bold text-slate-800">Call To Actions</h1>
             </div>
             <p className="text-slate-500 mt-1">

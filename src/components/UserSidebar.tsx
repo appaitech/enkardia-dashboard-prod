@@ -15,7 +15,6 @@ import {
   Bell
 } from "lucide-react";
 import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
-import { DbClientBusiness } from "@/types/client";
 import { useQuery } from "@tanstack/react-query";
 
 interface UserSidebarProps {
@@ -86,7 +85,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
 
   const NavContent = () => (
     <>
-      <div className="px-2 py-4">
+      <div className="px-3 py-4">
         <ClientBusinessSelector 
           clientBusinesses={clientBusinesses}
           selectedBusinessId={selectedBusinessId}
@@ -94,7 +93,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
         />
       </div>
 
-      <div className="space-y-1 px-2">
+      <div className="space-y-1 px-3">
         {navItems.map((item) =>
           !item.submenu ? (
             <Link
@@ -104,7 +103,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
             >
               <Button
                 variant={isActive(item.path) ? "default" : "ghost"}
-                className="w-full justify-start"
+                className={`w-full justify-start ${isActive(item.path) ? "bg-blue-600 text-white hover:bg-blue-700" : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"}`}
               >
                 {item.icon}
                 <span className="ml-3">{item.name}</span>
@@ -116,7 +115,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
                 variant="ghost"
                 className={`w-full justify-start ${
                   isFinancialSubmenuOpen ? "bg-slate-100" : ""
-                }`}
+                } text-slate-700 hover:bg-slate-100 hover:text-blue-600`}
                 onClick={() => setIsFinancialSubmenuOpen(!isFinancialSubmenuOpen)}
               >
                 {item.icon}
@@ -137,7 +136,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
                     >
                       <Button
                         variant={isActive(subitem.path) ? "default" : "ghost"}
-                        className="w-full justify-start text-sm"
+                        className={`w-full justify-start text-sm ${isActive(subitem.path) ? "bg-blue-600 text-white hover:bg-blue-700" : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"}`}
                       >
                         {subitem.name}
                       </Button>
@@ -150,7 +149,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
         )}
       </div>
 
-      <div className="px-2 mt-auto pb-4">
+      <div className="px-3 mt-auto pb-4">
         <Button
           variant="ghost"
           className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50"
@@ -173,12 +172,12 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
             <span className="sr-only">Toggle menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="p-0 flex flex-col">
+        <SheetContent side="left" className="p-0 flex flex-col w-[270px]">
           <NavContent />
         </SheetContent>
       </Sheet>
       <div className="ml-4 flex-1">
-        <h2 className="text-lg font-semibold">Client Portal</h2>
+        <h2 className="text-lg font-semibold text-blue-600">Client Portal</h2>
       </div>
     </div>
   );
@@ -188,10 +187,10 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
       <MobileSidebar />
 
       {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white">
+      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:z-10">
         <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
-            <h1 className="text-xl font-bold">Client Portal</h1>
+            <h1 className="text-xl font-bold text-blue-600">Client Portal</h1>
           </div>
           <div className="flex-1 flex flex-col justify-between mt-5">
             <NavContent />

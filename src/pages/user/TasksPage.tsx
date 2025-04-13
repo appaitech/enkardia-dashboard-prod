@@ -1,6 +1,6 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { 
   Table, 
@@ -57,6 +57,7 @@ const fetchClientTasks = async (businessId: string): Promise<Task[]> => {
 
 const TasksPage: React.FC = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
   const isMobile = useIsMobile();
   
@@ -115,7 +116,7 @@ const TasksPage: React.FC = () => {
   if (isLoadingBusinesses) {
     return (
       <div className="flex h-screen bg-slate-50">
-        <UserSidebar activePath="/user/tasks" />
+        <UserSidebar activePath={location.pathname} />
         <div className="flex-1 p-4 md:p-8 flex items-center justify-center">
           <div className="flex flex-col items-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
@@ -130,7 +131,7 @@ const TasksPage: React.FC = () => {
   if (isErrorBusinesses) {
     return (
       <div className="flex h-screen bg-slate-50">
-        <UserSidebar activePath="/user/tasks" />
+        <UserSidebar activePath={location.pathname} />
         <div className="flex-1 p-4 md:p-8 flex items-center justify-center">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
@@ -151,7 +152,7 @@ const TasksPage: React.FC = () => {
   if (validBusinesses.length === 0) {
     return (
       <div className="flex h-screen bg-slate-50">
-        <UserSidebar activePath="/user/tasks" />
+        <UserSidebar activePath={location.pathname} />
         <div className="flex-1 p-4 md:p-8 flex items-center justify-center">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-slate-300 mx-auto" />
@@ -178,13 +179,13 @@ const TasksPage: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-slate-50">
-      <UserSidebar activePath="/user/tasks" />
-      <div className="flex-1 overflow-auto pt-14 md:pt-0">
+      <UserSidebar activePath={location.pathname} />
+      <div className="flex-1 overflow-auto pt-14 lg:pt-0 lg:ml-64">
         <div className="p-4 md:p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
               <div className="flex items-center space-x-3">
-                <ListChecks className="h-8 w-8 text-green-600" />
+                <ListChecks className="h-8 w-8 text-blue-600" />
                 <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Task Statuses</h1>
               </div>
               <p className="text-slate-500 mt-2">

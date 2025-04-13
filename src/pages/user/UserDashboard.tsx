@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -18,13 +18,13 @@ import {
   AlertTriangle,
   UserCircle
 } from "lucide-react";
-import { DbClientBusiness } from "@/types/client";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import FinancialDashboard from "@/components/FinancialDashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 const UserDashboard = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
   const isMobile = useIsMobile();
 
@@ -62,8 +62,8 @@ const UserDashboard = () => {
   if (isLoading) {
     return (
       <div className="flex min-h-screen bg-slate-50">
-        <UserSidebar activePath="/user/dashboard" />
-        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0 lg:ml-64">
+        <UserSidebar activePath={location.pathname} />
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pt-0 lg:ml-64">
           <div className="flex flex-col items-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
             <p className="mt-4 text-slate-500">Loading your dashboard...</p>
@@ -76,8 +76,8 @@ const UserDashboard = () => {
   if (isError) {
     return (
       <div className="flex min-h-screen bg-slate-50">
-        <UserSidebar activePath="/user/dashboard" />
-        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0 lg:ml-64">
+        <UserSidebar activePath={location.pathname} />
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pt-0 lg:ml-64">
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">Error Loading Data</h2>
@@ -99,8 +99,8 @@ const UserDashboard = () => {
   if (validBusinesses.length === 0) {
     return (
       <div className="flex min-h-screen bg-slate-50">
-        <UserSidebar activePath="/user/dashboard" />
-        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 md:pt-0 lg:ml-64">
+        <UserSidebar activePath={location.pathname} />
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pt-0 lg:ml-64">
           <div className="text-center">
             <Building className="h-12 w-12 text-slate-300 mx-auto" />
             <h2 className="mt-4 text-xl font-semibold">No Client Businesses</h2>
@@ -124,9 +124,9 @@ const UserDashboard = () => {
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      <UserSidebar activePath="/user/dashboard" />
+      <UserSidebar activePath={location.pathname} />
       
-      <div className="flex-1 overflow-auto pt-14 md:pt-0 lg:ml-64">
+      <div className="flex-1 overflow-auto pt-14 lg:pt-0 lg:ml-64">
         <div className="p-4 md:p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
@@ -249,6 +249,6 @@ const UserDashboard = () => {
       </div>
     </div>
   );
-}
+};
 
 export default UserDashboard;
