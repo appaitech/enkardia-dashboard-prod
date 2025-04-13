@@ -49,7 +49,7 @@ function CallToActionsPage() {
     <div className="flex h-screen bg-slate-50">
       <UserSidebar activePath={location.pathname} />
       
-      <div className="flex-1 overflow-auto">
+      <div className="flex-1 overflow-auto lg:ml-64">
         <div className="p-8">
           <div className="mb-6">
             <div className="flex items-center gap-2">

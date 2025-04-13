@@ -18,7 +18,7 @@ const formSchema = z.object({
   description: z.string().optional(),
   urls: z.array(
     z.object({
-      url: z.string().url("Please enter a valid URL"),
+      url: z.string().url("Please enter a valid URL").optional().or(z.literal('')),
       label: z.string().optional(),
     })
   ),
@@ -64,11 +64,11 @@ export function CreateCallToActionForm({
     setIsSubmitting(true);
     try {
       // Filter out any empty URLs
-      const filteredUrls = values.urls.filter(url => url.url.trim() !== "");
+      const filteredUrls = values.urls.filter(url => url.url && url.url.trim() !== "");
       
       // Convert to required format for API call
       const urlsForApi = filteredUrls.map(url => ({
-        url: url.url,
+        url: url.url || "",
         label: url.label || null
       }));
       
@@ -92,19 +92,19 @@ export function CreateCallToActionForm({
   };
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Create Call To Action</CardTitle>
+    <Card className="w-full shadow-sm border-slate-200">
+      <CardHeader className="bg-slate-50 border-b border-slate-100">
+        <CardTitle className="text-slate-800">Create Call To Action</CardTitle>
       </CardHeader>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)}>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 pt-6">
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Title</FormLabel>
+                  <FormLabel className="text-slate-700">Title</FormLabel>
                   <FormControl>
                     <Input placeholder="Enter a title" {...field} />
                   </FormControl>
@@ -118,7 +118,7 @@ export function CreateCallToActionForm({
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <FormLabel className="text-slate-700">Description</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Enter a description (optional)"
@@ -133,12 +133,13 @@ export function CreateCallToActionForm({
 
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <FormLabel>URLs</FormLabel>
+                <FormLabel className="text-slate-700">URLs</FormLabel>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={addUrl}
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
                 >
                   <Plus className="h-4 w-4 mr-2" />
                   Add URL
@@ -146,13 +147,13 @@ export function CreateCallToActionForm({
               </div>
 
               {urls.length === 0 && (
-                <div className="text-center py-4 text-muted-foreground">
+                <div className="text-center py-4 text-muted-foreground bg-slate-50 rounded-md">
                   No URLs added yet. Click "Add URL" to add one.
                 </div>
               )}
 
               {urls.map((_, index) => (
-                <div key={index} className="flex gap-3 items-start">
+                <div key={index} className="flex gap-3 items-start p-3 border border-slate-200 rounded-md">
                   <div className="space-y-2 flex-1">
                     <FormField
                       control={form.control}
@@ -160,7 +161,7 @@ export function CreateCallToActionForm({
                       render={({ field }) => (
                         <FormItem>
                           <div className="flex items-center gap-2">
-                            <Globe className="h-4 w-4 text-muted-foreground" />
+                            <Globe className="h-4 w-4 text-slate-400" />
                             <Input placeholder="https://example.com" {...field} />
                           </div>
                           <FormMessage />
@@ -183,24 +184,29 @@ export function CreateCallToActionForm({
                     variant="ghost"
                     size="icon"
                     onClick={() => removeUrl(index)}
-                    className="mt-1"
+                    className="mt-1 text-slate-500 hover:text-red-500 hover:bg-red-50"
                   >
-                    <Trash2 className="h-4 w-4 text-destructive" />
+                    <Trash2 className="h-4 w-4" />
                   </Button>
                 </div>
               ))}
             </div>
           </CardContent>
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex justify-between border-t border-slate-100 bg-slate-50 px-6 py-4">
             <Button
               type="button"
               variant="outline"
               onClick={onCancel}
               disabled={isSubmitting}
+              className="border-slate-200 text-slate-700"
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
               {isSubmitting ? "Creating..." : "Create Call To Action"}
             </Button>
           </CardFooter>
