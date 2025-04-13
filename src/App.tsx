@@ -10,6 +10,7 @@ import ClientsList from './pages/admin/ClientsList';
 import ClientDetail from './pages/admin/ClientDetail';
 import UserDashboard from './pages/user/UserDashboard';
 import TasksPage from './pages/user/TasksPage';
+import CallToActionsPage from './pages/user/CallToActionsPage';
 import ProfitAndLossPage from './pages/user/ProfitAndLossPage';
 import NotFound from './pages/NotFound';
 import { Toaster } from "@/components/ui/toaster";
@@ -98,6 +99,15 @@ const App: React.FC = () => {
               element={
                 <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
                   <TasksPage />
+                </ProtectedRoute>
+              } 
+            />
+            
+            <Route 
+              path="/user/call-to-actions" 
+              element={
+                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                  <CallToActionsPage />
                 </ProtectedRoute>
               } 
             />

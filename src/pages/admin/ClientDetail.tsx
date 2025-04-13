@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -7,10 +8,11 @@ import AdminSidebar from "@/components/AdminSidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon } from "lucide-react";
+import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell } from "lucide-react";
 import ClientDetailUsers from "@/components/ClientDetailUsers";
 import TasksManagement from "@/components/TasksManagement";
 import { XeroConnectionSelector } from "@/components/XeroConnectionSelector";
+import { CallToActionTab } from "@/components/CallToAction/CallToActionTab";
 
 function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -131,6 +133,10 @@ function ClientDetail() {
                 <ClipboardList className="h-4 w-4 mr-2" />
                 Tasks
               </TabsTrigger>
+              <TabsTrigger value="call-to-actions">
+                <Bell className="h-4 w-4 mr-2" />
+                Call To Actions
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6">
@@ -203,6 +209,10 @@ function ClientDetail() {
             
             <TabsContent value="tasks">
               <TasksManagement clientId={client.id} />
+            </TabsContent>
+            
+            <TabsContent value="call-to-actions">
+              <CallToActionTab clientId={client.id} clientName={client.name} />
             </TabsContent>
           </Tabs>
         </div>

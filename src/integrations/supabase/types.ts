@@ -9,6 +9,105 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      call_to_action_urls: {
+        Row: {
+          call_to_action_id: string
+          created_at: string
+          id: string
+          label: string | null
+          url: string
+        }
+        Insert: {
+          call_to_action_id: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          url: string
+        }
+        Update: {
+          call_to_action_id?: string
+          created_at?: string
+          id?: string
+          label?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_to_action_urls_call_to_action_id_fkey"
+            columns: ["call_to_action_id"]
+            isOneToOne: false
+            referencedRelation: "call_to_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_to_action_views: {
+        Row: {
+          call_to_action_id: string
+          id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          call_to_action_id: string
+          id?: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          call_to_action_id?: string
+          id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_to_action_views_call_to_action_id_fkey"
+            columns: ["call_to_action_id"]
+            isOneToOne: false
+            referencedRelation: "call_to_actions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      call_to_actions: {
+        Row: {
+          client_business_id: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          client_business_id: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          client_business_id?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "call_to_actions_client_business_id_fkey"
+            columns: ["client_business_id"]
+            isOneToOne: false
+            referencedRelation: "client_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_businesses: {
         Row: {
           contact_name: string
