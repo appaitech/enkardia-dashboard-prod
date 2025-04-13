@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -42,6 +41,7 @@ import {
   getDefaultEndDate
 } from "@/services/financialService";
 import { toast } from "sonner";
+import { chartConfig, useIsMobile, ResponsiveChartContainer } from '@/components/ui/chart';
 
 interface FinancialDashboardProps {
   businessId: string;
@@ -52,6 +52,8 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
   const [endDate, setEndDate] = useState<string>(getDefaultEndDate());
   const [fromDateOpen, setFromDateOpen] = useState(false);
   const [toDateOpen, setToDateOpen] = useState(false);
+
+  const isMobile = useIsMobile();
 
   // Fetch monthly report data
   const { 
@@ -213,183 +215,345 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
   // Extract the report date range
   const reportPeriod = visualData.Reports[0]?.ReportDate || `${startDate} to ${endDate}`;
 
-  return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center space-x-2">
-          <BarChart3 className="h-5 w-5 text-green-600" />
-          <h2 className="text-lg md:text-xl font-semibold text-slate-800">Financial Dashboard</h2>
-        </div>
-        
-        <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-          <div className="flex items-end gap-2">
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="from-date">From Date</Label>
-              <div className="flex">
-                <Input
-                  id="from-date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                  className="rounded-r-none"
-                />
-                <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="rounded-l-none border-l-0">
-                      <CalendarIcon className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={startDate ? new Date(startDate) : undefined}
-                      onSelect={handleFromDateChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
-            <div className="grid w-full max-w-sm items-center gap-1.5">
-              <Label htmlFor="to-date">To Date</Label>
-              <div className="flex">
-                <Input 
-                  id="to-date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                  className="rounded-r-none"
-                />
-                <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className="rounded-l-none border-l-0">
-                      <CalendarIcon className="h-4 w-4" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0">
-                    <Calendar
-                      mode="single"
-                      selected={endDate ? new Date(endDate) : undefined}
-                      onSelect={handleToDateChange}
-                      initialFocus
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            </div>
-            
-            <Button onClick={handleRefresh} className="mb-1">
-              <RefreshCcw className="mr-2 h-4 w-4" />
-              Refresh
-            </Button>
-          </div>
-        </div>
-      </div>
+  const TopExpensesChart = ({ data }: { data: any[] }) => {
+    const isMobile = useIsMobile();
+    const layout = isMobile ? chartConfig.mobileLayout : chartConfig.desktopLayout;
 
-      {/* Financial Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="bg-blue-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <DollarSign className="mr-2 h-5 w-5 text-blue-600" />
-              Revenue
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summaryData.totalRevenue)}</div>
-            <div className="text-sm text-slate-500">Total Income</div>
-          </CardContent>
-        </Card>
+    const renderCustomLabel = ({ 
+      cx, 
+      cy, 
+      midAngle, 
+      innerRadius, 
+      outerRadius, 
+      percent, 
+      value 
+    }: any) => {
+      const RADIAN = Math.PI / 180;
+      const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+      const x = cx + radius * Math.cos(-midAngle * RADIAN);
+      const y = cy + radius * Math.sin(-midAngle * RADIAN);
+      
+      // Only show label if percentage is greater than 5%
+      if (percent < 0.05) return null;
 
-        <Card className="bg-red-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <TrendingDown className="mr-2 h-5 w-5 text-red-600" />
-              Expenses
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summaryData.totalExpenses)}</div>
-            <div className="text-sm text-slate-500">Total Expenses</div>
-          </CardContent>
-        </Card>
+      return (
+        <text
+          x={x}
+          y={y}
+          fill="white"
+          textAnchor="middle"
+          dominantBaseline="central"
+          style={{
+            fontSize: isMobile ? '14px' : '16px',
+            fontWeight: 'bold',
+            textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+          }}
+        >
+          {`${(percent * 100).toFixed(0)}%`}
+        </text>
+      );
+    };
 
-        <Card className="bg-green-50">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center">
-              <TrendingUp className="mr-2 h-5 w-5 text-green-600" />
-              Net Profit
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(summaryData.netProfit)}</div>
-            <div className="text-sm text-slate-500">
-              Margin: {summaryData.grossMargin.toFixed(1)}%
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Revenue Trend Chart */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Monthly Revenue Trend</CardTitle>
-          <CardDescription>
-            {reportPeriod}
-          </CardDescription>
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>Top Expenses</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={revenueTrendData}
-                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+        <CardContent className="relative overflow-visible px-0">
+          <ResponsiveChartContainer height={isMobile ? 300 : 400}>
+            <PieChart margin={layout.margin}>
+              <Pie
+                data={data}
+                cx={isMobile ? "50%" : "40%"}
+                cy="50%"
+                outerRadius={isMobile ? 100 : 160}
+                innerRadius={isMobile ? 40 : 60}
+                fill="#8884d8"
+                dataKey="value"
+                nameKey="name"
+                label={renderCustomLabel}
+                labelLine={false}
               >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                <Legend />
-                <Bar 
-                  dataKey="revenue" 
-                  name="Revenue" 
-                  fill="#0088FE" 
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+                {data.map((entry, index) => (
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={COLORS[index % COLORS.length]}
+                    stroke="white"
+                    strokeWidth={2}
+                  />
+                ))}
+              </Pie>
+              <Legend
+                {...layout.legendProps}
+                content={({ payload }) => (
+                  <div className="bg-white rounded-lg shadow-sm border border-slate-200">
+                    <h4 className="text-sm font-semibold text-slate-900 mb-3 pb-2 border-b px-4 pt-4">
+                      Expense Categories
+                    </h4>
+                    <div className="px-4 pb-4 space-y-3">
+                      {payload?.map((entry: any, index: number) => {
+                        const item = data.find(d => d.name === entry.value);
+                        const percentage = (item?.value || 0) / data.reduce((sum, i) => sum + i.value, 0) * 100;
+                        return (
+                          <div key={`item-${index}`} className="flex items-center gap-3">
+                            <span 
+                              className="w-3 h-3 rounded-full shrink-0" 
+                              style={{ backgroundColor: entry.color }}
+                            />
+                            <span className="flex-1 text-sm text-slate-700">
+                              {entry.value}
+                            </span>
+                            <div className="text-right">
+                              <div className="font-mono text-sm text-slate-900 tabular-nums font-medium">
+                                {formatCurrency(item?.value || 0)}
+                              </div>
+                              <div className="text-xs text-slate-500">
+                                {percentage.toFixed(1)}%
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div className="pt-3 mt-3 border-t">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium text-slate-900">Total</span>
+                          <span className="font-mono text-sm font-medium text-slate-900">
+                            {formatCurrency(data.reduce((sum, item) => sum + item.value, 0))}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              />
+              <Tooltip 
+                formatter={(value) => formatCurrency(value as number)}
+                contentStyle={{
+                  backgroundColor: 'white',
+                  border: '1px solid #e2e8f0',
+                  borderRadius: '4px',
+                  padding: '8px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                }}
+              />
+            </PieChart>
+          </ResponsiveChartContainer>
         </CardContent>
       </Card>
+    );
+  };
 
-      {/* Top Expenses */}
-      <Card>
-        <CardHeader className="pb-2">
-          <CardTitle className="text-lg">Top Expenses</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={expensesData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={100}
-                  fill="#8884d8"
-                  dataKey="value"
-                  nameKey="name"
-                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                >
-                  {expensesData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip formatter={(value) => formatCurrency(value as number)} />
-              </PieChart>
-            </ResponsiveContainer>
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-6 md:py-8">
+        <div className="space-y-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5 text-green-600" />
+              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Financial Dashboard</h2>
+            </div>
+            
+            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+              <div className="flex items-end gap-2">
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor="from-date">From Date</Label>
+                  <div className="flex">
+                    <Input
+                      id="from-date"
+                      value={startDate}
+                      onChange={(e) => setStartDate(e.target.value)}
+                      className="rounded-r-none"
+                    />
+                    <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="rounded-l-none border-l-0">
+                          <CalendarIcon className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={startDate ? new Date(startDate) : undefined}
+                          onSelect={handleFromDateChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                
+                <div className="grid w-full max-w-sm items-center gap-1.5">
+                  <Label htmlFor="to-date">To Date</Label>
+                  <div className="flex">
+                    <Input 
+                      id="to-date"
+                      value={endDate}
+                      onChange={(e) => setEndDate(e.target.value)}
+                      className="rounded-r-none"
+                    />
+                    <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button variant="outline" className="rounded-l-none border-l-0">
+                          <CalendarIcon className="h-4 w-4" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0">
+                        <Calendar
+                          mode="single"
+                          selected={endDate ? new Date(endDate) : undefined}
+                          onSelect={handleToDateChange}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+                </div>
+                
+                <Button onClick={handleRefresh} className="mb-1">
+                  <RefreshCcw className="mr-2 h-4 w-4" />
+                  Refresh
+                </Button>
+              </div>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <Card className="bg-blue-50/50 border border-blue-100">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center text-blue-900">
+                  <DollarSign className="mr-2 h-5 w-5 text-blue-600" />
+                  Revenue
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-blue-900">
+                  {formatCurrency(summaryData.totalRevenue)}
+                </div>
+                <div className="text-sm text-blue-600">Total Income</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-red-50/50 border border-red-100">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center text-red-900">
+                  <TrendingDown className="mr-2 h-5 w-5 text-red-600" />
+                  Expenses
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-900">
+                  {formatCurrency(summaryData.totalExpenses)}
+                </div>
+                <div className="text-sm text-red-600">Total Expenses</div>
+              </CardContent>
+            </Card>
+
+            <Card className="bg-green-50/50 border border-green-100">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg flex items-center text-green-900">
+                  <TrendingUp className="mr-2 h-5 w-5 text-green-600" />
+                  Net Profit
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-900">
+                  {formatCurrency(summaryData.netProfit)}
+                </div>
+                <div className="text-sm text-green-600">
+                  Margin: {summaryData.grossMargin.toFixed(1)}%
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Revenue Trend Chart */}
+          <Card className="border-navy-100">
+            <CardHeader>
+              <CardTitle className="text-xl font-semibold text-navy-800">
+                Revenue Trend
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveChartContainer height={isMobile ? 300 : 400}>
+                <BarChart
+                  data={revenueTrendData}
+                  margin={isMobile ? 
+                    { top: 20, right: 20, bottom: 60, left: 40 } : 
+                    { top: 20, right: 340, bottom: 20, left: 40 }
+                  }
+                >
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+                  <XAxis 
+                    dataKey="month" 
+                    angle={isMobile ? -45 : 0}
+                    textAnchor={isMobile ? "end" : "middle"}
+                    height={isMobile ? 80 : 60}
+                    tick={{ fontSize: isMobile ? 12 : 14 }}
+                  />
+                  <YAxis 
+                    tickFormatter={(value) => formatCurrency(value)}
+                    tick={{ fontSize: isMobile ? 12 : 14 }}
+                  />
+                  <Tooltip 
+                    formatter={(value) => formatCurrency(value as number)}
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '8px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                  />
+                  <Legend
+                    {...(isMobile ? chartConfig.mobileLayout : chartConfig.desktopLayout).legendProps}
+                    content={({ payload }) => (
+                      <div className="bg-white rounded-lg shadow-sm border border-slate-200">
+                        <div className="p-4 space-y-3">
+                          {payload?.map((entry: any) => (
+                            <div key={entry.value} className="flex items-center gap-3">
+                              <span 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: entry.color }}
+                              />
+                              <span className="text-sm text-slate-700">{entry.value}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  />
+                  <Bar 
+                    dataKey="revenue" 
+                    name="Revenue" 
+                    fill="#0088FE"
+                    radius={[4, 4, 0, 0]}
+                  >
+                    {/* Add value labels on top of bars */}
+                    {revenueTrendData.map((entry, index) => (
+                      <text
+                        key={`label-${index}`}
+                        x={0}
+                        y={0}
+                        dy={-10}
+                        fill="#1a365d"
+                        fontSize={isMobile ? 12 : 14}
+                        fontWeight="500"
+                        textAnchor="middle"
+                      >
+                        {formatCurrency(entry.revenue)}
+                      </text>
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveChartContainer>
+            </CardContent>
+          </Card>
+
+          {/* Top Expenses */}
+          <TopExpensesChart data={expensesData} />
+        </div>
+      </div>
     </div>
   );
 };

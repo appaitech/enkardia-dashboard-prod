@@ -200,14 +200,20 @@ const MonthlyProfitAndLossTable: React.FC<MonthlyProfitAndLossTableProps> = ({ d
                   >
                     {row.label}
                   </TableCell>
-                  {row.values.map((value: string, cellIndex: number) => (
-                    <TableCell 
-                      key={cellIndex} 
-                      className={`text-right ${value && value.startsWith('-') ? 'text-red-600' : ''}`}
-                    >
-                      {value}
-                    </TableCell>
-                  ))}
+                  {row.values.map((value: string, cellIndex: number) => {
+                    // Convert string value to number and format it
+                    const numValue = parseFloat(value.replace(/,/g, '')) || 0;
+                    const formattedValue = numValue === 0 ? '' : formatCurrency(numValue);
+                    
+                    return (
+                      <TableCell 
+                        key={cellIndex} 
+                        className={`text-right ${numValue < 0 ? 'text-red-600' : ''}`}
+                      >
+                        {formattedValue}
+                      </TableCell>
+                    );
+                  })}
                 </TableRow>
               ))}
             </TableBody>

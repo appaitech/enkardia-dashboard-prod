@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { VisualDashboardData, ProfitAndLossRow } from '@/services/financialService';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -22,6 +21,7 @@ import {
 } from 'recharts';
 import { formatCurrency } from "@/lib/utils";
 import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+import { chartConfig, useIsMobile, ResponsiveChartContainer } from '@/components/ui/chart';
 
 interface VisualDashboardProps {
   data: VisualDashboardData;
@@ -121,6 +121,45 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   // Calculate financial health indicators
   const profitMarginHealth = profitMargin >= 15 ? 'excellent' : profitMargin >= 10 ? 'good' : profitMargin >= 5 ? 'fair' : 'poor';
   const expenseRatioHealth = expenseRatio <= 70 ? 'excellent' : expenseRatio <= 80 ? 'good' : expenseRatio <= 90 ? 'fair' : 'poor';
+
+  const isMobile = useIsMobile();
+  const layout = isMobile ? chartConfig.mobileLayout : chartConfig.desktopLayout;
+
+  // Add custom label renderer for pie chart
+  const renderCustomLabel = ({ 
+    cx, 
+    cy, 
+    midAngle, 
+    innerRadius, 
+    outerRadius, 
+    percent, 
+    value 
+  }: any) => {
+    const RADIAN = Math.PI / 180;
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+    
+    // Only show label if percentage is greater than 5%
+    if (percent < 0.05) return null;
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor="middle"
+        dominantBaseline="central"
+        style={{
+          fontSize: isMobile ? '14px' : '16px',
+          fontWeight: 'bold',
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)',
+        }}
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
 
   return (
     <div className="space-y-6">
@@ -250,32 +289,89 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
       </Card>
 
       {/* Income and Expense Breakdown Charts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {incomeData.length > 0 && (
           <Card className="p-4">
             <h3 className="text-lg font-semibold mb-4">Income Breakdown</h3>
-            <div className="h-[300px]">
+            <div className="h-[400px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={incomeData}
-                    cx="50%"
+                    cx="35%"
                     cy="50%"
-                    labelLine={true}
-                    outerRadius={100}
+                    labelLine={false}
+                    outerRadius={isMobile ? 100 : 130}
+                    innerRadius={isMobile ? 40 : 60}
                     fill="#8884d8"
                     dataKey="value"
                     nameKey="name"
-                    label={({ name, percent }) => {
-                      return percent && percent > 0.05 ? `${name}: ${(typeof percent === 'number' ? (percent * 100).toFixed(0) : '0')}%` : '';
-                    }}
+                    label={renderCustomLabel}
                   >
                     {incomeData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]} 
+                        stroke="white"
+                        strokeWidth={2}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend />
+                  <Legend
+                    verticalAlign="middle"
+                    align="right"
+                    layout="vertical"
+                    wrapperStyle={{
+                      paddingLeft: '24px',
+                      right: '0px',
+                      width: '45%',
+                      height: '100%',
+                      overflowY: 'auto',
+                      position: 'absolute' as 'absolute',
+                    }}
+                    content={({ payload }) => (
+                      <div className="bg-white rounded-lg p-4 h-full">
+                        <h4 className="text-sm font-semibold text-slate-900 mb-3">
+                          Income Categories
+                        </h4>
+                        <div className="space-y-3">
+                          {payload?.map((entry: any, index: number) => {
+                            const item = incomeData.find(d => d.name === entry.value);
+                            const percentage = (item?.value || 0) / incomeData.reduce((sum, i) => sum + i.value, 0) * 100;
+                            return (
+                              <div key={`item-${index}`} className="flex items-center gap-2">
+                                <span 
+                                  className="w-3 h-3 rounded-full shrink-0" 
+                                  style={{ backgroundColor: entry.color }}
+                                />
+                                <span className="flex-1 text-sm text-slate-700 truncate">
+                                  {entry.value}
+                                </span>
+                                <div className="text-right shrink-0">
+                                  <div className="font-mono text-sm text-slate-900 tabular-nums">
+                                    {formatCurrency(item?.value || 0)}
+                                  </div>
+                                  <div className="text-xs text-slate-500">
+                                    {percentage.toFixed(1)}%
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  />
+                  <Tooltip 
+                    formatter={(value) => formatCurrency(value as number)}
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '8px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -285,28 +381,85 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
         {expenseData.length > 0 && (
           <Card className="p-4">
             <h3 className="text-lg font-semibold mb-4">Expense Breakdown</h3>
-            <div className="h-[300px]">
+            <div className="h-[400px] relative">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={expenseData}
-                    cx="50%"
+                    cx="35%"
                     cy="50%"
                     labelLine={false}
-                    outerRadius={100}
+                    outerRadius={isMobile ? 100 : 130}
+                    innerRadius={isMobile ? 40 : 60}
                     fill="#8884d8"
                     dataKey="value"
                     nameKey="name"
-                    label={({ name, percent }) => {
-                      return percent && percent > 0.05 ? `${name}: ${(typeof percent === 'number' ? (percent * 100).toFixed(0) : '0')}%` : '';
-                    }}
+                    label={renderCustomLabel}
                   >
                     {expenseData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell 
+                        key={`cell-${index}`} 
+                        fill={COLORS[index % COLORS.length]} 
+                        stroke="white"
+                        strokeWidth={2}
+                      />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(value) => formatCurrency(value as number)} />
-                  <Legend />
+                  <Legend
+                    verticalAlign="middle"
+                    align="right"
+                    layout="vertical"
+                    wrapperStyle={{
+                      paddingLeft: '24px',
+                      right: '0px',
+                      width: '45%',
+                      height: '100%',
+                      overflowY: 'auto',
+                      position: 'absolute' as 'absolute',
+                    }}
+                    content={({ payload }) => (
+                      <div className="bg-white rounded-lg p-4 h-full">
+                        <h4 className="text-sm font-semibold text-slate-900 mb-3">
+                          Expense Categories
+                        </h4>
+                        <div className="space-y-3">
+                          {payload?.map((entry: any, index: number) => {
+                            const item = expenseData.find(d => d.name === entry.value);
+                            const percentage = (item?.value || 0) / expenseData.reduce((sum, i) => sum + i.value, 0) * 100;
+                            return (
+                              <div key={`item-${index}`} className="flex items-center gap-2">
+                                <span 
+                                  className="w-3 h-3 rounded-full shrink-0" 
+                                  style={{ backgroundColor: entry.color }}
+                                />
+                                <span className="flex-1 text-sm text-slate-700 truncate">
+                                  {entry.value}
+                                </span>
+                                <div className="text-right shrink-0">
+                                  <div className="font-mono text-sm text-slate-900 tabular-nums">
+                                    {formatCurrency(item?.value || 0)}
+                                  </div>
+                                  <div className="text-xs text-slate-500">
+                                    {percentage.toFixed(1)}%
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  />
+                  <Tooltip 
+                    formatter={(value) => formatCurrency(value as number)}
+                    contentStyle={{
+                      backgroundColor: 'white',
+                      border: '1px solid #e2e8f0',
+                      borderRadius: '4px',
+                      padding: '8px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                    }}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -22,6 +21,7 @@ import {
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import FinancialDashboard from "@/components/FinancialDashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
+import SarsRequestTimer from '@/components/SarsRequestTimer';
 
 const UserDashboard = () => {
   const { user } = useAuth();
@@ -59,6 +59,24 @@ const UserDashboard = () => {
   const isLoading = isLoadingBusinesses;
   
   const isError = isBusinessError;
+
+  // Add SARS requests data (later this would come from your backend)
+  const sarsRequests = [
+    {
+      id: 1,
+      requestDate: new Date('2024-03-01'),
+      status: 'pending' as const,
+      documentType: 'Tax Clearance Certificate',
+      reference: 'SARS-2024-001',
+    },
+    {
+      id: 2,
+      requestDate: new Date('2024-02-15'),
+      status: 'completed' as const,
+      documentType: 'VAT Registration',
+      reference: 'SARS-2024-002',
+    },
+  ];
 
   if (isLoading) {
     return (
@@ -180,6 +198,22 @@ const UserDashboard = () => {
                 </div>
               </Card>
             )}
+          </div>
+          
+          {/* SARS Document Requests Section */}
+          <div className="mb-8">
+            <h2 className="text-lg font-semibold text-slate-800 mb-4">SARS Document Requests</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {sarsRequests.map((request) => (
+                <SarsRequestTimer
+                  key={request.id}
+                  requestDate={request.requestDate}
+                  status={request.status}
+                  documentType={request.documentType}
+                  reference={request.reference}
+                />
+              ))}
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
