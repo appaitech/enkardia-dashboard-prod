@@ -172,7 +172,7 @@ const TasksPage: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-slate-50">
       <UserSidebar activePath={location.pathname} />
-      <div className="flex-1 w-full pt-14 lg:pl-64 lg:pt-0">
+      <div className="flex-1">
         <div className="p-4 md:p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
