@@ -142,7 +142,7 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
         </div>
       </div>
       
-      <div className="p-4 border-t border-navy-100 mt-auto bg-gradient-to-b from-navy-50/50 to-navy-50/10">
+      <div className="p-4 border-t border-navy-100 bg-gradient-to-b from-navy-50/50 to-navy-50/10">
         {user && (
           <div className="mb-4 px-2">
             <div className="font-semibold text-sm text-navy-700">{user.name}</div>
@@ -183,11 +183,6 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
             {renderSidebarContent()}
           </SheetContent>
         </Sheet>
-        
-        <div className="lg:ml-64 ml-0">
-          {/* This spacer ensures content starts after where the sidebar would be */}
-          <div className="h-14 lg:hidden"></div>
-        </div>
       </>
     );
   }
@@ -197,7 +192,7 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
     <>
       <div 
         className={cn(
-          "h-screen bg-white fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out border-r border-navy-100",
+          "h-screen bg-white fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out border-r border-navy-100 flex flex-col",
           isCollapsed ? "w-[70px]" : "w-64"
         )}
       >
@@ -302,23 +297,31 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
                 </Button>
               </Link>
             )}
-            
-            <Button 
-              variant="ghost" 
-              size="icon"
-              className="w-full h-10 mt-auto absolute bottom-4 left-0 right-0 mx-auto text-navy-600 hover:bg-navy-50"
-              onClick={toggleCollapsed}
-            >
-              <ChevronRight size={20} />
-            </Button>
           </div>
         ) : (
           renderSidebarContent()
         )}
-      </div>
-      
-      <div className={cn("transition-all duration-300", isCollapsed ? "ml-[70px]" : "ml-64")}>
-        {/* This div acts as spacing to prevent content from being hidden behind the sidebar */}
+        
+        {isCollapsed && (
+          <div className="p-2 mt-auto border-t border-navy-100">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-full text-navy-600 hover:bg-navy-50"
+              onClick={toggleCollapsed}
+            >
+              <ChevronRight size={20} />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-full mt-2 text-navy-600 hover:bg-navy-50"
+              onClick={() => logout()}
+            >
+              <LogOut size={18} />
+            </Button>
+          </div>
+        )}
       </div>
     </>
   );
