@@ -1,14 +1,29 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
+
+// Define types for account type and user role
+export type AccountType = "CONSOLE" | "CLIENT";
+export type UserRole = "ADMIN" | "STANDARD";
+
+// Extend the Supabase User type to include our custom fields
+export interface User extends SupabaseUser {
+  name?: string | null;
+  accountType: AccountType;
+  role: UserRole;
+}
 
 interface AuthContextProps {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
+  isAuthenticated: boolean;
   signIn: (email: string) => Promise<void>;
   signOut: () => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string, name?: string, accountType?: AccountType, role?: UserRole) => Promise<string | undefined>;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
   updateUserProfile: (userId: string, updates: any) => Promise<any>;
   refreshUserData: () => Promise<void>;
   accountType: string | null;
@@ -27,23 +42,50 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [accountType, setAccountType] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     const loadSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
 
       setSession(session);
-      setUser(session?.user || null);
+      
+      if (session?.user) {
+        const enhancedUser = {
+          ...session.user,
+          accountType: accountType as AccountType || "CLIENT",
+          role: role as UserRole || "STANDARD",
+          name: null
+        };
+        setUser(enhancedUser);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
+      
       setIsLoading(false);
     };
 
     loadSession();
 
     supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user || null);
+      if (session?.user) {
+        const enhancedUser = {
+          ...session.user,
+          accountType: accountType as AccountType || "CLIENT",
+          role: role as UserRole || "STANDARD",
+          name: null
+        };
+        setUser(enhancedUser);
+        setIsAuthenticated(true);
+      } else {
+        setUser(null);
+        setIsAuthenticated(false);
+      }
       setSession(session || null);
     });
-  }, []);
+  }, [accountType, role]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -51,7 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         try {
           const { data: profile, error } = await supabase
             .from('profiles')
-            .select('account_type, role')
+            .select('account_type, role, name')
             .eq('id', user.id)
             .single();
 
@@ -60,6 +102,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           } else {
             setAccountType(profile?.account_type || null);
             setRole(profile?.role || null);
+            
+            // Update user with profile data
+            if (user) {
+              const enhancedUser = {
+                ...user,
+                name: profile?.name || null,
+                accountType: profile?.account_type as AccountType || "CLIENT",
+                role: profile?.role as UserRole || "STANDARD"
+              };
+              setUser(enhancedUser);
+            }
           }
         } catch (error) {
           console.error("Unexpected error fetching user profile:", error);
@@ -71,7 +124,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     fetchUserData();
-  }, [user]);
+  }, [user?.id]);
 
   const signIn = async (email: string) => {
     setIsLoading(true);
@@ -86,14 +139,47 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signUp = async (email: string, password: string) => {
+  const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+    } catch (error: any) {
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const signUp = async (
+    email: string, 
+    password: string, 
+    name?: string, 
+    accountType: AccountType = "CLIENT", 
+    role: UserRole = "STANDARD"
+  ): Promise<string | undefined> => {
+    setIsLoading(true);
+    try {
+      // Add metadata including name, account_type, and role
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            name,
+            account_type: accountType,
+            role
+          }
+        }
+      });
+      
+      if (error) throw error;
+      
       alert('Check your email to verify your account.');
+      return data?.user?.id;
     } catch (error: any) {
       alert(error.error_description || error.message);
+      return undefined;
     } finally {
       setIsLoading(false);
     }
@@ -111,12 +197,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // Alias for signOut to match component naming
+  const logout = signOut;
+
   const refreshUserData = async () => {
     if (user) {
       try {
         const { data: profile, error } = await supabase
           .from('profiles')
-          .select('account_type, role')
+          .select('account_type, role, name')
           .eq('id', user.id)
           .single();
   
@@ -125,6 +214,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           setAccountType(profile?.account_type || null);
           setRole(profile?.role || null);
+          
+          // Update user with profile data
+          if (user) {
+            const enhancedUser = {
+              ...user,
+              name: profile?.name || null,
+              accountType: profile?.account_type as AccountType || "CLIENT",
+              role: profile?.role as UserRole || "STANDARD"
+            };
+            setUser(enhancedUser);
+          }
         }
       } catch (error) {
         console.error("Unexpected error refreshing user profile:", error);
@@ -176,9 +276,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     session,
     isLoading,
+    isAuthenticated,
     signIn,
     signUp,
     signOut,
+    login,
+    logout,
     updateUserProfile,
     refreshUserData,
     accountType,
