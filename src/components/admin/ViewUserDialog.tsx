@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -78,27 +77,16 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
 }) => {
   const { user: currentUser, updateUserProfile } = useAuth();
   const [editMode, setEditMode] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const isCurrentUserConsole = currentUser?.accountType === "CONSOLE";
   const isCurrentUserConsoleAdmin = isCurrentUserConsole && currentUser?.role === "ADMIN";
   const isTargetUserConsoleAdmin = user.account_type === "CONSOLE" && user.role === "ADMIN";
   const isTargetUserClient = user.account_type === "CLIENT";
   
-  // Determine if current user is editing themselves
   const isEditingSelf = currentUser?.id === user.id;
   
-  // New permission structure:
-  // 1. All CONSOLE users can edit CLIENT users
-  // 2. Only CONSOLE ADMINs can edit account_type
-  // 3. CONSOLE users can still edit themselves
-  // 4. CONSOLE users cannot edit other CONSOLE users (unless they are ADMIN)
-  
-  // Determine if the current user can edit the account type
-  // Only CONSOLE ADMINs can edit account type
   const canEditAccountType = isCurrentUserConsoleAdmin;
-  
-  // Determine if the current user can edit the role
-  // All CONSOLE users can edit CLIENT users' roles
   const canEditRole = isCurrentUserConsole && (isTargetUserClient || isEditingSelf || isCurrentUserConsoleAdmin);
   
   const form = useForm<FormValues>({
@@ -109,8 +97,6 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
       account_type: user.account_type as "CONSOLE" | "CLIENT",
     },
   });
-
-  const isSubmitting = form.formState.isSubmitting;
 
   React.useEffect(() => {
     if (open) {
@@ -124,6 +110,7 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
   }, [open, user, form]);
 
   const onSubmit = async (data: FormValues) => {
+    setIsSubmitting(true);
     try {
       console.log("Updating user profile with data:", data);
       
@@ -137,32 +124,33 @@ const ViewUserDialog: React.FC<ViewUserDialogProps> = ({
         updates.name = data.name;
       }
       
-      // Check if user is trying to edit a CONSOLE user and they themselves are not ADMIN
-      if (!isEditingSelf && !isTargetUserClient && !isCurrentUserConsoleAdmin) {
-        toast.error("You cannot modify other CONSOLE users unless you are a CONSOLE ADMIN");
-        return;
-      }
-      
-      if (canEditRole && data.role !== user.role) {
+      if (data.role !== user.role) {
         updates.role = data.role;
       }
       
-      if (canEditAccountType && data.account_type !== user.account_type) {
+      if (data.account_type !== user.account_type) {
         updates.account_type = data.account_type;
       }
       
       if (Object.keys(updates).length > 0) {
-        await updateUserProfile(user.id, updates);
-        toast.success(`User ${data.name} updated successfully`);
-        setEditMode(false);
+        const result = await updateUserProfile(user.id, updates);
+        
+        if (result.success) {
+          toast.success(`User ${data.name} updated successfully`);
+          if (Object.keys(result.appliedUpdates).length === 0) {
+            toast.info("No changes were applied due to permission restrictions");
+          }
+          setEditMode(false);
+          onUserEdited();
+        }
       } else {
         toast.info("No changes detected");
       }
-      
-      onUserEdited();
     } catch (error: any) {
       console.error("Error updating user:", error);
       toast.error(error.message || "Failed to update user");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

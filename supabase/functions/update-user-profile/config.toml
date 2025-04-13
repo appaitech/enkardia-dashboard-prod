@@ -1,0 +1,11 @@
+
+[build]
+command = ""
+
+[deploy]
+enabled = true
+
+# Invoke URLs:
+# Local: http://localhost:54321/functions/v1/update-user-profile
+# Internal: http://host.docker.internal:54321/functions/v1/update-user-profile
+# Production: https://itkpwdlqlfymxzjzymya.supabase.co/functions/v1/update-user-profile
