@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -14,7 +13,8 @@ import {
   ChevronDown,
   Bell,
   X,
-  ChevronRight
+  ChevronRight,
+  ChevronLeft
 } from "lucide-react";
 import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
 import { useQuery } from "@tanstack/react-query";
@@ -39,7 +39,6 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
     getSelectedClientBusinessId()
   );
 
-  // Handle resize events to adjust sidebar state
   React.useEffect(() => {
     setIsOpen(!isMobile);
     setIsCollapsed(false);
@@ -216,7 +215,6 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
     </div>
   );
 
-  // Mobile version uses Sheet component for better mobile UX
   if (isMobile) {
     return (
       <>
@@ -236,14 +234,12 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
         </Sheet>
         
         <div className="lg:ml-64 ml-0">
-          {/* This spacer ensures content starts after where the sidebar would be */}
           <div className="h-14 lg:hidden"></div>
         </div>
       </>
     );
   }
 
-  // Desktop version
   return (
     <>
       <div 
@@ -309,7 +305,6 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
       </div>
       
       <div className={cn("transition-all duration-300", isCollapsed ? "ml-[70px]" : "ml-64")}>
-        {/* This div acts as spacing to prevent content from being hidden behind the sidebar */}
       </div>
     </>
   );
