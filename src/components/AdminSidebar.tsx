@@ -132,6 +132,13 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
             href="/admin/xero-connections" 
             onClick={closeSidebarOnMobile}
           />
+          <SidebarItem 
+            icon={<Settings size={20} />} 
+            label="Settings" 
+            href="/admin/settings" 
+            adminOnly={true}
+            onClick={closeSidebarOnMobile}
+          />
         </div>
       </div>
       
@@ -176,133 +183,144 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
             {renderSidebarContent()}
           </SheetContent>
         </Sheet>
+        
+        <div className="lg:ml-64 ml-0">
+          {/* This spacer ensures content starts after where the sidebar would be */}
+          <div className="h-14 lg:hidden"></div>
+        </div>
       </>
     );
   }
 
   // Desktop version
   return (
-    <div 
-      className={cn(
-        "h-screen bg-white flex flex-col z-30 transition-all duration-300 ease-in-out border-r border-navy-100",
-        isCollapsed ? "w-[70px]" : "w-64"
-      )}
-    >
-      {isCollapsed ? (
-        <div className="p-4 flex justify-center border-b border-navy-100">
-          <Badge className="bg-navy-100 text-navy-700 uppercase font-semibold">
-            CP
-          </Badge>
-        </div>
-      ) : (
-        <div className="p-4 border-b flex justify-between items-center">
-          <div>
-            <h2 className="font-bold text-xl text-navy-700">Console Portal</h2>
-            <p className="text-xs text-navy-500 mt-1">Admin Dashboard</p>
+    <>
+      <div 
+        className={cn(
+          "h-screen bg-white fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out border-r border-navy-100",
+          isCollapsed ? "w-[70px]" : "w-64"
+        )}
+      >
+        {isCollapsed ? (
+          <div className="p-4 flex justify-center border-b border-navy-100">
+            <Badge className="bg-navy-100 text-navy-700 uppercase font-semibold">
+              CP
+            </Badge>
           </div>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            onClick={toggleCollapsed}
-            className="ml-auto text-navy-400 hover:text-navy-600"
-          >
-            <ChevronLeft size={20} />
-          </Button>
-        </div>
-      )}
-      
-      {isCollapsed ? (
-        <div className="flex-1 p-2 space-y-4 overflow-y-auto">
-          <Link to="/admin/dashboard" onClick={closeSidebarOnMobile}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "w-full h-10",
-                activePath === "/admin/dashboard" 
-                  ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
-                  : "text-navy-600 hover:bg-navy-50"
-              )}
+        ) : (
+          <div className="p-4 border-b flex justify-between items-center">
+            <div>
+              <h2 className="font-bold text-xl text-navy-700">Console Portal</h2>
+              <p className="text-xs text-navy-500 mt-1">Admin Dashboard</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleCollapsed}
+              className="ml-auto text-navy-400 hover:text-navy-600"
             >
-              <LayoutDashboard size={20} />
+              <ChevronLeft size={20} />
             </Button>
-          </Link>
-          
-          <Link to="/admin/users" onClick={closeSidebarOnMobile}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "w-full h-10",
-                activePath === "/admin/users" 
-                  ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
-                  : "text-navy-600 hover:bg-navy-50"
-              )}
-            >
-              <Users size={20} />
-            </Button>
-          </Link>
-          
-          <Link to="/admin/clients" onClick={closeSidebarOnMobile}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "w-full h-10",
-                activePath === "/admin/clients" 
-                  ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
-                  : "text-navy-600 hover:bg-navy-50"
-              )}
-            >
-              <Building size={20} />
-            </Button>
-          </Link>
-          
-          <Link to="/admin/xero-connections" onClick={closeSidebarOnMobile}>
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn(
-                "w-full h-10",
-                activePath === "/admin/xero-connections" 
-                  ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
-                  : "text-navy-600 hover:bg-navy-50"
-              )}
-            >
-              <LinkIcon size={20} />
-            </Button>
-          </Link>
-          
-          {user?.role === "ADMIN" && (
-            <Link to="/admin/settings" onClick={closeSidebarOnMobile}>
+          </div>
+        )}
+        
+        {isCollapsed ? (
+          <div className="flex-1 p-2 space-y-4 overflow-y-auto">
+            <Link to="/admin/dashboard" onClick={closeSidebarOnMobile}>
               <Button
                 variant="ghost"
                 size="icon"
                 className={cn(
                   "w-full h-10",
-                  activePath === "/admin/settings" 
+                  activePath === "/admin/dashboard" 
                     ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
                     : "text-navy-600 hover:bg-navy-50"
                 )}
               >
-                <Settings size={20} />
+                <LayoutDashboard size={20} />
               </Button>
             </Link>
-          )}
-          
-          <Button 
-            variant="ghost" 
-            size="icon"
-            className="w-full h-10 mt-auto absolute bottom-4 left-0 right-0 mx-auto text-navy-600 hover:bg-navy-50"
-            onClick={toggleCollapsed}
-          >
-            <ChevronRight size={20} />
-          </Button>
-        </div>
-      ) : (
-        renderSidebarContent()
-      )}
-    </div>
+            
+            <Link to="/admin/users" onClick={closeSidebarOnMobile}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "w-full h-10",
+                  activePath === "/admin/users" 
+                    ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                    : "text-navy-600 hover:bg-navy-50"
+                )}
+              >
+                <Users size={20} />
+              </Button>
+            </Link>
+            
+            <Link to="/admin/clients" onClick={closeSidebarOnMobile}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "w-full h-10",
+                  activePath === "/admin/clients" 
+                    ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                    : "text-navy-600 hover:bg-navy-50"
+                )}
+              >
+                <Building size={20} />
+              </Button>
+            </Link>
+            
+            <Link to="/admin/xero-connections" onClick={closeSidebarOnMobile}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "w-full h-10",
+                  activePath === "/admin/xero-connections" 
+                    ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                    : "text-navy-600 hover:bg-navy-50"
+                )}
+              >
+                <LinkIcon size={20} />
+              </Button>
+            </Link>
+            
+            {user?.role === "ADMIN" && (
+              <Link to="/admin/settings" onClick={closeSidebarOnMobile}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "w-full h-10",
+                    activePath === "/admin/settings" 
+                      ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                      : "text-navy-600 hover:bg-navy-50"
+                  )}
+                >
+                  <Settings size={20} />
+                </Button>
+              </Link>
+            )}
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-full h-10 mt-auto absolute bottom-4 left-0 right-0 mx-auto text-navy-600 hover:bg-navy-50"
+              onClick={toggleCollapsed}
+            >
+              <ChevronRight size={20} />
+            </Button>
+          </div>
+        ) : (
+          renderSidebarContent()
+        )}
+      </div>
+      
+      <div className={cn("transition-all duration-300", isCollapsed ? "ml-[70px]" : "ml-64")}>
+        {/* This div acts as spacing to prevent content from being hidden behind the sidebar */}
+      </div>
+    </>
   );
 };
 

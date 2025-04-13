@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,6 +50,18 @@
     --sidebar-border: 220 13% 91%;
 
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Navy color scheme */
+    --navy-50: 220 30% 96%;
+    --navy-100: 220 25% 94%;
+    --navy-200: 220 20% 86%;
+    --navy-300: 220 15% 76%;
+    --navy-400: 220 12% 64%;
+    --navy-500: 220 10% 55%;
+    --navy-600: 220 14% 42%; 
+    --navy-700: 220 18% 32%;
+    --navy-800: 220 25% 23%;
+    --navy-900: 220 35% 15%;
   }
 
   .dark {
@@ -87,6 +100,18 @@
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
+
+    /* Navy color scheme */
+    --navy-50: 220 30% 8%;
+    --navy-100: 220 25% 12%;
+    --navy-200: 220 20% 16%;
+    --navy-300: 220 15% 24%;
+    --navy-400: 220 12% 34%;
+    --navy-500: 220 10% 46%;
+    --navy-600: 220 14% 64%;
+    --navy-700: 220 18% 75%;
+    --navy-800: 220 25% 86%;
+    --navy-900: 220 35% 94%;
   }
 }
 
@@ -97,5 +122,59 @@
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+/* Add utilities for navy colors */
+@layer utilities {
+  .bg-navy-50 {
+    background-color: hsl(var(--navy-50));
+  }
+  .bg-navy-100 {
+    background-color: hsl(var(--navy-100));
+  }
+  .bg-navy-200 {
+    background-color: hsl(var(--navy-200));
+  }
+  .text-navy-500 {
+    color: hsl(var(--navy-500));
+  }
+  .text-navy-600 {
+    color: hsl(var(--navy-600));
+  }
+  .text-navy-700 {
+    color: hsl(var(--navy-700));
+  }
+  .border-navy-100 {
+    border-color: hsl(var(--navy-100));
+  }
+  .hover\:bg-navy-50:hover {
+    background-color: hsl(var(--navy-50));
+  }
+  .hover\:bg-navy-100:hover {
+    background-color: hsl(var(--navy-100));
+  }
+  .hover\:bg-navy-200:hover {
+    background-color: hsl(var(--navy-200));
+  }
+  .hover\:text-navy-600:hover {
+    color: hsl(var(--navy-600));
+  }
+  .hover\:text-navy-700:hover {
+    color: hsl(var(--navy-700));
+  }
+  .hover\:text-navy-800:hover {
+    color: hsl(var(--navy-800));
+  }
+  .from-navy-50\/50 {
+    --tw-gradient-from: hsla(var(--navy-50) / 0.5) var(--tw-gradient-from-position);
+    --tw-gradient-from-position: ;
+    --tw-gradient-to: hsla(var(--navy-50) / 0) var(--tw-gradient-to-position);
+    --tw-gradient-to-position: ;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
+  .to-navy-50\/10 {
+    --tw-gradient-to: hsla(var(--navy-50) / 0.1) var(--tw-gradient-to-position);
+    --tw-gradient-to-position: ;
   }
 }

@@ -1,7 +1,8 @@
 
 import { useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Bell } from "lucide-react";
+import { Bell, Loader2, RefreshCcw, AlertTriangle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import { useAuth } from "@/contexts/AuthContext";
 import { CallToAction } from "@/types/callToAction";
@@ -45,14 +46,14 @@ function CallToActionsPage() {
   };
   
   return (
-    <div className="flex h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50">
       <UserSidebar activePath={location.pathname} />
       
-      <div className="flex-1 overflow-auto pt-14 lg:pt-0 lg:ml-64">
-        <div className="p-8">
+      <div className="flex-1 overflow-auto pt-14 lg:pt-6 lg:pl-0">
+        <div className="p-4 md:p-8">
           <div className="mb-6">
             <div className="flex items-center gap-2">
-              <Bell className="h-5 w-5 text-blue-600" />
+              <Bell className="h-5 w-5 text-navy-600" />
               <h1 className="text-2xl font-bold text-slate-800">Call To Actions</h1>
             </div>
             <p className="text-slate-500 mt-1">
@@ -62,11 +63,20 @@ function CallToActionsPage() {
           
           {isLoading ? (
             <div className="flex justify-center items-center p-8">
-              <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+              <div className="flex flex-col items-center">
+                <Loader2 className="h-8 w-8 animate-spin text-navy-600" />
+                <p className="mt-4 text-slate-500">Loading...</p>
+              </div>
             </div>
           ) : isError ? (
             <div className="p-8 text-center">
-              <p className="text-red-500">Error loading call to actions</p>
+              <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto" />
+              <h2 className="mt-4 text-xl font-semibold">Error Loading Data</h2>
+              <p className="mt-2 text-slate-500">There was a problem loading call to actions</p>
+              <Button onClick={() => refetch()} className="mt-4">
+                <RefreshCcw className="mr-2 h-4 w-4" />
+                Try Again
+              </Button>
             </div>
           ) : (
             <CallToActionList

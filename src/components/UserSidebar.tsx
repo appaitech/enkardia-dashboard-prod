@@ -1,9 +1,9 @@
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
 import ClientBusinessSelector from "./ClientBusinessSelector";
 import {
   LayoutDashboard,
@@ -12,10 +12,15 @@ import {
   LogOut,
   Menu,
   ChevronDown,
-  Bell
+  Bell,
+  X,
+  ChevronRight
 } from "lucide-react";
 import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
 import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
 
 interface UserSidebarProps {
   activePath: string;
@@ -24,13 +29,21 @@ interface UserSidebarProps {
 const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(!isMobile);
+  const [isCollapsed, setIsCollapsed] = useState(false);
   const [isFinancialSubmenuOpen, setIsFinancialSubmenuOpen] = useState(
     activePath.includes("/user/financial")
   );
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
     getSelectedClientBusinessId()
   );
+
+  // Handle resize events to adjust sidebar state
+  React.useEffect(() => {
+    setIsOpen(!isMobile);
+    setIsCollapsed(false);
+  }, [isMobile]);
 
   const { data: clientBusinesses = [] } = useQuery({
     queryKey: ['clientBusinesses', user?.id],
@@ -46,6 +59,20 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
   const handleLogout = async () => {
     await logout();
     navigate("/");
+  };
+
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+  
+  const toggleCollapsed = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+  
+  const closeSidebarOnMobile = () => {
+    if (isMobile) {
+      setIsOpen(false);
+    }
   };
 
   const navItems = [
@@ -83,119 +110,206 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
     return activePath.startsWith(path);
   };
 
-  const NavContent = () => (
-    <>
-      <div className="px-3 py-4">
-        <ClientBusinessSelector 
-          clientBusinesses={clientBusinesses}
-          selectedBusinessId={selectedBusinessId}
-          onBusinessSelect={handleBusinessSelect}
-        />
+  const renderSidebarContent = () => (
+    <div className="flex flex-col h-full">
+      <div className="p-6 border-b border-navy-100">
+        <h2 className="font-bold text-2xl text-navy-700 tracking-tight">Client Portal</h2>
+        <p className="text-sm text-navy-500/80 mt-1 font-medium">User Dashboard</p>
       </div>
+      
+      <div className="px-3 py-4 flex-1 overflow-y-auto">
+        <div className="mb-4">
+          <ClientBusinessSelector 
+            clientBusinesses={clientBusinesses}
+            selectedBusinessId={selectedBusinessId}
+            onBusinessSelect={handleBusinessSelect}
+          />
+        </div>
 
-      <div className="space-y-1 px-3">
-        {navItems.map((item) =>
-          !item.submenu ? (
-            <Link
-              key={item.name}
-              to={item.path}
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              <Button
-                variant={isActive(item.path) ? "default" : "ghost"}
-                className={`w-full justify-start ${isActive(item.path) ? "bg-blue-600 text-white hover:bg-blue-700" : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"}`}
+        <div className="space-y-1">
+          {navItems.map((item) =>
+            !item.submenu ? (
+              <Link
+                key={item.name}
+                to={item.path}
+                onClick={closeSidebarOnMobile}
               >
-                {item.icon}
-                <span className="ml-3">{item.name}</span>
-              </Button>
-            </Link>
-          ) : (
-            <div key={item.name} className="space-y-1">
-              <Button
-                variant="ghost"
-                className={`w-full justify-start ${
-                  isFinancialSubmenuOpen ? "bg-slate-100" : ""
-                } text-slate-700 hover:bg-slate-100 hover:text-blue-600`}
-                onClick={() => setIsFinancialSubmenuOpen(!isFinancialSubmenuOpen)}
-              >
-                {item.icon}
-                <span className="ml-3">{item.name}</span>
-                <ChevronDown
-                  className={`ml-auto h-5 w-5 transform transition-transform ${
-                    isFinancialSubmenuOpen ? "rotate-180" : ""
-                  }`}
-                />
-              </Button>
-              {isFinancialSubmenuOpen && (
-                <div className="pl-9 space-y-1">
-                  {item.submenu.map((subitem) => (
-                    <Link
-                      key={subitem.name}
-                      to={subitem.path}
-                      onClick={() => setIsMobileMenuOpen(false)}
-                    >
-                      <Button
-                        variant={isActive(subitem.path) ? "default" : "ghost"}
-                        className={`w-full justify-start text-sm ${isActive(subitem.path) ? "bg-blue-600 text-white hover:bg-blue-700" : "text-slate-700 hover:bg-slate-100 hover:text-blue-600"}`}
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start font-medium my-0.5 transition-all duration-200 rounded-lg", 
+                    isActive(item.path) 
+                      ? "bg-navy-100/80 text-navy-700 hover:bg-navy-200/60" 
+                      : "text-navy-600/80 hover:bg-navy-50 hover:text-navy-700"
+                  )}
+                >
+                  {item.icon}
+                  <span className="ml-3">{item.name}</span>
+                </Button>
+              </Link>
+            ) : (
+              <div key={item.name} className="space-y-1">
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start font-medium my-0.5 transition-all duration-200 rounded-lg", 
+                    isFinancialSubmenuOpen || activePath.includes(item.name.toLowerCase())
+                      ? "bg-navy-100/80 text-navy-700" 
+                      : "text-navy-600/80 hover:bg-navy-50 hover:text-navy-700"
+                  )}
+                  onClick={() => setIsFinancialSubmenuOpen(!isFinancialSubmenuOpen)}
+                >
+                  {item.icon}
+                  <span className="ml-3">{item.name}</span>
+                  <ChevronDown
+                    className={`ml-auto h-5 w-5 transform transition-transform ${
+                      isFinancialSubmenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </Button>
+                {isFinancialSubmenuOpen && (
+                  <div className="ml-6 pl-3 border-l border-navy-100 space-y-1">
+                    {item.submenu.map((subitem) => (
+                      <Link
+                        key={subitem.name}
+                        to={subitem.path}
+                        onClick={closeSidebarOnMobile}
                       >
-                        {subitem.name}
-                      </Button>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          )
-        )}
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start text-sm font-medium rounded-lg",
+                            isActive(subitem.path)
+                              ? "bg-navy-100/80 text-navy-700 hover:bg-navy-200/60"
+                              : "text-navy-600/80 hover:bg-navy-50 hover:text-navy-700"
+                          )}
+                        >
+                          {subitem.name}
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          )}
+        </div>
       </div>
 
-      <div className="px-3 mt-auto pb-4">
-        <Button
-          variant="ghost"
-          className="w-full justify-start text-red-500 hover:text-red-700 hover:bg-red-50"
+      <div className="p-4 border-t border-navy-100 mt-auto bg-gradient-to-b from-navy-50/50 to-navy-50/10">
+        {user && (
+          <div className="mb-4 px-2">
+            <div className="font-semibold text-sm text-navy-700">{user.name}</div>
+            <div className="text-xs text-navy-500/80 truncate mt-0.5">{user.email}</div>
+          </div>
+        )}
+        
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-navy-600 hover:bg-navy-100 hover:text-navy-800 transition-all duration-200 font-medium"
           onClick={handleLogout}
         >
-          <LogOut className="w-5 h-5" />
-          <span className="ml-3">Logout</span>
+          <LogOut size={18} />
+          <span className="ml-3">Sign Out</span>
         </Button>
-      </div>
-    </>
-  );
-
-  // Mobile sidebar using Sheet component
-  const MobileSidebar = () => (
-    <div className="lg:hidden flex items-center px-4 py-2 border-b">
-      <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-        <SheetTrigger asChild>
-          <Button variant="ghost" size="icon">
-            <Menu className="h-6 w-6" />
-            <span className="sr-only">Toggle menu</span>
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="left" className="p-0 flex flex-col w-[270px]">
-          <NavContent />
-        </SheetContent>
-      </Sheet>
-      <div className="ml-4 flex-1">
-        <h2 className="text-lg font-semibold text-blue-600">Client Portal</h2>
       </div>
     </div>
   );
 
+  // Mobile version uses Sheet component for better mobile UX
+  if (isMobile) {
+    return (
+      <>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-40 bg-white shadow-lg rounded-full hover:bg-navy-50 transition-all duration-200"
+          onClick={toggleSidebar}
+        >
+          {isOpen ? <X size={20} className="text-navy-600" /> : <Menu size={20} className="text-navy-600" />}
+        </Button>
+        
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetContent side="left" className="p-0 w-[270px] max-w-[80vw]">
+            {renderSidebarContent()}
+          </SheetContent>
+        </Sheet>
+        
+        <div className="lg:ml-64 ml-0">
+          {/* This spacer ensures content starts after where the sidebar would be */}
+          <div className="h-14 lg:hidden"></div>
+        </div>
+      </>
+    );
+  }
+
+  // Desktop version
   return (
     <>
-      <MobileSidebar />
-
-      {/* Desktop sidebar */}
-      <div className="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:border-r lg:border-gray-200 lg:bg-white lg:z-10">
-        <div className="flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
-          <div className="flex items-center flex-shrink-0 px-4">
-            <h1 className="text-xl font-bold text-blue-600">Client Portal</h1>
+      <div 
+        className={cn(
+          "h-screen bg-white fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out border-r border-navy-100",
+          isCollapsed ? "w-[70px]" : "w-64"
+        )}
+      >
+        {isCollapsed ? (
+          <div className="p-4 flex justify-center border-b border-navy-100">
+            <Badge className="bg-navy-100 text-navy-700 uppercase font-semibold">
+              CP
+            </Badge>
           </div>
-          <div className="flex-1 flex flex-col justify-between mt-5">
-            <NavContent />
+        ) : (
+          <div className="p-4 border-b flex justify-between items-center">
+            <div>
+              <h2 className="font-bold text-xl text-navy-700">Client Portal</h2>
+              <p className="text-xs text-navy-500 mt-1">User Dashboard</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleCollapsed}
+              className="ml-auto text-navy-400 hover:text-navy-600"
+            >
+              <ChevronLeft size={20} />
+            </Button>
           </div>
-        </div>
+        )}
+        
+        {isCollapsed ? (
+          <div className="flex-1 p-2 space-y-4 overflow-y-auto">
+            {navItems.map((item, index) => (
+              <Link key={index} to={item.path} onClick={closeSidebarOnMobile}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "w-full h-10",
+                    isActive(item.path) 
+                      ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                      : "text-navy-600 hover:bg-navy-50"
+                  )}
+                >
+                  {item.icon}
+                </Button>
+              </Link>
+            ))}
+            
+            <Button 
+              variant="ghost" 
+              size="icon"
+              className="w-full h-10 mt-auto absolute bottom-4 left-0 right-0 mx-auto text-navy-600 hover:bg-navy-50"
+              onClick={toggleCollapsed}
+            >
+              <ChevronRight size={20} />
+            </Button>
+          </div>
+        ) : (
+          renderSidebarContent()
+        )}
+      </div>
+      
+      <div className={cn("transition-all duration-300", isCollapsed ? "ml-[70px]" : "ml-64")}>
+        {/* This div acts as spacing to prevent content from being hidden behind the sidebar */}
       </div>
     </>
   );
