@@ -66,11 +66,17 @@ export function CreateCallToActionForm({
       // Filter out any empty URLs
       const filteredUrls = values.urls.filter(url => url.url.trim() !== "");
       
+      // Convert to required format for API call
+      const urlsForApi = filteredUrls.map(url => ({
+        url: url.url,
+        label: url.label || null
+      }));
+      
       const result = await createCallToAction(
         clientBusinessId,
         values.title,
         values.description || null,
-        filteredUrls
+        urlsForApi
       );
 
       if (result) {

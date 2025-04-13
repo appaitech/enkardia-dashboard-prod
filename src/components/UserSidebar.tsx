@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { ClientBusinessSelector } from "./ClientBusinessSelector";
+import ClientBusinessSelector from "./ClientBusinessSelector";
 import {
   LayoutDashboard,
   ClipboardList,
