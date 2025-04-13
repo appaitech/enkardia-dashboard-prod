@@ -187,7 +187,7 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
     );
   }
 
-  // Desktop version
+  // Desktop version - updated to not overlap content
   return (
     <>
       <div 
@@ -323,6 +323,9 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
           </div>
         )}
       </div>
+
+      {/* Add a spacer div to prevent content from being hidden behind the sidebar */}
+      <div className={isCollapsed ? "w-[70px]" : "w-64"} />
     </>
   );
 };
