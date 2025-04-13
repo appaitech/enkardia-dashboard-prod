@@ -656,9 +656,9 @@ const ProfitAndLossPage: React.FC = () => {
   );
 
   return (
-    <div className="flex flex-col md:flex-row min-h-screen bg-slate-50">
+    <div className="flex flex-col min-h-screen bg-slate-50">
       <UserSidebar activePath="/user/financial/profit-loss" />
-      <div className="flex-1 p-4 md:p-8 pt-14 md:pt-8">
+      <div className="flex-1 w-full p-4 md:p-8 pt-14 md:pt-8">
         <div className="max-w-[1400px] mx-auto">
           <div className="mb-8 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div className="flex items-center space-x-4">

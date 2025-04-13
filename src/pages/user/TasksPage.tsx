@@ -29,7 +29,6 @@ import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClien
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
 
-// Define Task type based on our database schema
 interface Task {
   id: string;
   title: string;
@@ -61,7 +60,6 @@ const TasksPage: React.FC = () => {
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
   const isMobile = useIsMobile();
   
-  // Fetch the user's client businesses
   const { 
     data: clientBusinesses,
     isLoading: isLoadingBusinesses,
@@ -73,7 +71,6 @@ const TasksPage: React.FC = () => {
     enabled: !!user?.id,
   });
 
-  // Fetch tasks for the selected business
   const { 
     data: tasks, 
     isLoading: isLoadingTasks, 
@@ -85,7 +82,6 @@ const TasksPage: React.FC = () => {
     enabled: !!selectedBusinessId
   });
 
-  // Set the first business as selected when data loads if none is selected
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
       const validBusinesses = clientBusinesses.filter(business => business !== null);
@@ -97,7 +93,6 @@ const TasksPage: React.FC = () => {
     }
   }, [clientBusinesses, selectedBusinessId]);
 
-  // Handle business selection
   const handleBusinessSelect = (businessId: string) => {
     setSelectedBusinessId(businessId);
     saveSelectedClientBusinessId(businessId);
@@ -112,12 +107,11 @@ const TasksPage: React.FC = () => {
     }
   };
 
-  // Loading state when fetching businesses
   if (isLoadingBusinesses) {
     return (
       <div className="flex h-screen bg-slate-50">
         <UserSidebar activePath={location.pathname} />
-        <div className="flex-1 p-4 md:p-8 flex items-center justify-center">
+        <div className="flex-1 p-4 md:p-8 flex items-center justify-center pt-14 lg:pt-6">
           <div className="flex flex-col items-center">
             <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
             <p className="mt-4 text-slate-500">Loading your client businesses...</p>
@@ -127,7 +121,6 @@ const TasksPage: React.FC = () => {
     );
   }
   
-  // Error state when fetching businesses
   if (isErrorBusinesses) {
     return (
       <div className="flex h-screen bg-slate-50">
@@ -164,12 +157,10 @@ const TasksPage: React.FC = () => {
     );
   }
 
-  // Get the selected business or default to the first one
   const selectedBusiness = selectedBusinessId 
     ? validBusinesses.find(b => b && b.id === selectedBusinessId) 
     : validBusinesses[0];
   
-  // Safety check to ensure we have a selected business
   if (!selectedBusiness) {
     const firstBusinessId = validBusinesses[0].id;
     setSelectedBusinessId(firstBusinessId);
@@ -180,7 +171,7 @@ const TasksPage: React.FC = () => {
   return (
     <div className="flex h-screen bg-slate-50">
       <UserSidebar activePath={location.pathname} />
-      <div className="flex-1 overflow-auto pt-14 lg:pt-0 lg:ml-64">
+      <div className="flex-1 overflow-auto w-full pt-14 lg:pt-6">
         <div className="p-4 md:p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>

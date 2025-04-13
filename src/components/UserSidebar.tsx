@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -232,10 +233,6 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
             {renderSidebarContent()}
           </SheetContent>
         </Sheet>
-        
-        <div className="lg:ml-64 ml-0">
-          <div className="h-14 lg:hidden"></div>
-        </div>
       </>
     );
   }
@@ -302,9 +299,6 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
         ) : (
           renderSidebarContent()
         )}
-      </div>
-      
-      <div className={cn("transition-all duration-300", isCollapsed ? "ml-[70px]" : "ml-64")}>
       </div>
     </>
   );
