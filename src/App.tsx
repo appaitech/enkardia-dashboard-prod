@@ -1,9 +1,11 @@
+
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
 import AcceptInvitationPage from './pages/AcceptInvitationPage';
+import ErrorPage from './pages/ErrorPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ClientsList from './pages/admin/ClientsList';
 import ClientDetail from './pages/admin/ClientDetail';
@@ -33,6 +35,7 @@ function App() {
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+              <Route path="/error" element={<ErrorPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               
               <Route 

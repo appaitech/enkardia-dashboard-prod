@@ -53,11 +53,23 @@ const SignupForm: React.FC<SignupFormProps> = ({ invitationToken, invitationEmai
             toast.success("Account created successfully!");
           } else {
             console.warn("Failed to associate user with client business, but account was created");
-            toast.warning("Account created, but there was an issue associating you with the client business.");
+            navigate('/error', {
+              state: {
+                title: "Partial Success",
+                message: "Your account was created, but there was an issue associating you with the client business."
+              }
+            });
+            return;
           }
         } catch (invitationError) {
           console.error("Error accepting invitation:", invitationError);
-          toast.warning("Account created, but could not complete the invitation process.");
+          navigate('/error', {
+            state: {
+              title: "Invitation Error",
+              message: "Your account was created, but there was an issue with the invitation process."
+            }
+          });
+          return;
         }
       }
       

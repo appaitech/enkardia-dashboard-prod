@@ -4,7 +4,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Loader2, CheckCircle, AlertCircle, Mail, Lock, User } from "lucide-react";
+import { Loader2, CheckCircle, Mail, Lock, User } from "lucide-react";
 import { isValidInvitationToken, acceptInvitation, getInvitationDetails } from "@/services/invitationService";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -33,10 +33,9 @@ const AcceptInvitationPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: authLoading, signup, login } = useAuth();
   
-  const [status, setStatus] = useState<"checking" | "invalid" | "valid" | "accepted" | "error" | "createAccount">("checking");
+  const [status, setStatus] = useState<"checking" | "valid" | "accepted" | "createAccount">("checking");
   const [isProcessing, setIsProcessing] = useState(false);
   const [invitationEmail, setInvitationEmail] = useState<string>("");
-  const [errorMessage, setErrorMessage] = useState<string>("");
   const [clientBusinessId, setClientBusinessId] = useState<string>("");
   
   const form = useForm<PasswordFormValues>({
@@ -52,8 +51,12 @@ const AcceptInvitationPage = () => {
   useEffect(() => {
     const validateToken = async () => {
       if (!token) {
-        setStatus("invalid");
-        setErrorMessage("No invitation token provided");
+        navigate('/error', { 
+          state: { 
+            title: "Invalid Invitation", 
+            message: "No invitation token provided" 
+          }
+        });
         return;
       }
       
@@ -88,29 +91,37 @@ const AcceptInvitationPage = () => {
             }
           } else {
             console.error("Failed to get invitation details", details);
-            setStatus("error");
-            if (details === null) {
-              setErrorMessage("This invitation link is no longer valid. It may have expired or already been accepted.");
-            } else {
-              setErrorMessage("Failed to retrieve invitation details");
-            }
+            navigate('/error', { 
+              state: { 
+                title: "Invalid Invitation", 
+                message: "This invitation link is no longer valid. It may have expired or already been accepted." 
+              }
+            });
           }
         } else {
           console.error("Invalid invitation token");
-          setStatus("invalid");
-          setErrorMessage("This invitation link is invalid or has expired");
+          navigate('/error', { 
+            state: { 
+              title: "Invalid Invitation", 
+              message: "This invitation link is invalid or has expired" 
+            }
+          });
         }
       } catch (error) {
         console.error("Error validating invitation token:", error);
-        setStatus("error");
-        setErrorMessage("An unexpected error occurred while processing your invitation");
+        navigate('/error', { 
+          state: { 
+            title: "Error Processing Invitation", 
+            message: "An unexpected error occurred while processing your invitation" 
+          }
+        });
       }
     };
     
     if (!authLoading) {
       validateToken();
     }
-  }, [token, authLoading, isAuthenticated, user, form]);
+  }, [token, authLoading, isAuthenticated, user, form, navigate]);
   
   const checkUserExists = async (email: string) => {
     try {
@@ -148,14 +159,21 @@ const AcceptInvitationPage = () => {
           navigate("/user/dashboard");
         }, 2000);
       } else {
-        setStatus("error");
-        setErrorMessage("Failed to accept invitation");
-        toast.error("Failed to accept invitation");
+        navigate('/error', { 
+          state: { 
+            title: "Invitation Error", 
+            message: "Failed to accept invitation. Please try again or contact support." 
+          }
+        });
       }
     } catch (error) {
       console.error("Error accepting invitation:", error);
-      setStatus("error");
-      setErrorMessage("An unexpected error occurred");
+      navigate('/error', { 
+        state: { 
+          title: "Error Processing Invitation", 
+          message: "An unexpected error occurred. Please try again or contact support." 
+        }
+      });
     } finally {
       setIsProcessing(false);
     }
@@ -164,7 +182,12 @@ const AcceptInvitationPage = () => {
   const handleCreateAccount = async (data: PasswordFormValues) => {
     if (!token || !clientBusinessId) {
       console.error("Missing token or clientBusinessId");
-      setErrorMessage("Invalid invitation. Missing required information.");
+      navigate('/error', { 
+        state: { 
+          title: "Invalid Request", 
+          message: "Missing required information for account creation." 
+        }
+      });
       return;
     }
     
@@ -196,35 +219,35 @@ const AcceptInvitationPage = () => {
               navigate("/user/dashboard");
             }, 2000);
           } else {
-            // Instead of failing completely, try to recover by logging the user in anyway
-            console.log("Failed to accept invitation, but continuing with login");
-            await login(data.email, data.password);
-            toast.success("Account created successfully. You will be redirected to the dashboard.");
-            
-            // Redirect to dashboard after a short delay
-            setTimeout(() => {
-              navigate("/user/dashboard");
-            }, 2000);
+            // Redirect to error page if invitation acceptance fails
+            navigate('/error', { 
+              state: { 
+                title: "Error Accepting Invitation", 
+                message: "Your account was created, but there was an issue associating you with the client business. Please contact support." 
+              }
+            });
           }
         } catch (invitationError: any) {
           console.error("Error accepting invitation:", invitationError);
-          
-          // Still log the user in even if invitation association fails
-          await login(data.email, data.password);
-          toast.warning("Account created, but there was an issue associating you with the client business. Please contact support.");
-          
-          // Redirect to dashboard after a short delay
-          setTimeout(() => {
-            navigate("/user/dashboard");
-          }, 2000);
+          navigate('/error', { 
+            state: { 
+              title: "Error Accepting Invitation", 
+              message: "Your account was created, but there was an issue with the invitation process. Please contact support." 
+            }
+          });
         }
       } else {
         throw new Error("Failed to create account");
       }
     } catch (error: any) {
       console.error("Error creating account:", error);
-      toast.error(error.message || "Failed to create account");
-      setErrorMessage(error.message || "Failed to create account");
+      navigate('/error', { 
+        state: { 
+          title: "Account Creation Failed", 
+          message: error.message || "There was an error creating your account. Please try again." 
+        }
+      });
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -243,49 +266,25 @@ const AcceptInvitationPage = () => {
       navigate(`/accept-invitation?token=${token}`);
     } catch (error: any) {
       console.error("Error logging in:", error);
-      toast.error(error.message || "Failed to log in");
-      setErrorMessage(error.message || "Failed to log in");
+      navigate('/error', { 
+        state: { 
+          title: "Login Failed", 
+          message: error.message || "Failed to log in. Please check your credentials and try again." 
+        }
+      });
+    } finally {
       setIsProcessing(false);
     }
   };
   
   const renderContent = () => {
-    if (authLoading) {
+    if (authLoading || status === "checking") {
       return (
         <div className="flex flex-col items-center justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-4" />
-          <p className="text-slate-600">Checking authentication status...</p>
-        </div>
-      );
-    }
-    
-    if (status === "checking") {
-      return (
-        <div className="flex flex-col items-center justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-500 mb-4" />
-          <p className="text-slate-600">Verifying your invitation...</p>
-        </div>
-      );
-    }
-    
-    if (status === "invalid") {
-      return (
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <AlertCircle className="h-12 w-12 text-amber-500 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Invalid Invitation</h3>
-          <p className="text-slate-600 mb-4">{errorMessage || "This invitation link is invalid or has expired."}</p>
-          <Button onClick={() => navigate("/login")}>Go to Login</Button>
-        </div>
-      );
-    }
-    
-    if (status === "error") {
-      return (
-        <div className="flex flex-col items-center justify-center py-8 text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mb-4" />
-          <h3 className="text-xl font-semibold mb-2">Something went wrong</h3>
-          <p className="text-slate-600 mb-4">{errorMessage || "We couldn't process your invitation. Please try again later."}</p>
-          <Button onClick={() => navigate("/login")}>Go to Login</Button>
+          <p className="text-slate-600">
+            {authLoading ? "Checking authentication status..." : "Verifying your invitation..."}
+          </p>
         </div>
       );
     }
