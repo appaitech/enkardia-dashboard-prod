@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -17,107 +16,113 @@ import { Toaster } from "@/components/ui/toaster";
 import ProtectedRoute from './components/ProtectedRoute';
 import UsersManagement from "./pages/admin/UsersManagement";
 import XeroConnectionsPage from './pages/admin/XeroConnectionsPage';
+import SignupPage from './pages/SignupPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 const queryClient = new QueryClient();
 
-const App: React.FC = () => {
+function App() {
   return (
-    <BrowserRouter>
-      <QueryClientProvider client={queryClient}>
+    <>
+      <Toaster />
+      <BrowserRouter>
         <AuthProvider>
-          <Toaster />
-          <Routes>
-            <Route path="/" element={<LoginPage />} />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-            <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
-            
-            <Route 
-              path="/admin/dashboard" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
-                  <AdminDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/clients" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
-                  <ClientsList />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/clients/:id" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
-                  <ClientDetail />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/users" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
-                  <UsersManagement />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/admin/xero-connections" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
-                  <XeroConnectionsPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/user/dashboard" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
-                  <UserDashboard />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/user/financial/profit-loss" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
-                  <ProfitAndLossPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/user/tasks" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
-                  <TasksPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route 
-              path="/user/call-to-actions" 
-              element={
-                <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
-                  <CallToActionsPage />
-                </ProtectedRoute>
-              } 
-            />
-            
-            <Route path="*" element={<NotFound />} />
-          </Routes>
+          <QueryClientProvider client={queryClient}>
+            <Routes>
+              <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/login" element={<LoginPage />} />
+              <Route path="/signup" element={<SignupPage />} />
+              <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
+              
+              <Route 
+                path="/admin/dashboard" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                    <AdminDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/clients" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                    <ClientsList />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/clients/:id" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                    <ClientDetail />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/users" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                    <UsersManagement />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/xero-connections" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                    <XeroConnectionsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/user/dashboard" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                    <UserDashboard />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/user/financial/profit-loss" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                    <ProfitAndLossPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/user/tasks" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                    <TasksPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/user/call-to-actions" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                    <CallToActionsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </QueryClientProvider>
         </AuthProvider>
-      </QueryClientProvider>
-    </BrowserRouter>
+      </BrowserRouter>
+    </>
   );
-};
+}
 
 export default App;

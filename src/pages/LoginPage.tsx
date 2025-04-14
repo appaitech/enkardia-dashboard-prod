@@ -1,9 +1,8 @@
-import React, { useEffect } from "react";
+
+import React, { useEffect, useState } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
-import SignupForm from "@/components/auth/SignupForm";
 import { Mountain } from "lucide-react";
 
 const LoginPage = () => {
@@ -36,30 +35,8 @@ const LoginPage = () => {
         </div>
         
         <div className="bg-white rounded-2xl shadow-2xl p-8">
-          <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8 bg-gray-100 p-1.5 rounded-lg">
-              <TabsTrigger 
-                value="login" 
-                className="rounded-md px-6 py-2.5 data-[state=active]:bg-navy-600 data-[state=active]:text-white text-gray-600 transition-all"
-              >
-                Login
-              </TabsTrigger>
-              <TabsTrigger 
-                value="signup"
-                className="rounded-md px-6 py-2.5 data-[state=active]:bg-navy-600 data-[state=active]:text-white text-gray-600 transition-all"
-              >
-                Sign Up
-              </TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="login" className="mt-2">
-              <LoginForm />
-            </TabsContent>
-            
-            <TabsContent value="signup" className="mt-2">
-              <SignupForm />
-            </TabsContent>
-          </Tabs>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">Login to Your Account</h2>
+          <LoginForm />
         </div>
       </div>
     </div>

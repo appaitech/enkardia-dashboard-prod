@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { removeUserFromClientBusiness } from "@/services/invitationService";
 import { toast } from "sonner";
+import InviteClientUserDialog from "@/components/admin/InviteClientUserDialog";
 
 interface ClientDetailUsersProps {
   clientId: string;
@@ -42,6 +43,7 @@ interface AvailableUser {
 
 const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientName }) => {
   const [isAssignUserDialogOpen, setIsAssignUserDialogOpen] = useState(false);
+  const [isInviteUserDialogOpen, setIsInviteUserDialogOpen] = useState(false);
   const [removingUserId, setRemovingUserId] = useState<string | null>(null);
   const [isRemoveUserDialogOpen, setIsRemoveUserDialogOpen] = useState(false);
   const [userToRemove, setUserToRemove] = useState<AssignedUser | null>(null);
@@ -268,6 +270,10 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
     );
   };
   
+  const handleInviteUser = () => {
+    setIsInviteUserDialogOpen(true);
+  };
+  
   return (
     <>
       <Card>
@@ -281,10 +287,16 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
               Manage users associated with this client
             </CardDescription>
           </div>
-          <Button onClick={() => setIsAssignUserDialogOpen(true)}>
-            <UserPlus className="h-4 w-4 mr-2" />
-            Assign User
-          </Button>
+          <div className="flex space-x-2">
+            <Button variant="outline" onClick={handleInviteUser}>
+              <Mail className="h-4 w-4 mr-2" />
+              Invite User
+            </Button>
+            <Button onClick={() => setIsAssignUserDialogOpen(true)}>
+              <UserPlus className="h-4 w-4 mr-2" />
+              Assign User
+            </Button>
+          </div>
         </CardHeader>
         
         <CardContent>
@@ -399,6 +411,14 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <InviteClientUserDialog
+        open={isInviteUserDialogOpen}
+        onOpenChange={setIsInviteUserDialogOpen}
+        clientId={clientId}
+        clientName={clientName}
+        onUserInvited={() => refetchUsers()}
+      />
     </>
   );
 };

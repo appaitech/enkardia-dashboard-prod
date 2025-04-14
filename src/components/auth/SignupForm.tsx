@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -8,33 +8,25 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Lock, Mail, User } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { AccountType, UserRole } from "@/contexts/AuthContext";
-import { useLocation } from "react-router-dom";
-import { useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { acceptInvitation } from "@/services/invitationService";
 import { toast } from "sonner";
 
-const SignupForm = () => {
-  const [email, setEmail] = useState("");
+interface SignupFormProps {
+  invitationToken?: string | null;
+  invitationEmail?: string | null;
+}
+
+const SignupForm: React.FC<SignupFormProps> = ({ invitationToken, invitationEmail }) => {
+  const [email, setEmail] = useState(invitationEmail || "");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   
-  const { signup } = useAuth();
+  const { signup, login } = useAuth();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-
-  // Check if we're coming from an invitation
-  const invitationToken = searchParams.get("token");
-  const invitationEmail = searchParams.get("email");
-  
-  // Pre-fill the email if it's coming from an invitation
-  React.useEffect(() => {
-    if (invitationEmail) {
-      setEmail(invitationEmail);
-    }
-  }, [invitationEmail]);
+  const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,6 +62,14 @@ const SignupForm = () => {
         }
       }
       
+      // Attempt to log in the user with the newly created credentials
+      try {
+        await login(email, password);
+      } catch (loginError) {
+        console.error("Auto-login failed:", loginError);
+        navigate("/login");
+      }
+      
       // Reset loading state
       setIsLoading(false);
     } catch (error: any) {
@@ -79,23 +79,14 @@ const SignupForm = () => {
   };
 
   // Reset loading state on mount
-  React.useEffect(() => {
+  useEffect(() => {
     setIsLoading(false);
   }, []);
 
   return (
-    <Card className="shadow-lg border-slate-200">
-      <CardHeader>
-        <CardTitle className="text-xl">Create Account</CardTitle>
-        <CardDescription>
-          {invitationToken ? 
-            "Complete your account setup to accept the invitation" : 
-            "Set up your new account to access the client portal"}
-        </CardDescription>
-      </CardHeader>
-      
+    <Card className="border-0 shadow-none bg-transparent">
       <form onSubmit={handleSignup}>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 p-0">
           {error && (
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
