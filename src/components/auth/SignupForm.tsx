@@ -51,6 +51,16 @@ const SignupForm: React.FC<SignupFormProps> = ({ invitationToken, invitationEmai
           if (success) {
             console.log("Successfully associated user with client business");
             toast.success("Account created successfully!");
+            
+            // Attempt to log in the user with the newly created credentials
+            try {
+              await login(email, password);
+              // Navigate to dashboard directly
+              navigate("/user/dashboard");
+            } catch (loginError) {
+              console.error("Auto-login failed:", loginError);
+              navigate("/login");
+            }
           } else {
             console.warn("Failed to associate user with client business, but account was created");
             navigate('/error', {
@@ -59,7 +69,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ invitationToken, invitationEmai
                 message: "Your account was created, but there was an issue associating you with the client business."
               }
             });
-            return;
           }
         } catch (invitationError) {
           console.error("Error accepting invitation:", invitationError);
@@ -69,22 +78,19 @@ const SignupForm: React.FC<SignupFormProps> = ({ invitationToken, invitationEmai
               message: "Your account was created, but there was an issue with the invitation process."
             }
           });
-          return;
+        }
+      } else {
+        // No invitation token, just navigate to dashboard after login
+        try {
+          await login(email, password);
+          // Navigate to dashboard directly
+          navigate("/user/dashboard");
+        } catch (loginError) {
+          console.error("Auto-login failed:", loginError);
+          navigate("/login");
         }
       }
       
-      // Attempt to log in the user with the newly created credentials
-      try {
-        await login(email, password);
-        // Navigate to dashboard directly
-        navigate("/user/dashboard");
-      } catch (loginError) {
-        console.error("Auto-login failed:", loginError);
-        navigate("/login");
-      }
-      
-      // Reset loading state
-      setIsLoading(false);
     } catch (error: any) {
       setError(error.message || "Signup failed");
       setIsLoading(false);

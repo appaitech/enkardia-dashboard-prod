@@ -37,6 +37,7 @@ const AcceptInvitationPage = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [invitationEmail, setInvitationEmail] = useState<string>("");
   const [clientBusinessId, setClientBusinessId] = useState<string>("");
+  const [initialValidationComplete, setInitialValidationComplete] = useState(false);
   
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
@@ -115,13 +116,15 @@ const AcceptInvitationPage = () => {
             message: "An unexpected error occurred while processing your invitation" 
           }
         });
+      } finally {
+        setInitialValidationComplete(true);
       }
     };
     
-    if (!authLoading) {
+    if (!authLoading && !initialValidationComplete) {
       validateToken();
     }
-  }, [token, authLoading, isAuthenticated, user, form, navigate]);
+  }, [token, authLoading, isAuthenticated, user, form, navigate, initialValidationComplete]);
   
   const checkUserExists = async (email: string) => {
     try {
