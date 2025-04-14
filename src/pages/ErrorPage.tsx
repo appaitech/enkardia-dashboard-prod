@@ -13,6 +13,16 @@ const ErrorPage = () => {
     message: "An unexpected error occurred. Please try again or contact support."
   };
 
+  // Determine where to redirect based on whether there's a logged-in user
+  const handleGoBack = () => {
+    // This will try to go back in history, or if not possible, go to login
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      navigate("/login");
+    }
+  };
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200 px-4">
       <Card className="w-full max-w-md shadow-lg border-slate-200">
@@ -32,8 +42,18 @@ const ErrorPage = () => {
           </div>
         </CardContent>
         
-        <CardFooter className="flex justify-center border-t pt-4">
-          <Button onClick={() => navigate("/login")} className="w-full">
+        <CardFooter className="flex justify-between border-t pt-4">
+          <Button 
+            variant="outline" 
+            onClick={handleGoBack}
+            className="w-1/2 mr-2"
+          >
+            Go Back
+          </Button>
+          <Button 
+            onClick={() => navigate("/login")} 
+            className="w-1/2 ml-2"
+          >
             Go to Login
           </Button>
         </CardFooter>
