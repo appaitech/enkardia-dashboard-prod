@@ -53,6 +53,7 @@ const LoginForm = () => {
     }
     
     try {
+      // Update this line to include the correct redirectTo URL
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/reset-password`,
       });

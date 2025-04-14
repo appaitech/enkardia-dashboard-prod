@@ -49,6 +49,7 @@ const ResetPasswordPage = () => {
       try {
         // Get hash fragment from URL - some email clients convert query params to hash fragments
         const fullUrl = window.location.href;
+        console.log("Full URL:", fullUrl);
         
         // Check for hash fragments first
         let token = null;
@@ -57,23 +58,33 @@ const ResetPasswordPage = () => {
         // Try to get from URL fragment first (after #)
         const hashPart = window.location.hash.substring(1);
         if (hashPart) {
+          console.log("Hash part:", hashPart);
           const hashParams = new URLSearchParams(hashPart);
-          token = hashParams.get("token");
-          type = hashParams.get("type");
+          token = hashParams.get("token") || hashParams.get("access_token");
+          type = hashParams.get("type") || "recovery";
         }
         
         // If not in fragment, try normal query params
-        if (!token || !type) {
-          token = searchParams.get("token");
-          type = searchParams.get("type");
+        if (!token) {
+          token = searchParams.get("token") || searchParams.get("access_token");
+          type = searchParams.get("type") || "recovery";
         }
         
-        // Special case: If the URL contains the complete Supabase Auth URL with hash
-        if (!token && fullUrl.includes('#access_token=')) {
-          // This handles Supabase redirect URLs with hash fragments
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          token = hashParams.get("access_token");
-          type = "recovery"; // Assume recovery type
+        // Special case: If the URL contains the complete Supabase Auth URL format
+        if (!token && fullUrl.includes('#')) {
+          const hashIndex = fullUrl.indexOf('#');
+          if (hashIndex !== -1) {
+            const hashContent = fullUrl.substring(hashIndex + 1);
+            console.log("Hash content:", hashContent);
+            const hashParams = new URLSearchParams(hashContent);
+            
+            // Check for Supabase specific tokens
+            token = hashParams.get("access_token");
+            if (token) {
+              console.log("Found access_token in hash");
+              type = "recovery";
+            }
+          }
         }
         
         console.log("Extracted token:", token);
