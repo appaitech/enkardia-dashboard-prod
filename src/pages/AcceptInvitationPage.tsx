@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -8,22 +9,7 @@ import { isValidInvitationToken, acceptInvitation, getInvitationDetails } from "
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
-
-const passwordSchema = z.object({
-  name: z.string().min(2, "Name must be at least 2 characters"),
-  email: z.string().email("Please enter a valid email address"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
-
-type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 const AcceptInvitationPage = () => {
   const [searchParams] = useSearchParams();
@@ -31,6 +17,7 @@ const AcceptInvitationPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: authLoading, signup, login } = useAuth();
   
+  // Page state
   const [status, setStatus] = useState<"checking" | "valid" | "accepted" | "createAccount">("checking");
   const [isProcessing, setIsProcessing] = useState(false);
   const [invitationEmail, setInvitationEmail] = useState<string>("");
@@ -38,21 +25,12 @@ const AcceptInvitationPage = () => {
   const [initialValidationComplete, setInitialValidationComplete] = useState(false);
   const [isCreatingAccount, setIsCreatingAccount] = useState<boolean>(false);
   
+  // Form fields state
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
-  
-  const form = useForm<PasswordFormValues>({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: ""
-    },
-  });
   
   useEffect(() => {
     const validateToken = async () => {
@@ -79,7 +57,6 @@ const AcceptInvitationPage = () => {
             setInvitationEmail(details.email);
             setEmail(details.email);
             setClientBusinessId(details.clientBusinessId);
-            form.setValue("email", details.email);
             
             if (isAuthenticated && user && user.email === details.email) {
               console.log("User already authenticated with matching email");
@@ -130,7 +107,7 @@ const AcceptInvitationPage = () => {
     if (!authLoading && !initialValidationComplete && !isCreatingAccount) {
       validateToken();
     }
-  }, [token, authLoading, isAuthenticated, user, form, navigate, initialValidationComplete, isCreatingAccount]);
+  }, [token, authLoading, isAuthenticated, user, navigate, initialValidationComplete, isCreatingAccount]);
   
   const checkUserExists = async (email: string) => {
     try {
@@ -152,7 +129,7 @@ const AcceptInvitationPage = () => {
     }
   };
   
-  const validateCreateAccountForm = () => {
+  const validateCreateAccountFields = () => {
     const errors: {[key: string]: string} = {};
     
     if (!name || name.length < 2) {
@@ -171,7 +148,7 @@ const AcceptInvitationPage = () => {
     return Object.keys(errors).length === 0;
   };
   
-  const validateLoginForm = () => {
+  const validateLoginFields = () => {
     const errors: {[key: string]: string} = {};
     
     if (!password) {
@@ -221,7 +198,7 @@ const AcceptInvitationPage = () => {
   const handleCreateAccount = async () => {
     setIsCreatingAccount(true);
     
-    if (!validateCreateAccountForm()) {
+    if (!validateCreateAccountFields()) {
       setIsCreatingAccount(false);
       return;
     }
@@ -295,7 +272,7 @@ const AcceptInvitationPage = () => {
   };
   
   const handleLogin = async () => {
-    if (!validateLoginForm()) {
+    if (!validateLoginFields()) {
       return;
     }
     
