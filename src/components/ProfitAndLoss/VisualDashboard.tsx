@@ -27,7 +27,6 @@ interface VisualDashboardProps {
   data: VisualDashboardData;
 }
 
-// Define the Position type for Recharts
 type Position = 'top' | 'right' | 'bottom' | 'left' | 'center' | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom' | 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight' | 'start' | 'end' | 'inside';
 
 const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
@@ -35,10 +34,8 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     return <div>No visual dashboard data available</div>;
   }
 
-  // Get the report
   const report = data.Reports[0];
   
-  // Extract financial data
   const findRowsByType = (rows: ProfitAndLossRow[], title: string): ProfitAndLossRow[] => {
     for (const row of rows) {
       if (row.Title === title) {
@@ -48,7 +45,6 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     return [];
   };
 
-  // Process income data
   const incomeRows = findRowsByType(report.Rows, 'Income');
   const incomeData = incomeRows
     .filter(row => row.RowType === 'Row')
@@ -56,9 +52,8 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
       name: row.Cells?.[0]?.Value || '',
       value: parseFloat((row.Cells?.[1]?.Value || '0').replace(/,/g, ''))
     }))
-    .filter(item => item.value !== 0); // Filter out zero values
+    .filter(item => item.value !== 0);
 
-  // Process expense data
   const expenseRows = findRowsByType(report.Rows, 'Less Operating Expenses');
   const expenseData = expenseRows
     .filter(row => row.RowType === 'Row')
@@ -66,10 +61,9 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
       name: row.Cells?.[0]?.Value || '',
       value: parseFloat((row.Cells?.[1]?.Value || '0').replace(/,/g, ''))
     }))
-    .filter(item => item.value !== 0) // Filter out zero values
-    .sort((a, b) => b.value - a.value); // Sort by value descending
+    .filter(item => item.value !== 0)
+    .sort((a, b) => b.value - a.value);
 
-  // Get summary values
   const totalIncome = incomeRows.find(row => row.RowType === 'SummaryRow')?.Cells?.[1]?.Value || '0';
   const totalExpenses = expenseRows.find(row => row.RowType === 'SummaryRow')?.Cells?.[1]?.Value || '0';
   const netProfit = report.Rows
@@ -77,15 +71,13 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     ?.Rows?.find(row => row.Cells?.[0]?.Value === 'Net Profit')
     ?.Cells?.[1]?.Value || '0';
 
-  // Calculate metrics
-  const totalIncomeValue = parseFloat(totalIncome.replace(/,/g, ''));
-  const totalExpensesValue = parseFloat(totalExpenses.replace(/,/g, ''));
+  const totalIncomeValue = parseFloat(totalIncome.replace(/,/g, '));
+  const totalExpensesValue = parseFloat(totalExpenses.replace(/,/g, '));
   const netProfitValue = parseFloat(netProfit.replace(/,/g, '));
-  
+
   const profitMargin = totalIncomeValue > 0 ? (netProfitValue / totalIncomeValue) * 100 : 0;
   const expenseRatio = totalIncomeValue > 0 ? (totalExpensesValue / totalIncomeValue) * 100 : 0;
 
-  // Create a dataset for revenue vs expenses breakdown
   const revenueVsExpensesData = [
     {
       name: 'Revenue',
@@ -101,34 +93,42 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     }
   ];
 
-  // Colors for charts
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D', '#FFC658', '#8DD1E1', '#A4DE6C', '#D0ED57'];
 
-  // Define a nice color palette for expenses
   const EXPENSE_COLORS = [
-    '#3b82f6', // blue
-    '#14b8a6', // teal
-    '#8b5cf6', // purple
-    '#06b6d4', // cyan
-    '#6366f1', // indigo
-    '#0ea5e9', // sky
-    '#10b981', // emerald
-    '#6d28d9', // violet
-    '#0284c7', // lightBlue
-    '#059669'  // green
+    '#3b82f6',
+    '#14b8a6',
+    '#8b5cf6',
+    '#06b6d4',
+    '#6366f1',
+    '#0ea5e9',
+    '#10b981',
+    '#6d28d9',
+    '#0284c7',
+    '#059669'
   ];
 
-  // Extract the report date range
   const reportPeriod = report.ReportDate || 'Current Period';
 
-  // Calculate financial health indicators
-  const profitMarginHealth = profitMargin >= 15 ? 'excellent' : profitMargin >= 10 ? 'good' : profitMargin >= 5 ? 'fair' : 'poor';
-  const expenseRatioHealth = expenseRatio <= 70 ? 'excellent' : expenseRatio <= 80 ? 'good' : expenseRatio <= 90 ? 'fair' : 'poor';
+  const profitMarginHealth = profitMargin >= 15 
+    ? 'excellent' 
+    : profitMargin >= 10 
+    ? 'good' 
+    : profitMargin >= 5 
+    ? 'fair' 
+    : 'poor';
+
+  const expenseRatioHealth = expenseRatio <= 70 
+    ? 'excellent' 
+    : expenseRatio <= 80 
+    ? 'good' 
+    : expenseRatio <= 90 
+    ? 'fair' 
+    : 'poor';
 
   const isMobile = useIsMobile();
   const layout = isMobile ? chartConfig.mobileLayout : chartConfig.desktopLayout;
 
-  // Add custom label renderer for pie chart
   const renderCustomLabel = ({ 
     cx, 
     cy, 
@@ -143,7 +143,6 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     const x = cx + radius * Math.cos(-midAngle * RADIAN);
     const y = cy + radius * Math.sin(-midAngle * RADIAN);
     
-    // Only show label if percentage is greater than 5%
     if (percent < 0.05) return null;
 
     return (
@@ -173,7 +172,6 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
         </CardHeader>
       </Card>
     
-      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4 bg-blue-50">
           <h3 className="text-sm font-medium text-slate-500">Total Revenue</h3>
@@ -230,7 +228,6 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
         </Card>
       </div>
 
-      {/* Revenue & Expenses Overview */}
       <Card>
         <CardHeader>
           <CardTitle>Revenue & Expenses Overview</CardTitle>
@@ -266,13 +263,12 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
         </CardContent>
       </Card>
 
-      {/* Top Expenses Bar Chart */}
       <Card className="p-4 col-span-1 lg:col-span-2">
         <h3 className="text-lg font-semibold mb-4">Top Expenses</h3>
         <div className="h-[300px] md:h-[400px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart
-              data={expenseData.slice(0, 5)} // Show top 5 expenses
+              data={expenseData.slice(0, 5)}
               layout="vertical"
               margin={{ top: 5, right: 30, left: 100, bottom: 5 }}
             >
@@ -291,7 +287,6 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
         </div>
       </Card>
 
-      {/* Income and Expense Breakdown Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {incomeData.length > 0 && (
           <Card className="p-4">
@@ -470,7 +465,6 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
         )}
       </div>
 
-      {/* Financial Insights Card */}
       <Card>
         <CardHeader>
           <CardTitle>Financial Insights</CardTitle>
