@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -182,7 +181,18 @@ const AcceptInvitationPage = () => {
     }
   };
   
-  const handleCreateAccount = async (data: PasswordFormValues) => {
+  const handleCreateAccount = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    const result = await form.trigger();
+    if (!result) {
+      return;
+    }
+    
+    const data = form.getValues();
+    
     if (!token || !clientBusinessId) {
       console.error("Missing token or clientBusinessId");
       navigate('/error', { 
@@ -198,14 +208,12 @@ const AcceptInvitationPage = () => {
     
     try {
       console.log("Creating new account for:", data.email);
-      // Create the user account first
       const userId = await signup(data.email, data.password, data.name, "CLIENT", "STANDARD");
       
       if (userId) {
         console.log("User account created with ID:", userId);
         
         try {
-          // Now accept the invitation using the newly created user ID
           console.log("Accepting invitation for new user:", userId, "with token:", token);
           const success = await acceptInvitation(token, userId);
           
@@ -214,15 +222,12 @@ const AcceptInvitationPage = () => {
             setStatus("accepted");
             toast.success("Account created and you've been added to the client business");
             
-            // Log in the user automatically
             await login(data.email, data.password);
             
-            // Redirect to dashboard after a short delay
             setTimeout(() => {
               navigate("/user/dashboard");
             }, 2000);
           } else {
-            // Redirect to error page if invitation acceptance fails
             navigate('/error', { 
               state: { 
                 title: "Error Accepting Invitation", 
@@ -255,7 +260,18 @@ const AcceptInvitationPage = () => {
     }
   };
   
-  const handleLogin = async (data: PasswordFormValues) => {
+  const handleLogin = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+    }
+    
+    const result = await form.trigger();
+    if (!result) {
+      return;
+    }
+    
+    const data = form.getValues();
+    
     if (!token) return;
     
     setIsProcessing(true);
@@ -265,7 +281,6 @@ const AcceptInvitationPage = () => {
       await login(data.email, data.password);
       toast.success("Login successful");
       
-      // After login, redirect back to handle the invitation acceptance
       navigate(`/accept-invitation?token=${token}`);
     } catch (error: any) {
       console.error("Error logging in:", error);
@@ -308,7 +323,7 @@ const AcceptInvitationPage = () => {
         <div className="text-center">
           <p className="mb-6">Create an account to accept this invitation.</p>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleCreateAccount)} className="space-y-4">
+            <form className="space-y-4">
               <FormField
                 control={form.control}
                 name="name"
@@ -398,9 +413,10 @@ const AcceptInvitationPage = () => {
               />
               
               <Button 
-                type="submit" 
+                type="button" 
                 className="w-full"
                 disabled={isProcessing}
+                onClick={handleCreateAccount}
               >
                 {isProcessing ? (
                   <>
@@ -441,7 +457,7 @@ const AcceptInvitationPage = () => {
           <div>
             <p className="mb-6">Please log in to accept this invitation.</p>
             <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleLogin)} className="space-y-4">
+              <form className="space-y-4">
                 <FormField
                   control={form.control}
                   name="email"
@@ -487,9 +503,10 @@ const AcceptInvitationPage = () => {
                 />
                 
                 <Button 
-                  type="submit" 
+                  type="button" 
                   className="w-full"
                   disabled={isProcessing}
+                  onClick={handleLogin}
                 >
                   {isProcessing ? (
                     <>
