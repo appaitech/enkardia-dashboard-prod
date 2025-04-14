@@ -29,6 +29,8 @@ interface VisualDashboardProps {
 
 type Position = 'top' | 'right' | 'bottom' | 'left' | 'center' | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom' | 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight' | 'start' | 'end' | 'inside';
 
+type CSSPosition = 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky';
+
 const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   if (!data || !data.Reports || !data.Reports.length) {
     return <div>No visual dashboard data available</div>;
@@ -109,18 +111,18 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   const profitMarginHealth = profitMargin >= 15 
     ? 'excellent' 
     : profitMargin >= 10 
-    ? 'good' 
-    : profitMargin >= 5 
-    ? 'fair' 
-    : 'poor';
+      ? 'good' 
+      : profitMargin >= 5 
+        ? 'fair' 
+        : 'poor';
 
   const expenseRatioHealth = expenseRatio <= 70 
     ? 'excellent' 
     : expenseRatio <= 80 
-    ? 'good' 
-    : expenseRatio <= 90 
-    ? 'fair' 
-    : 'poor';
+      ? 'good' 
+      : expenseRatio <= 90 
+        ? 'fair' 
+        : 'poor';
 
   const isMobile = useIsMobile();
   const layout = isMobile ? chartConfig.mobileLayout : chartConfig.desktopLayout;
@@ -321,7 +323,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                       width: '45%',
                       height: '100%',
                       overflowY: 'auto',
-                      position: "absolute" as Position,
+                      position: "absolute" as CSSPosition,
                     }}
                     content={({ payload }) => (
                       <div className="bg-white rounded-lg p-4 h-full">
@@ -409,7 +411,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                       width: '45%',
                       height: '100%',
                       overflowY: 'auto',
-                      position: "absolute" as Position,
+                      position: "absolute" as CSSPosition,
                     }}
                     content={({ payload }) => (
                       <div className="bg-white rounded-lg p-4 h-full">

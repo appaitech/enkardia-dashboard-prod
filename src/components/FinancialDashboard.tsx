@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -51,6 +52,9 @@ interface FinancialDashboardProps {
 
 // Define correct Position type for Recharts
 type Position = 'top' | 'right' | 'bottom' | 'left' | 'center' | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom' | 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight' | 'start' | 'end' | 'inside';
+
+// Define CSS position type for styling
+type CSSPosition = 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky';
 
 const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) => {
   const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
@@ -275,7 +279,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
                 verticalAlign="middle" 
                 layout="vertical"
                 wrapperStyle={{ 
-                  position: "absolute" as PositionType, 
+                  position: "absolute" as CSSPosition, 
                   right: 0, 
                   top: "50%", 
                   transform: "translateY(-50%)",
@@ -324,7 +328,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
                 align="center" 
                 verticalAlign="bottom"
                 wrapperStyle={{ 
-                  position: "absolute" as Position, 
+                  position: "absolute" as CSSPosition, 
                   left: 0,
                   right: 0,
                   bottom: -20,

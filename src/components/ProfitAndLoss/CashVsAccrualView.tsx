@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { ProfitAndLossResponse } from '@/services/financialService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,7 +13,11 @@ interface CashVsAccrualViewProps {
   date: string;
 }
 
+// Define correct position types for Recharts
 type Position = 'top' | 'right' | 'bottom' | 'left' | 'center' | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom' | 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight' | 'start' | 'end' | 'inside';
+
+// Define CSS position type for styling
+type CSSPosition = 'static' | 'relative' | 'absolute' | 'fixed' | 'sticky';
 
 const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrualData, date }) => {
   if (!cashData || !cashData.Reports || !cashData.Reports.length || 
@@ -300,7 +305,7 @@ const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrual
                 {...layout.legendProps}
                 wrapperStyle={{
                   ...(layout.legendProps.wrapperStyle as React.CSSProperties),
-                  position: layout.legendProps.wrapperStyle.position as Position
+                  position: layout.legendProps.wrapperStyle.position as CSSPosition
                 }}
               />
               <Bar dataKey="Cash" name="Cash Basis" fill="#3b82f6" />
