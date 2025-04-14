@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,6 +25,7 @@ type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 const ResetPasswordPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -46,16 +47,42 @@ const ResetPasswordPage = () => {
       setError(null);
       
       try {
-        // Extract token from URL
-        const token = searchParams.get("token");
-        const type = searchParams.get("type");
+        // Get hash fragment from URL - some email clients convert query params to hash fragments
+        const fullUrl = window.location.href;
         
-        console.log("Token from URL:", token);
-        console.log("Type from URL:", type);
+        // Check for hash fragments first
+        let token = null;
+        let type = null;
         
+        // Try to get from URL fragment first (after #)
+        const hashPart = window.location.hash.substring(1);
+        if (hashPart) {
+          const hashParams = new URLSearchParams(hashPart);
+          token = hashParams.get("token");
+          type = hashParams.get("type");
+        }
+        
+        // If not in fragment, try normal query params
         if (!token || !type) {
-          console.error("Missing token or type in URL");
-          setError("Invalid password reset link");
+          token = searchParams.get("token");
+          type = searchParams.get("type");
+        }
+        
+        // Special case: If the URL contains the complete Supabase Auth URL with hash
+        if (!token && fullUrl.includes('#access_token=')) {
+          // This handles Supabase redirect URLs with hash fragments
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          token = hashParams.get("access_token");
+          type = "recovery"; // Assume recovery type
+        }
+        
+        console.log("Extracted token:", token);
+        console.log("Extracted type:", type);
+        
+        if (!token) {
+          console.error("Could not extract token from URL");
+          setError("Invalid password reset link. The link might be malformed or expired.");
+          setIsTokenValid(false);
           setIsProcessingToken(false);
           return;
         }
@@ -63,7 +90,7 @@ const ResetPasswordPage = () => {
         // Verify the reset token with Supabase
         const { data, error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: token,
-          type: "recovery",
+          type: type || "recovery",
         });
         
         if (verifyError) {
