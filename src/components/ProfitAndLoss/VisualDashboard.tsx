@@ -1,3 +1,4 @@
+
 import React, { useMemo } from 'react';
 import { VisualDashboardData, ProfitAndLossRow } from '@/services/financialService';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -26,6 +27,9 @@ import { chartConfig, useIsMobile, ResponsiveChartContainer } from '@/components
 interface VisualDashboardProps {
   data: VisualDashboardData;
 }
+
+// Define PositionType for the Legend component
+type PositionType = 'top' | 'bottom' | 'left' | 'right' | 'center';
 
 const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   if (!data || !data.Reports || !data.Reports.length) {
@@ -327,7 +331,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                       width: '45%',
                       height: '100%',
                       overflowY: 'auto',
-                      position: 'absolute' as 'absolute',
+                      position: "absolute" as PositionType,
                     }}
                     content={({ payload }) => (
                       <div className="bg-white rounded-lg p-4 h-full">
@@ -415,7 +419,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                       width: '45%',
                       height: '100%',
                       overflowY: 'auto',
-                      position: 'absolute' as 'absolute',
+                      position: "absolute" as PositionType,
                     }}
                     content={({ payload }) => (
                       <div className="bg-white rounded-lg p-4 h-full">
