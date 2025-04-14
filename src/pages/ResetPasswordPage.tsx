@@ -29,6 +29,8 @@ const ResetPasswordPage = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState("");
+  const [isTokenValid, setIsTokenValid] = useState(false);
+  const [isProcessingToken, setIsProcessingToken] = useState(true);
   
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -39,10 +41,42 @@ const ResetPasswordPage = () => {
   });
   
   useEffect(() => {
-    // Check if we have a valid hash from the URL
-    if (!searchParams.has("token") && !searchParams.has("type")) {
-      setError("Invalid password reset link");
-    }
+    const verifyToken = async () => {
+      setIsProcessingToken(true);
+      setError("");
+      
+      // Get token from URL
+      const token = searchParams.get("token");
+      const type = searchParams.get("type");
+      
+      if (!token || !type) {
+        setError("Invalid password reset link");
+        setIsProcessingToken(false);
+        return;
+      }
+      
+      try {
+        // Verify the token with Supabase
+        const { error } = await supabase.auth.verifyOtp({
+          token_hash: token,
+          type: "recovery",
+        });
+        
+        if (error) {
+          console.error("Token verification error:", error);
+          setError("This password reset link is invalid or has expired");
+        } else {
+          setIsTokenValid(true);
+        }
+      } catch (err: any) {
+        console.error("Error verifying token:", err);
+        setError(err.message || "Failed to verify reset link");
+      } finally {
+        setIsProcessingToken(false);
+      }
+    };
+    
+    verifyToken();
   }, [searchParams]);
   
   const onSubmit = async (data: ResetPasswordFormValues) => {
@@ -73,7 +107,27 @@ const ResetPasswordPage = () => {
     }
   };
   
-  if (error && !searchParams.has("token")) {
+  if (isProcessingToken) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 to-navy-600 px-6 py-12">
+        <div className="w-full max-w-md">
+          <Card className="shadow-lg">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl">Verifying Reset Link</CardTitle>
+              <CardDescription>
+                Please wait while we verify your password reset link...
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center py-6">
+              <Loader2 className="h-12 w-12 text-navy-600 animate-spin mb-4" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 to-navy-600 px-6 py-12">
         <div className="w-full max-w-md">
