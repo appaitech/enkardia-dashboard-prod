@@ -1,10 +1,10 @@
-
 import React from 'react';
 import { ProfitAndLossResponse } from '@/services/financialService';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { formatCurrency } from '@/lib/utils';
 import { TrendingUp, TrendingDown, DollarSign, BarChart2 } from 'lucide-react';
+import { chartConfig, useIsMobile, ResponsiveChartContainer } from '@/components/ui/chart';
 
 interface CashVsAccrualViewProps {
   cashData: ProfitAndLossResponse;
@@ -241,6 +241,9 @@ const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrual
     return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   };
 
+  const isMobile = useIsMobile();
+  const layout = isMobile ? chartConfig.mobileLayout : chartConfig.desktopLayout;
+
   return (
     <div className="space-y-6">
       <Card className="bg-white">
@@ -303,26 +306,26 @@ const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrual
           <CardDescription>Key financial metrics</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-[400px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={comparisonChartData}
-                margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis 
-                  tickFormatter={(value) => formatCurrency(value)}
-                />
-                <Tooltip 
-                  formatter={(value) => formatCurrency(value as number)}
-                />
-                <Legend />
-                <Bar dataKey="Cash" name="Cash Basis" fill="#3b82f6" />
-                <Bar dataKey="Accrual" name="Accrual Basis" fill="#8b5cf6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveChartContainer>
+            <BarChart
+              data={comparisonChartData}
+              margin={layout.margin}
+            >
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis 
+                tickFormatter={(value) => formatCurrency(value)}
+              />
+              <Tooltip 
+                formatter={(value) => formatCurrency(value as number)}
+              />
+              <Legend 
+                {...layout.legendProps}
+              />
+              <Bar dataKey="Cash" name="Cash Basis" fill="#3b82f6" />
+              <Bar dataKey="Accrual" name="Accrual Basis" fill="#8b5cf6" />
+            </BarChart>
+          </ResponsiveChartContainer>
         </CardContent>
       </Card>
 

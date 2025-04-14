@@ -1,5 +1,7 @@
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
+import { ResponsiveContainer } from 'recharts';
+import { useState, useEffect } from 'react';
 
 import { cn } from "@/lib/utils"
 
@@ -32,6 +34,99 @@ function useChart() {
   return context
 }
 
+// Update the chartConfig
+export const chartConfig = {
+  // Layout for larger screens
+  desktopLayout: {
+    margin: { top: 20, right: 340, bottom: 20, left: 40 },
+    legendProps: {
+      align: 'right' as const,
+      verticalAlign: 'middle' as const,
+      layout: 'vertical' as const,
+      wrapperStyle: {
+        position: 'absolute',
+        right: 20,
+        top: '50%',
+        transform: 'translateY(-50%)',
+        backgroundColor: 'white',
+        padding: '24px',
+        borderRadius: '8px',
+        width: '280px',
+        border: '1px solid #e2e8f0',
+        boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)',
+        zIndex: 10,
+      },
+    }
+  },
+  // Layout for mobile screens
+  mobileLayout: {
+    margin: { top: 20, right: 20, bottom: 120, left: 20 },
+    legendProps: {
+      align: 'center' as const,
+      verticalAlign: 'bottom' as const,
+      layout: 'horizontal' as const,
+      wrapperStyle: {
+        position: 'relative',
+        padding: '16px',
+        fontSize: '12px',
+        width: '100%',
+        display: 'flex',
+        flexWrap: 'wrap',
+        justifyContent: 'center',
+        gap: '12px',
+        backgroundColor: 'white',
+        borderTop: '1px solid #e2e8f0',
+        marginTop: '16px',
+      },
+    }
+  },
+};
+
+// Add a custom hook to detect mobile screens
+export const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
+// Update the ResponsiveChartContainer
+export const ResponsiveChartContainer: React.FC<{
+  children: React.ReactElement;
+  height?: number;
+  width?: number;
+}> = ({ children, height = 500, width = 1400 }) => {
+  const isMobile = useIsMobile();
+  
+  return (
+    <div style={{ 
+      width: '100%',
+      maxWidth: width,
+      height: `${height}px`, 
+      minHeight: '300px',
+      position: 'relative',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      overflow: 'visible',
+      margin: '0 auto',
+      padding: isMobile ? '0 16px' : '0',
+    }}>
+      <ResponsiveContainer>{children}</ResponsiveContainer>
+    </div>
+  );
+};
+
+// Keep the existing ChartContainer
 const ChartContainer = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
