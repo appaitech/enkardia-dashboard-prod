@@ -63,21 +63,17 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
     }))
     .filter(item => item.value !== 0)
     .sort((a, b) => b.value - a.value);
-
   const totalIncome = incomeRows.find(row => row.RowType === 'SummaryRow')?.Cells?.[1]?.Value || '0';
   const totalExpenses = expenseRows.find(row => row.RowType === 'SummaryRow')?.Cells?.[1]?.Value || '0';
   const netProfit = report.Rows
     .find(section => section.Rows?.some(row => row.Cells?.[0]?.Value === 'Net Profit'))
     ?.Rows?.find(row => row.Cells?.[0]?.Value === 'Net Profit')
     ?.Cells?.[1]?.Value || '0';
-
-  const totalIncomeValue = parseFloat(totalIncome.replace(/,/g, '));
-  const totalExpensesValue = parseFloat(totalExpenses.replace(/,/g, '));
-  const netProfitValue = parseFloat(netProfit.replace(/,/g, '));
-
+  const totalIncomeValue = parseFloat(totalIncome.replace(/,/g, ''));
+  const totalExpensesValue = parseFloat(totalExpenses.replace(/,/g, ''));
+  const netProfitValue = parseFloat(netProfit.replace(/,/g, ''));
   const profitMargin = totalIncomeValue > 0 ? (netProfitValue / totalIncomeValue) * 100 : 0;
   const expenseRatio = totalIncomeValue > 0 ? (totalExpensesValue / totalIncomeValue) * 100 : 0;
-
   const revenueVsExpensesData = [
     {
       name: 'Revenue',
