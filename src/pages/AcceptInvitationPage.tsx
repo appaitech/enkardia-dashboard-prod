@@ -9,9 +9,8 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { z } from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 
 const passwordSchema = z.object({
@@ -37,8 +36,13 @@ const AcceptInvitationPage = () => {
   const [invitationEmail, setInvitationEmail] = useState<string>("");
   const [clientBusinessId, setClientBusinessId] = useState<string>("");
   const [initialValidationComplete, setInitialValidationComplete] = useState(false);
-
   const [isCreatingAccount, setIsCreatingAccount] = useState<boolean>(false);
+  
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
   
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
@@ -73,6 +77,7 @@ const AcceptInvitationPage = () => {
           if (details && details.email) {
             console.log("Invitation details found for email:", details.email);
             setInvitationEmail(details.email);
+            setEmail(details.email);
             setClientBusinessId(details.clientBusinessId);
             form.setValue("email", details.email);
             
@@ -147,6 +152,36 @@ const AcceptInvitationPage = () => {
     }
   };
   
+  const validateCreateAccountForm = () => {
+    const errors: {[key: string]: string} = {};
+    
+    if (!name || name.length < 2) {
+      errors.name = "Name must be at least 2 characters";
+    }
+    
+    if (!password || password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
+    }
+    
+    if (password !== confirmPassword) {
+      errors.confirmPassword = "Passwords don't match";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+  
+  const validateLoginForm = () => {
+    const errors: {[key: string]: string} = {};
+    
+    if (!password) {
+      errors.password = "Password is required";
+    }
+    
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+  
   const handleAcceptInvitation = async () => {
     if (!user || !token) return;
     
@@ -183,16 +218,13 @@ const AcceptInvitationPage = () => {
     }
   };
   
-  const handleCreateAccount = async (e?: React.MouseEvent) => {
+  const handleCreateAccount = async () => {
     setIsCreatingAccount(true);
-
-    if (e) {
-      e.preventDefault();
-    }
     
-    const data = form.getValues();
-
-    console.log('handleCreateAccount data', data);
+    if (!validateCreateAccountForm()) {
+      setIsCreatingAccount(false);
+      return;
+    }
     
     if (!token || !clientBusinessId) {
       console.error("Missing token or clientBusinessId");
@@ -208,8 +240,8 @@ const AcceptInvitationPage = () => {
     setIsProcessing(true);
     
     try {
-      console.log("Creating new account for:", data.email);
-      const userId = await signup(data.email, data.password, data.name, "CLIENT", "STANDARD");
+      console.log("Creating new account for:", email);
+      const userId = await signup(email, password, name, "CLIENT", "STANDARD");
       
       if (userId) {
         console.log("User account created with ID:", userId);
@@ -223,7 +255,7 @@ const AcceptInvitationPage = () => {
             setStatus("accepted");
             toast.success("Account created and you've been added to the client business");
             
-            await login(data.email, data.password);
+            await login(email, password);
             
             setTimeout(() => {
               navigate("/user/dashboard");
@@ -258,28 +290,22 @@ const AcceptInvitationPage = () => {
       });
     } finally {
       setIsProcessing(false);
+      setIsCreatingAccount(false);
     }
   };
   
-  const handleLogin = async (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-    }
-    
-    const result = await form.trigger();
-    if (!result) {
+  const handleLogin = async () => {
+    if (!validateLoginForm()) {
       return;
     }
-    
-    const data = form.getValues();
     
     if (!token) return;
     
     setIsProcessing(true);
     
     try {
-      console.log("Logging in with existing account:", data.email);
-      await login(data.email, data.password);
+      console.log("Logging in with existing account:", email);
+      await login(email, password);
       toast.success("Login successful");
       
       navigate(`/accept-invitation?token=${token}`);
@@ -323,113 +349,85 @@ const AcceptInvitationPage = () => {
       return (
         <div className="text-center">
           <p className="mb-6">Create an account to accept this invitation.</p>
-          <Form {...form}>
-            <form className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <div className="relative">
-                      <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          className="pl-10" 
-                          placeholder="Enter your name"
-                          autoFocus
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          className="pl-10" 
-                          disabled={true} 
-                          readOnly
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="password" 
-                          className="pl-10" 
-                          placeholder="Set a password"
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                      <FormControl>
-                        <Input 
-                          {...field} 
-                          type="password" 
-                          className="pl-10" 
-                          placeholder="Confirm password"
-                        />
-                      </FormControl>
-                    </div>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button 
-                type="button" 
-                className="w-full"
-                disabled={isProcessing}
-                onClick={handleCreateAccount}
-              >
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Creating Account...
-                  </>
-                ) : (
-                  'Create Account & Accept'
-                )}
-              </Button>
-            </form>
-          </Form>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <div className="relative">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Input 
+                  id="name"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="pl-10" 
+                  placeholder="Enter your name"
+                  autoFocus
+                />
+              </div>
+              {formErrors.name && <p className="text-sm font-medium text-destructive">{formErrors.name}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Input 
+                  id="email"
+                  value={email}
+                  className="pl-10" 
+                  disabled={true} 
+                  readOnly
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Input 
+                  id="password"
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="pl-10" 
+                  placeholder="Set a password"
+                />
+              </div>
+              {formErrors.password && <p className="text-sm font-medium text-destructive">{formErrors.password}</p>}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">Confirm Password</Label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Input 
+                  id="confirmPassword"
+                  type="password" 
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="pl-10" 
+                  placeholder="Confirm password"
+                />
+              </div>
+              {formErrors.confirmPassword && <p className="text-sm font-medium text-destructive">{formErrors.confirmPassword}</p>}
+            </div>
+            
+            <Button 
+              type="button" 
+              className="w-full"
+              disabled={isProcessing}
+              onClick={handleCreateAccount}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating Account...
+                </>
+              ) : (
+                'Create Account & Accept'
+              )}
+            </Button>
+          </div>
         </div>
       );
     }
@@ -457,69 +455,53 @@ const AcceptInvitationPage = () => {
         ) : (
           <div>
             <p className="mb-6">Please log in to accept this invitation.</p>
-            <Form {...form}>
-              <form className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="email"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Email</FormLabel>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            className="pl-10" 
-                            disabled={!!invitationEmail} 
-                            readOnly={!!invitationEmail}
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <FormField
-                  control={form.control}
-                  name="password"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Password</FormLabel>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-                        <FormControl>
-                          <Input 
-                            {...field} 
-                            type="password" 
-                            className="pl-10" 
-                            placeholder="Enter your password"
-                          />
-                        </FormControl>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                
-                <Button 
-                  type="button" 
-                  className="w-full"
-                  disabled={isProcessing}
-                  onClick={handleLogin}
-                >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Logging in...
-                    </>
-                  ) : (
-                    'Log In & Accept'
-                  )}
-                </Button>
-              </form>
-            </Form>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="login-email">Email</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <Input 
+                    id="login-email"
+                    value={email}
+                    className="pl-10" 
+                    disabled={!!invitationEmail} 
+                    readOnly={!!invitationEmail}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="login-password">Password</Label>
+                <div className="relative">
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                  <Input 
+                    id="login-password"
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="pl-10" 
+                    placeholder="Enter your password"
+                  />
+                </div>
+                {formErrors.password && <p className="text-sm font-medium text-destructive">{formErrors.password}</p>}
+              </div>
+              
+              <Button 
+                type="button" 
+                className="w-full"
+                disabled={isProcessing}
+                onClick={handleLogin}
+              >
+                {isProcessing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Logging in...
+                  </>
+                ) : (
+                  'Log In & Accept'
+                )}
+              </Button>
+            </div>
           </div>
         )}
       </div>
