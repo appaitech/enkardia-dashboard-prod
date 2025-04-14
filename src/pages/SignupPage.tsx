@@ -2,11 +2,10 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle } from "lucide-react";
 import { isValidInvitationToken, getInvitationDetails } from "@/services/invitationService";
-import { toast } from "sonner";
 import SignupForm from "@/components/auth/SignupForm";
 
 const SignupPage = () => {
@@ -22,6 +21,7 @@ const SignupPage = () => {
   
   useEffect(() => {
     if (isAuthenticated && user) {
+      // If user is already authenticated, send to dashboard
       navigate("/user/dashboard");
       return;
     }

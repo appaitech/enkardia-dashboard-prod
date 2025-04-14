@@ -1,14 +1,14 @@
 
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, Lock, Mail, User } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { acceptInvitation } from "@/services/invitationService";
 import { toast } from "sonner";
 
@@ -25,7 +25,6 @@ const SignupForm: React.FC<SignupFormProps> = ({ invitationToken, invitationEmai
   const [isLoading, setIsLoading] = useState(false);
   
   const { signup, login } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -51,7 +50,7 @@ const SignupForm: React.FC<SignupFormProps> = ({ invitationToken, invitationEmai
           
           if (success) {
             console.log("Successfully associated user with client business");
-            toast.success("Account created and you've been added to the client business!");
+            toast.success("Account created successfully!");
           } else {
             console.warn("Failed to associate user with client business, but account was created");
             toast.warning("Account created, but there was an issue associating you with the client business.");
@@ -65,6 +64,8 @@ const SignupForm: React.FC<SignupFormProps> = ({ invitationToken, invitationEmai
       // Attempt to log in the user with the newly created credentials
       try {
         await login(email, password);
+        // Navigate to dashboard directly
+        navigate("/user/dashboard");
       } catch (loginError) {
         console.error("Auto-login failed:", loginError);
         navigate("/login");

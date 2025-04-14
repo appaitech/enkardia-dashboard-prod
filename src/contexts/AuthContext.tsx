@@ -1,4 +1,3 @@
-
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -188,11 +187,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       if (error) throw error;
       
-      alert('Check your email to verify your account.');
       return data?.user?.id;
     } catch (error: any) {
-      alert(error.error_description || error.message);
-      return undefined;
+      throw error;
     } finally {
       setIsLoading(false);
     }
