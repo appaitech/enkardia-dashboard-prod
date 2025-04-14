@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
@@ -67,7 +66,6 @@ const ResetPasswordPage = () => {
         
         // Extract token from all possible locations
         let token = null;
-        let type = "recovery"; // Default to recovery
         
         // 1. Check URL query parameters
         token = urlParams.get("token") || urlParams.get("access_token");
@@ -106,10 +104,10 @@ const ResetPasswordPage = () => {
           return;
         }
         
-        // Verify the reset token with Supabase
+        // Verify the reset token with Supabase - using the correct type
         const { data, error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: token,
-          type: type,
+          type: "recovery",
         });
         
         if (verifyError) {
