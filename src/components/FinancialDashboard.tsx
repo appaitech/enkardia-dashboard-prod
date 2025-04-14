@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -16,8 +15,8 @@ import {
   CartesianGrid, 
   Tooltip, 
   Legend,
-  AreaChart,
-  Area
+  Area,
+  AreaChart
 } from "recharts";
 import { 
   DollarSign, 
