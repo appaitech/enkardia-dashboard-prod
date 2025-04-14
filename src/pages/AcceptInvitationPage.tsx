@@ -37,6 +37,8 @@ const AcceptInvitationPage = () => {
   const [invitationEmail, setInvitationEmail] = useState<string>("");
   const [clientBusinessId, setClientBusinessId] = useState<string>("");
   const [initialValidationComplete, setInitialValidationComplete] = useState(false);
+
+  const [isCreatingAccount, setIsCreatingAccount] = useState<boolean>(false);
   
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
@@ -120,10 +122,10 @@ const AcceptInvitationPage = () => {
       }
     };
     
-    if (!authLoading && !initialValidationComplete) {
+    if (!authLoading && !initialValidationComplete && !isCreatingAccount) {
       validateToken();
     }
-  }, [token, authLoading, isAuthenticated, user, form, navigate, initialValidationComplete]);
+  }, [token, authLoading, isAuthenticated, user, form, navigate, initialValidationComplete, isCreatingAccount]);
   
   const checkUserExists = async (email: string) => {
     try {
@@ -182,16 +184,15 @@ const AcceptInvitationPage = () => {
   };
   
   const handleCreateAccount = async (e?: React.MouseEvent) => {
+    setIsCreatingAccount(true);
+
     if (e) {
       e.preventDefault();
     }
     
-    const result = await form.trigger();
-    if (!result) {
-      return;
-    }
-    
     const data = form.getValues();
+
+    console.log('handleCreateAccount data', data);
     
     if (!token || !clientBusinessId) {
       console.error("Missing token or clientBusinessId");
