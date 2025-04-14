@@ -28,7 +28,7 @@ const ResetPasswordPage = () => {
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState<string | null>(null);
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [isProcessingToken, setIsProcessingToken] = useState(true);
   
@@ -43,34 +43,42 @@ const ResetPasswordPage = () => {
   useEffect(() => {
     const verifyToken = async () => {
       setIsProcessingToken(true);
-      setError("");
-      
-      // Get token from URL
-      const token = searchParams.get("token");
-      const type = searchParams.get("type");
-      
-      if (!token || !type) {
-        setError("Invalid password reset link");
-        setIsProcessingToken(false);
-        return;
-      }
+      setError(null);
       
       try {
-        // Verify the token with Supabase
-        const { error } = await supabase.auth.verifyOtp({
+        // Extract token from URL
+        const token = searchParams.get("token");
+        const type = searchParams.get("type");
+        
+        console.log("Token from URL:", token);
+        console.log("Type from URL:", type);
+        
+        if (!token || !type) {
+          console.error("Missing token or type in URL");
+          setError("Invalid password reset link");
+          setIsProcessingToken(false);
+          return;
+        }
+        
+        // Verify the reset token with Supabase
+        const { data, error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: token,
           type: "recovery",
         });
         
-        if (error) {
-          console.error("Token verification error:", error);
+        if (verifyError) {
+          console.error("Token verification error:", verifyError);
           setError("This password reset link is invalid or has expired");
+          setIsTokenValid(false);
         } else {
+          console.log("Token verification successful:", data);
           setIsTokenValid(true);
+          setError(null);
         }
       } catch (err: any) {
-        console.error("Error verifying token:", err);
+        console.error("Error in token verification process:", err);
         setError(err.message || "Failed to verify reset link");
+        setIsTokenValid(false);
       } finally {
         setIsProcessingToken(false);
       }
@@ -80,18 +88,26 @@ const ResetPasswordPage = () => {
   }, [searchParams]);
   
   const onSubmit = async (data: ResetPasswordFormValues) => {
+    if (!isTokenValid) {
+      setError("Cannot reset password with an invalid token");
+      return;
+    }
+    
     setIsLoading(true);
-    setError("");
+    setError(null);
     
     try {
-      const { error } = await supabase.auth.updateUser({
+      console.log("Attempting to update password");
+      const { error: updateError } = await supabase.auth.updateUser({
         password: data.password,
       });
       
-      if (error) {
-        throw error;
+      if (updateError) {
+        console.error("Password update error:", updateError);
+        throw updateError;
       }
       
+      console.log("Password updated successfully");
       setIsSuccess(true);
       toast.success("Your password has been successfully reset");
       
@@ -107,6 +123,7 @@ const ResetPasswordPage = () => {
     }
   };
   
+  // Show loading state while verifying token
   if (isProcessingToken) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 to-navy-600 px-6 py-12">
@@ -127,6 +144,7 @@ const ResetPasswordPage = () => {
     );
   }
   
+  // Show error state if token is invalid
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 to-navy-600 px-6 py-12">
@@ -176,13 +194,6 @@ const ResetPasswordPage = () => {
               </div>
             ) : (
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-                {error && (
-                  <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm flex items-start">
-                    <AlertCircle className="h-4 w-4 mt-0.5 mr-2 flex-shrink-0" />
-                    <span>{error}</span>
-                  </div>
-                )}
-                
                 <div className="space-y-2">
                   <Label htmlFor="password">New Password</Label>
                   <div className="relative">
