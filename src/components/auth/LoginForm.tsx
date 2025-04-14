@@ -53,9 +53,12 @@ const LoginForm = () => {
     }
     
     try {
-      // Update this line to include the correct redirectTo URL
+      // Use the full URL including the https:// protocol to ensure proper redirection
+      const redirectUrl = `${window.location.origin}/reset-password`;
+      console.log("Reset password redirect URL:", redirectUrl);
+      
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
+        redirectTo: redirectUrl,
       });
       
       if (error) {

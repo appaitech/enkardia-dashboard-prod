@@ -32,6 +32,7 @@ const ResetPasswordPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isTokenValid, setIsTokenValid] = useState(false);
   const [isProcessingToken, setIsProcessingToken] = useState(true);
+  const [tokenDebugInfo, setTokenDebugInfo] = useState<any>(null);
   
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -47,48 +48,55 @@ const ResetPasswordPage = () => {
       setError(null);
       
       try {
-        // Get hash fragment from URL - some email clients convert query params to hash fragments
+        // Get URL and all potential token sources
         const fullUrl = window.location.href;
-        console.log("Full URL:", fullUrl);
-        
-        // Check for hash fragments first
-        let token = null;
-        let type = null;
-        
-        // Try to get from URL fragment first (after #)
+        const urlParams = new URLSearchParams(window.location.search);
         const hashPart = window.location.hash.substring(1);
-        if (hashPart) {
-          console.log("Hash part:", hashPart);
-          const hashParams = new URLSearchParams(hashPart);
+        const hashParams = hashPart ? new URLSearchParams(hashPart) : null;
+        
+        // Debug information
+        const debugInfo = {
+          fullUrl,
+          urlSearch: window.location.search,
+          urlHash: window.location.hash,
+          searchParams: Object.fromEntries(urlParams.entries()),
+          hashParams: hashParams ? Object.fromEntries(hashParams.entries()) : null,
+        };
+        console.log("Debug info:", debugInfo);
+        setTokenDebugInfo(debugInfo);
+        
+        // Extract token from all possible locations
+        let token = null;
+        let type = "recovery"; // Default to recovery
+        
+        // 1. Check URL query parameters
+        token = urlParams.get("token") || urlParams.get("access_token");
+        
+        // 2. If not found, check hash fragment
+        if (!token && hashParams) {
           token = hashParams.get("token") || hashParams.get("access_token");
-          type = hashParams.get("type") || "recovery";
         }
         
-        // If not in fragment, try normal query params
-        if (!token) {
-          token = searchParams.get("token") || searchParams.get("access_token");
-          type = searchParams.get("type") || "recovery";
-        }
-        
-        // Special case: If the URL contains the complete Supabase Auth URL format
-        if (!token && fullUrl.includes('#')) {
-          const hashIndex = fullUrl.indexOf('#');
-          if (hashIndex !== -1) {
-            const hashContent = fullUrl.substring(hashIndex + 1);
-            console.log("Hash content:", hashContent);
-            const hashParams = new URLSearchParams(hashContent);
-            
-            // Check for Supabase specific tokens
-            token = hashParams.get("access_token");
-            if (token) {
-              console.log("Found access_token in hash");
-              type = "recovery";
+        // 3. If still not found, attempt to parse the hash in other formats
+        if (!token && hashPart) {
+          // Try to handle complex hash formats that might not be standard URLSearchParams
+          if (hashPart.includes("access_token=")) {
+            const tokenMatch = hashPart.match(/access_token=([^&]+)/);
+            if (tokenMatch && tokenMatch[1]) {
+              token = tokenMatch[1];
             }
           }
         }
         
+        // 4. Try to extract from full URL as a last resort
+        if (!token && fullUrl.includes("access_token=")) {
+          const tokenMatch = fullUrl.match(/access_token=([^&]+)/);
+          if (tokenMatch && tokenMatch[1]) {
+            token = tokenMatch[1];
+          }
+        }
+        
         console.log("Extracted token:", token);
-        console.log("Extracted type:", type);
         
         if (!token) {
           console.error("Could not extract token from URL");
@@ -101,7 +109,7 @@ const ResetPasswordPage = () => {
         // Verify the reset token with Supabase
         const { data, error: verifyError } = await supabase.auth.verifyOtp({
           token_hash: token,
-          type: type || "recovery",
+          type: type,
         });
         
         if (verifyError) {
