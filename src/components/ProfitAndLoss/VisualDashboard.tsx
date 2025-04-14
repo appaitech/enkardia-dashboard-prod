@@ -1,4 +1,3 @@
-
 import React, { useMemo } from 'react';
 import { VisualDashboardData, ProfitAndLossRow } from '@/services/financialService';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -28,8 +27,8 @@ interface VisualDashboardProps {
   data: VisualDashboardData;
 }
 
-// Define PositionType for the Legend component
-type PositionType = 'top' | 'bottom' | 'left' | 'right' | 'center';
+// Define the Position type for Recharts
+type Position = 'top' | 'right' | 'bottom' | 'left' | 'center' | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom' | 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight' | 'start' | 'end' | 'inside';
 
 const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   if (!data || !data.Reports || !data.Reports.length) {
@@ -81,7 +80,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
   // Calculate metrics
   const totalIncomeValue = parseFloat(totalIncome.replace(/,/g, ''));
   const totalExpensesValue = parseFloat(totalExpenses.replace(/,/g, ''));
-  const netProfitValue = parseFloat(netProfit.replace(/,/g, ''));
+  const netProfitValue = parseFloat(netProfit.replace(/,/g, '));
   
   const profitMargin = totalIncomeValue > 0 ? (netProfitValue / totalIncomeValue) * 100 : 0;
   const expenseRatio = totalIncomeValue > 0 ? (totalExpensesValue / totalIncomeValue) * 100 : 0;
@@ -331,7 +330,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                       width: '45%',
                       height: '100%',
                       overflowY: 'auto',
-                      position: "absolute" as PositionType,
+                      position: "absolute" as Position,
                     }}
                     content={({ payload }) => (
                       <div className="bg-white rounded-lg p-4 h-full">
@@ -419,7 +418,7 @@ const VisualDashboard: React.FC<VisualDashboardProps> = ({ data }) => {
                       width: '45%',
                       height: '100%',
                       overflowY: 'auto',
-                      position: "absolute" as PositionType,
+                      position: "absolute" as Position,
                     }}
                     content={({ payload }) => (
                       <div className="bg-white rounded-lg p-4 h-full">

@@ -33,7 +33,7 @@ const TasksPage = () => {
     {
       id: 3,
       requestDate: new Date('2024-01-20'),
-      status: 'overdue' as const,
+      status: 'failed' as const,
       documentType: 'Income Tax Return',
       reference: 'SARS-2024-003',
       title: 'Annual Tax Return Submission',
@@ -71,7 +71,7 @@ const TasksPage = () => {
           </Badge>
           <Badge variant="secondary" className="bg-red-100 text-red-800">
             <AlertTriangle className="mr-1 h-3 w-3" />
-            {sarsRequests.filter(r => r.status === 'overdue').length} Overdue
+            {sarsRequests.filter(r => r.status === 'failed').length} Failed
           </Badge>
         </div>
       </div>
@@ -81,7 +81,7 @@ const TasksPage = () => {
           <TabsTrigger value="all">All Tasks</TabsTrigger>
           <TabsTrigger value="pending">Pending</TabsTrigger>
           <TabsTrigger value="completed">Completed</TabsTrigger>
-          <TabsTrigger value="overdue">Overdue</TabsTrigger>
+          <TabsTrigger value="failed">Failed</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
@@ -123,4 +123,4 @@ const TasksPage = () => {
   );
 };
 
-export default TasksPage; 
+export default TasksPage;

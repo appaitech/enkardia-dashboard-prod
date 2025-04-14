@@ -20,6 +20,9 @@ const COLORS = [
   "#d0ed57", "#ffc658", "#ff8042", "#ff6361", "#bc5090"
 ];
 
+// Define the Position type for Recharts
+type Position = 'top' | 'right' | 'bottom' | 'left' | 'center' | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom' | 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight' | 'start' | 'end' | 'inside';
+
 // Update the custom label renderer
 const renderCustomizedLabel = ({ 
   cx, 
@@ -131,6 +134,10 @@ const ProfitAndLossChart: React.FC<ProfitAndLossChartProps> = ({ rows }) => {
             </Pie>
             <Legend
               {...layout.legendProps}
+              wrapperStyle={{
+                ...(layout.legendProps.wrapperStyle as React.CSSProperties),
+                position: layout.legendProps.wrapperStyle.position as Position
+              }}
               content={({ payload }) => (
                 <div className={`p-4 ${isMobile ? 'mt-4' : ''}`}>
                   <h4 className="text-sm font-semibold text-navy-800 mb-4 pb-2 border-b">

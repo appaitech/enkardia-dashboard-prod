@@ -12,6 +12,8 @@ interface CashVsAccrualViewProps {
   date: string;
 }
 
+type Position = 'top' | 'right' | 'bottom' | 'left' | 'center' | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom' | 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight' | 'start' | 'end' | 'inside';
+
 const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrualData, date }) => {
   if (!cashData || !cashData.Reports || !cashData.Reports.length || 
       !accrualData || !accrualData.Reports || !accrualData.Reports.length) {
@@ -296,6 +298,10 @@ const CashVsAccrualView: React.FC<CashVsAccrualViewProps> = ({ cashData, accrual
               />
               <Legend 
                 {...layout.legendProps}
+                wrapperStyle={{
+                  ...(layout.legendProps.wrapperStyle as React.CSSProperties),
+                  position: layout.legendProps.wrapperStyle.position as Position
+                }}
               />
               <Bar dataKey="Cash" name="Cash Basis" fill="#3b82f6" />
               <Bar dataKey="Accrual" name="Accrual Basis" fill="#8b5cf6" />

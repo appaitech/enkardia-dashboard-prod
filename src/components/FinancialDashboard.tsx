@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -14,7 +15,9 @@ import {
   YAxis,
   CartesianGrid, 
   Tooltip, 
-  Legend
+  Legend,
+  AreaChart,
+  Area
 } from "recharts";
 import { 
   DollarSign, 
@@ -47,7 +50,8 @@ interface FinancialDashboardProps {
   businessId: string;
 }
 
-type PositionType = 'top' | 'bottom' | 'left' | 'right' | 'center';
+// Define correct Position type for Recharts
+type Position = 'top' | 'right' | 'bottom' | 'left' | 'center' | 'insideLeft' | 'insideRight' | 'insideTop' | 'insideBottom' | 'insideTopLeft' | 'insideTopRight' | 'insideBottomLeft' | 'insideBottomRight' | 'start' | 'end' | 'inside';
 
 const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) => {
   const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
@@ -321,7 +325,7 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
                 align="center" 
                 verticalAlign="bottom"
                 wrapperStyle={{ 
-                  position: "absolute" as PositionType, 
+                  position: "absolute" as Position, 
                   left: 0,
                   right: 0,
                   bottom: -20,
