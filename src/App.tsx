@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './contexts/AuthContext';
 import LoginPage from './pages/LoginPage';
@@ -20,6 +19,9 @@ import UsersManagement from "./pages/admin/UsersManagement";
 import XeroConnectionsPage from './pages/admin/XeroConnectionsPage';
 import SignupPage from './pages/SignupPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import Index from "./pages/Index";
+import AuthCallbackPage from "./pages/AuthCallbackPage";
+import AccountLinkingPage from "./pages/user/AccountLinkingPage";
 
 const queryClient = new QueryClient();
 
@@ -31,12 +33,17 @@ function App() {
         <AuthProvider>
           <QueryClientProvider client={queryClient}>
             <Routes>
-              <Route path="/" element={<Navigate to="/login" />} />
+              <Route path="/" element={<Index />} />
               <Route path="/login" element={<LoginPage />} />
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/accept-invitation" element={<AcceptInvitationPage />} />
               <Route path="/error" element={<ErrorPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
+              <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              <Route 
+                path="/user/account/linking" 
+                element={<ProtectedRoute><AccountLinkingPage /></ProtectedRoute>} 
+              />
               
               <Route 
                 path="/admin/dashboard" 

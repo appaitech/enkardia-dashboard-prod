@@ -1,3 +1,4 @@
+
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Session, User as SupabaseUser } from '@supabase/supabase-js';
 import { supabase } from '../integrations/supabase/client';
@@ -40,6 +41,8 @@ interface AuthContextProps {
     accountType?: AccountType, 
     role?: UserRole
   ) => Promise<string | undefined>;
+  linkWithGoogle: () => Promise<void>;
+  unlinkGoogle: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextProps | undefined>(undefined);
@@ -214,6 +217,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const refreshUserData = async () => {
     if (user) {
       try {
+        // Refresh the user session first
+        const { data: { user: refreshedUser } } = await supabase.auth.getUser();
+        
+        // Then fetch the profile data
         const { data: profile, error } = await supabase
           .from('profiles')
           .select('account_type, role, name')
@@ -227,9 +234,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setRole(profile?.role || null);
           
           // Update user with profile data
-          if (user) {
+          if (refreshedUser) {
             const enhancedUser = {
-              ...user,
+              ...refreshedUser,
               name: profile?.name || null,
               accountType: profile?.account_type as AccountType || "CLIENT",
               role: profile?.role as UserRole || "STANDARD"
@@ -283,6 +290,41 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // New method to link with Google
+  const linkWithGoogle = async () => {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/account/linking`
+        }
+      });
+      
+      if (error) throw error;
+      
+      // User will be redirected to Google
+    } catch (error: any) {
+      console.error("Error linking with Google:", error);
+      throw error;
+    }
+  };
+
+  // New method to unlink Google
+  const unlinkGoogle = async () => {
+    try {
+      const { error } = await supabase.auth.unlinkIdentity({
+        provider: "google"
+      });
+      
+      if (error) throw error;
+      
+      await refreshUserData();
+    } catch (error: any) {
+      console.error("Error unlinking Google:", error);
+      throw error;
+    }
+  };
+
   // Alias methods to match different naming conventions
   const signup = signUp;
 
@@ -301,6 +343,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     accountType,
     role,
     signUp,
+    linkWithGoogle,
+    unlinkGoogle
   };
 
   return (
