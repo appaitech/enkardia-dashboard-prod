@@ -101,6 +101,9 @@ const ResetPasswordPage = () => {
       setIsSuccess(true);
       toast.success("Your password has been successfully reset");
       
+      // Log the user out after successful password reset
+      await supabase.auth.signOut();
+      
       // Redirect to login after a short delay
       setTimeout(() => {
         navigate("/login");
