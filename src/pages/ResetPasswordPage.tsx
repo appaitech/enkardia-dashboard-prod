@@ -82,7 +82,14 @@ const ResetPasswordPage = () => {
     checkForErrors();
   }, [location]);
   
-  const onSubmit = async (data: ResetPasswordFormValues) => {
+  const handlePasswordReset = async () => {
+    // Validate form data
+    const isValid = await form.trigger();
+    if (!isValid) {
+      return;
+    }
+    
+    const data = form.getValues();
     setIsLoading(true);
     setError(null);
     
@@ -190,7 +197,7 @@ const ResetPasswordPage = () => {
                 </p>
               </div>
             ) : (
-              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="password">New Password</Label>
                   <div className="relative">
@@ -226,9 +233,10 @@ const ResetPasswordPage = () => {
                 </div>
                 
                 <Button
-                  type="submit"
+                  type="button"
                   className="w-full"
                   disabled={isLoading}
+                  onClick={handlePasswordReset}
                 >
                   {isLoading ? (
                     <>
@@ -239,7 +247,7 @@ const ResetPasswordPage = () => {
                     "Reset Password"
                   )}
                 </Button>
-              </form>
+              </div>
             )}
           </CardContent>
           

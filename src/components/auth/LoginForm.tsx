@@ -21,8 +21,7 @@ const LoginForm = () => {
   
   const { login } = useAuth();
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async () => {
     setError("");
     setIsLoading(true);
     
@@ -41,8 +40,7 @@ const LoginForm = () => {
     }
   };
 
-  const handleResetPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleResetPassword = async () => {
     setError("");
     setIsLoading(true);
     
@@ -98,49 +96,48 @@ const LoginForm = () => {
         </CardHeader>
         
         {!resetEmailSent ? (
-          <form onSubmit={handleResetPassword}>
-            <CardContent className="space-y-6">
-              {error && (
-                <Alert variant="destructive" className="bg-red-50 border border-red-100 text-red-600 rounded-lg">
-                  <AlertCircle className="h-4 w-4 text-red-600" />
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              
-              <div className="space-y-3">
-                <Label htmlFor="reset-email" className="text-sm font-medium text-gray-700">Email</Label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-                  <Input 
-                    id="reset-email"
-                    type="email" 
-                    placeholder="name@example.com" 
-                    className="pl-12 py-6 bg-gray-50 border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:border-navy-600 focus:ring-navy-600/20 transition-all"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                  />
-                </div>
+          <CardContent className="space-y-6">
+            {error && (
+              <Alert variant="destructive" className="bg-red-50 border border-red-100 text-red-600 rounded-lg">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            
+            <div className="space-y-3">
+              <Label htmlFor="reset-email" className="text-sm font-medium text-gray-700">Email</Label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+                <Input 
+                  id="reset-email"
+                  type="email" 
+                  placeholder="name@example.com" 
+                  className="pl-12 py-6 bg-gray-50 border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:border-navy-600 focus:ring-navy-600/20 transition-all"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                />
               </div>
-              
-              <div className="pt-4">
-                <Button 
-                  type="submit" 
-                  className="w-full bg-navy-600 hover:bg-navy-700 text-white py-6 rounded-lg text-base font-medium transition-colors duration-200"
-                  disabled={isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Reset Link"
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </form>
+            </div>
+            
+            <div className="pt-4">
+              <Button 
+                type="button" 
+                className="w-full bg-navy-600 hover:bg-navy-700 text-white py-6 rounded-lg text-base font-medium transition-colors duration-200"
+                disabled={isLoading}
+                onClick={handleResetPassword}
+              >
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                    Sending...
+                  </>
+                ) : (
+                  "Send Reset Link"
+                )}
+              </Button>
+            </div>
+          </CardContent>
         ) : (
           <CardContent className="space-y-6">
             <div className="bg-green-50 text-green-700 p-4 rounded-lg flex items-start">
@@ -174,75 +171,79 @@ const LoginForm = () => {
         </CardDescription>
       </CardHeader>
       
-      <form onSubmit={handleLogin}>
-        <CardContent className="space-y-6">
-          {error && (
-            <Alert variant="destructive" className="bg-red-50 border border-red-100 text-red-600 rounded-lg">
-              <AlertCircle className="h-4 w-4 text-red-600" />
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
-          )}
-          
-          <div className="space-y-3">
-            <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input 
-                id="email"
-                type="email" 
-                placeholder="name@example.com" 
-                className="pl-12 py-6 bg-gray-50 border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:border-navy-600 focus:ring-navy-600/20 transition-all"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-              />
-            </div>
+      <CardContent className="space-y-6">
+        {error && (
+          <Alert variant="destructive" className="bg-red-50 border border-red-100 text-red-600 rounded-lg">
+            <AlertCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+        
+        <div className="space-y-3">
+          <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input 
+              id="email"
+              type="email" 
+              placeholder="name@example.com" 
+              className="pl-12 py-6 bg-gray-50 border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:border-navy-600 focus:ring-navy-600/20 transition-all"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
           </div>
-          
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-              <Button 
-                type="button" 
-                variant="link" 
-                className="text-sm text-navy-600 p-0 h-auto"
-                onClick={() => setIsForgotPassword(true)}
-              >
-                Forgot password?
-              </Button>
-            </div>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-              <Input 
-                id="password"
-                type="password" 
-                placeholder="••••••••" 
-                className="pl-12 py-6 bg-gray-50 border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:border-navy-600 focus:ring-navy-600/20 transition-all"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
-          </div>
-          
-          <div className="pt-4">
+        </div>
+        
+        <div className="space-y-3">
+          <div className="flex justify-between items-center">
+            <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
             <Button 
-              type="submit" 
-              className="w-full bg-navy-600 hover:bg-navy-700 text-white py-6 rounded-lg text-base font-medium transition-colors duration-200"
-              disabled={isLoading}
+              type="button" 
+              variant="link" 
+              className="text-sm text-navy-600 p-0 h-auto"
+              onClick={() => setIsForgotPassword(true)}
             >
-              {isLoading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
-                  Signing in...
-                </>
-              ) : (
-                "Sign in"
-              )}
+              Forgot password?
             </Button>
           </div>
-        </CardContent>
-      </form>
+          <div className="relative">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <Input 
+              id="password"
+              type="password" 
+              placeholder="••••••••" 
+              className="pl-12 py-6 bg-gray-50 border-gray-200 rounded-lg text-gray-900 placeholder:text-gray-400 focus:border-navy-600 focus:ring-navy-600/20 transition-all"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  handleLogin();
+                }
+              }}
+            />
+          </div>
+        </div>
+        
+        <div className="pt-4">
+          <Button 
+            type="button" 
+            className="w-full bg-navy-600 hover:bg-navy-700 text-white py-6 rounded-lg text-base font-medium transition-colors duration-200"
+            disabled={isLoading}
+            onClick={handleLogin}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" /> 
+                Signing in...
+              </>
+            ) : (
+              "Sign in"
+            )}
+          </Button>
+        </div>
+      </CardContent>
     </Card>
   );
 };

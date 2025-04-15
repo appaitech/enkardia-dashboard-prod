@@ -75,7 +75,15 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
   const isSubmitting = form.formState.isSubmitting;
 
-  const onSubmit = async (data: FormValues) => {
+  const handleSubmit = async () => {
+    // Validate form data
+    const isValid = await form.trigger();
+    if (!isValid) {
+      return;
+    }
+    
+    const data = form.getValues();
+    
     try {
       if (!session || !session.access_token) {
         throw new Error("You must be logged in to create users");
@@ -131,7 +139,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4">
             <FormField
               control={form.control}
               name="name"
@@ -261,7 +269,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
               >
                 Cancel
               </Button>
-              <Button type="submit" disabled={isSubmitting}>
+              <Button type="button" disabled={isSubmitting} onClick={handleSubmit}>
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent border-white rounded-full"></div>
@@ -272,7 +280,7 @@ const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
                 )}
               </Button>
             </DialogFooter>
-          </form>
+          </div>
         </Form>
       </DialogContent>
     </Dialog>

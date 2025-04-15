@@ -43,8 +43,16 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
     },
   });
 
-  async function onSubmit(data: ClientFormValues) {
+  const handleSubmit = async () => {
+    // Validate form data
+    const isValid = await form.trigger();
+    if (!isValid) {
+      return;
+    }
+    
+    const data = form.getValues();
     setIsSubmitting(true);
+    
     try {
       const newClient: NewClientBusiness = {
         name: data.name,
@@ -74,7 +82,7 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <div className="space-y-4">
@@ -90,7 +98,7 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
       </div>
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div className="space-y-4">
           <FormField
             control={form.control}
             name="name"
@@ -173,13 +181,14 @@ export function AddClientForm({ onClose, onSuccess }: AddClientFormProps) {
               Cancel
             </Button>
             <Button 
-              type="submit"
+              type="button"
               disabled={isSubmitting}
+              onClick={handleSubmit}
             >
               {isSubmitting ? "Adding..." : "Add Client"}
             </Button>
           </div>
-        </form>
+        </div>
       </Form>
     </div>
   );

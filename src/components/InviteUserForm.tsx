@@ -47,11 +47,12 @@ const InviteUserForm = ({
   
   const {
     register,
-    handleSubmit,
+    handleSubmit: formHandleSubmit,
     reset,
     setValue,
     formState: { errors },
-    control,
+    getValues,
+    trigger,
   } = useForm<InviteFormData>({
     resolver: zodResolver(inviteFormSchema),
     defaultValues: {
@@ -87,7 +88,14 @@ const InviteUserForm = ({
     }
   }, [clientId, setValue, showClientSelect]);
   
-  const onSubmit = async (data: InviteFormData) => {
+  const handleFormSubmit = async () => {
+    // Validate form data
+    const isValid = await trigger();
+    if (!isValid) {
+      return;
+    }
+    
+    const data = getValues();
     setIsLoading(true);
     setError("");
     
@@ -180,7 +188,7 @@ const InviteUserForm = ({
   };
   
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+    <div className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="email">Email Address</Label>
         <div className="relative">
@@ -237,11 +245,11 @@ const InviteUserForm = ({
             Cancel
           </Button>
         )}
-        <Button type="submit" disabled={isLoading}>
+        <Button type="button" disabled={isLoading} onClick={handleFormSubmit}>
           {isLoading ? "Sending..." : "Send Invitation"}
         </Button>
       </div>
-    </form>
+    </div>
   );
 };
 

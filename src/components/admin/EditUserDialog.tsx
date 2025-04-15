@@ -109,7 +109,15 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
     }
   }, [open, user, form]);
 
-  const onSubmit = async (data: FormValues) => {
+  const handleSubmit = async () => {
+    // Validate form data
+    const isValid = await form.trigger();
+    if (!isValid) {
+      return;
+    }
+    
+    const data = form.getValues();
+    
     try {
       console.log("Updating user profile with data:", data);
       
@@ -173,7 +181,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-4">
+          <div className="space-y-4 pt-4">
             <div className="bg-slate-50 p-3 rounded-md mb-4">
               <p className="text-sm text-slate-500">Email: {user.email}</p>
               <p className="text-sm text-slate-500">Created: {new Date(user.created_at).toLocaleDateString()}</p>
@@ -302,8 +310,9 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 Cancel
               </Button>
               <Button 
-                type="submit" 
+                type="button" 
                 disabled={isSubmitting || (isTargetUserConsoleAdmin && !isEditingSelf && isCurrentUserConsoleAdmin)}
+                onClick={handleSubmit}
               >
                 {isSubmitting ? (
                   <>
@@ -315,7 +324,7 @@ const EditUserDialog: React.FC<EditUserDialogProps> = ({
                 )}
               </Button>
             </DialogFooter>
-          </form>
+          </div>
         </Form>
       </DialogContent>
     </Dialog>
