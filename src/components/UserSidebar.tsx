@@ -1,312 +1,327 @@
 
-import React from "react";
-import { NavLink } from "react-router-dom";
-import {
-  Home,
-  LayoutDashboard,
-  Settings,
-  User,
-  Users,
-  Building2,
-  Calendar,
-  Wallet,
-  FileText,
-  HelpCircle,
-  LogOut,
-  BarChart,
-  Bell,
-} from "lucide-react";
+import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent } from "@/components/ui/sheet";
+import ClientBusinessSelector from "./ClientBusinessSelector";
 import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { useToast } from "@/components/ui/use-toast";
-import { updateUserMetadata } from "@/services/authService";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Loader2 } from "lucide-react";
-
-const profileFormSchema = z.object({
-  name: z
-    .string()
-    .min(2, {
-      message: "Name must be at least 2 characters.",
-    })
-    .max(30, {
-      message: "Name must not be longer than 30 characters.",
-    }),
-});
+  LayoutDashboard,
+  ClipboardList,
+  BarChart4,
+  LogOut,
+  Menu,
+  ChevronDown,
+  Bell,
+  X,
+  ChevronRight,
+  ChevronLeft,
+  Settings
+} from "lucide-react";
+import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
+import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { Badge } from "@/components/ui/badge";
 
 interface UserSidebarProps {
-  isCollapsed?: boolean;
-  activePath?: string;
+  activePath: string;
 }
 
-const UserSidebar: React.FC<UserSidebarProps> = ({ isCollapsed, activePath }) => {
-  const { user, logout, refreshUserData } = useAuth();
+const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const { toast } = useToast();
-  const [isProfileSheetOpen, setIsProfileSheetOpen] = React.useState(false);
-  const [isSaving, setIsSaving] = React.useState(false);
+  const isMobile = useIsMobile();
+  const [isOpen, setIsOpen] = useState(!isMobile);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isFinancialSubmenuOpen, setIsFinancialSubmenuOpen] = useState(
+    activePath.includes("/user/financial")
+  );
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
+    getSelectedClientBusinessId()
+  );
 
-  const form = useForm<z.infer<typeof profileFormSchema>>({
-    resolver: zodResolver(profileFormSchema),
-    defaultValues: {
-      name: user?.name || "",
-    },
+  React.useEffect(() => {
+    setIsOpen(!isMobile);
+    setIsCollapsed(false);
+  }, [isMobile]);
+
+  const { data: clientBusinesses = [] } = useQuery({
+    queryKey: ['clientBusinesses', user?.id],
+    queryFn: () => getUserClientBusinesses(user?.id || ''),
+    enabled: !!user?.id,
   });
 
-  async function onSubmit(values: z.infer<typeof profileFormSchema>) {
-    setIsSaving(true);
-    try {
-      if (!user?.id) {
-        throw new Error("User ID is missing");
-      }
+  const handleBusinessSelect = (businessId: string) => {
+    setSelectedBusinessId(businessId);
+    saveSelectedClientBusinessId(businessId);
+  };
 
-      await updateUserMetadata(user.id, values);
-      await refreshUserData();
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
 
-      toast({
-        title: "Success",
-        description: "Profile updated successfully.",
-      });
-    } catch (error: any) {
-      console.error("Error updating profile:", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: error.message || "Failed to update profile.",
-      });
-    } finally {
-      setIsSaving(false);
-      setIsProfileSheetOpen(false);
+  const toggleSidebar = () => {
+    setIsOpen(!isOpen);
+  };
+  
+  const toggleCollapsed = () => {
+    setIsCollapsed(!isCollapsed);
+  };
+  
+  const closeSidebarOnMobile = () => {
+    if (isMobile) {
+      setIsOpen(false);
     }
+  };
+
+  const navItems = [
+    {
+      name: "Dashboard",
+      path: "/user/dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+    },
+    {
+      name: "Tasks",
+      path: "/user/tasks",
+      icon: <ClipboardList className="w-5 h-5" />,
+    },
+    {
+      name: "Call To Actions",
+      path: "/user/call-to-actions",
+      icon: <Bell className="w-5 h-5" />,
+    },
+    {
+      name: "Financial",
+      submenu: [
+        {
+          name: "Profit & Loss",
+          path: "/user/financial/profit-loss",
+        },
+      ],
+      icon: <BarChart4 className="w-5 h-5" />,
+    },
+    {
+      name: "Account Settings",
+      path: "/user/account/linking",
+      icon: <Settings className="w-5 h-5" />,
+    },
+  ];
+
+  const isActive = (path: string) => {
+    if (path === "/user/dashboard") {
+      return activePath === path;
+    }
+    return activePath.startsWith(path);
+  };
+
+  const renderSidebarContent = () => (
+    <div className="flex flex-col h-full">
+      <div className="p-6 border-b border-navy-100">
+        <h2 className="font-bold text-2xl text-navy-700 tracking-tight">Client Portal</h2>
+        <p className="text-sm text-navy-500/80 mt-1 font-medium">User Dashboard</p>
+      </div>
+      
+      <div className="px-3 py-4 flex-1 overflow-y-auto">
+        <div className="mb-4">
+          <ClientBusinessSelector 
+            clientBusinesses={clientBusinesses}
+            selectedBusinessId={selectedBusinessId}
+            onBusinessSelect={handleBusinessSelect}
+          />
+        </div>
+
+        <div className="space-y-1">
+          {navItems.map((item) =>
+            !item.submenu ? (
+              <Link
+                key={item.name}
+                to={item.path}
+                onClick={closeSidebarOnMobile}
+              >
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start font-medium my-0.5 transition-all duration-200 rounded-lg", 
+                    isActive(item.path) 
+                      ? "bg-navy-100/80 text-navy-700 hover:bg-navy-200/60" 
+                      : "text-navy-600/80 hover:bg-navy-50 hover:text-navy-700"
+                  )}
+                >
+                  {item.icon}
+                  <span className="ml-3">{item.name}</span>
+                </Button>
+              </Link>
+            ) : (
+              <div key={item.name} className="space-y-1">
+                <Button
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-start font-medium my-0.5 transition-all duration-200 rounded-lg", 
+                    isFinancialSubmenuOpen || activePath.includes(item.name.toLowerCase())
+                      ? "bg-navy-100/80 text-navy-700" 
+                      : "text-navy-600/80 hover:bg-navy-50 hover:text-navy-700"
+                  )}
+                  onClick={() => setIsFinancialSubmenuOpen(!isFinancialSubmenuOpen)}
+                >
+                  {item.icon}
+                  <span className="ml-3">{item.name}</span>
+                  <ChevronDown
+                    className={`ml-auto h-5 w-5 transform transition-transform ${
+                      isFinancialSubmenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </Button>
+                {isFinancialSubmenuOpen && (
+                  <div className="ml-6 pl-3 border-l border-navy-100 space-y-1">
+                    {item.submenu.map((subitem) => (
+                      <Link
+                        key={subitem.name}
+                        to={subitem.path}
+                        onClick={closeSidebarOnMobile}
+                      >
+                        <Button
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start text-sm font-medium rounded-lg",
+                            isActive(subitem.path)
+                              ? "bg-navy-100/80 text-navy-700 hover:bg-navy-200/60"
+                              : "text-navy-600/80 hover:bg-navy-50 hover:text-navy-700"
+                          )}
+                        >
+                          {subitem.name}
+                        </Button>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          )}
+        </div>
+      </div>
+
+      <div className="p-4 border-t border-navy-100 bg-gradient-to-b from-navy-50/50 to-navy-50/10">
+        {user && (
+          <div className="mb-4 px-2">
+            <div className="font-semibold text-sm text-navy-700">{user.name}</div>
+            <div className="text-xs text-navy-500/80 truncate mt-0.5">{user.email}</div>
+          </div>
+        )}
+        
+        <Button 
+          variant="ghost" 
+          className="w-full justify-start text-navy-600 hover:bg-navy-100 hover:text-navy-800 transition-all duration-200 font-medium"
+          onClick={handleLogout}
+        >
+          <LogOut size={18} />
+          <span className="ml-3">Sign Out</span>
+        </Button>
+      </div>
+    </div>
+  );
+
+  if (isMobile) {
+    return (
+      <>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="fixed top-4 left-4 z-40 bg-white shadow-lg rounded-full hover:bg-navy-50 transition-all duration-200"
+          onClick={toggleSidebar}
+        >
+          {isOpen ? <X size={20} className="text-navy-600" /> : <Menu size={20} className="text-navy-600" />}
+        </Button>
+        
+        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+          <SheetContent side="left" className="p-0 w-[270px] max-w-[80vw]">
+            {renderSidebarContent()}
+          </SheetContent>
+        </Sheet>
+      </>
+    );
   }
 
   return (
-    <div
-      className={`flex flex-col h-full bg-white border-r shadow-sm`}
-    >
-      <div className="flex-1">
-        <div className="px-6 py-4">
-          <NavLink to="/user/dashboard" className="flex items-center space-x-2">
-            <Building2 className="h-6 w-6 text-gray-500" />
-            <span className="text-lg font-bold text-gray-800">Enkardia</span>
-          </NavLink>
-        </div>
-        <nav className="px-3 py-2">
-          <NavLink
-            to="/user/dashboard"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <LayoutDashboard className="h-5 w-5" />
-            <span>Dashboard</span>
-          </NavLink>
-          <NavLink
-            to="/user/clients"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <Users className="h-5 w-5" />
-            <span>Clients</span>
-          </NavLink>
-          <NavLink
-            to="/user/projects"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <FileText className="h-5 w-5" />
-            <span>Projects</span>
-          </NavLink>
-          <NavLink
-            to="/user/invoices"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <Wallet className="h-5 w-5" />
-            <span>Invoices</span>
-          </NavLink>
-          <NavLink
-            to="/user/profit-and-loss"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <BarChart className="h-5 w-5" />
-            <span>Profit & Loss</span>
-          </NavLink>
-          <NavLink
-            to="/user/call-to-actions"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <Bell className="h-5 w-5" />
-            <span>Call To Actions</span>
-          </NavLink>
-          <NavLink
-            to="/user/calendar"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <Calendar className="h-5 w-5" />
-            <span>Calendar</span>
-          </NavLink>
-          <NavLink
-            to="/user/help"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <HelpCircle className="h-5 w-5" />
-            <span>Help</span>
-          </NavLink>
-          <NavLink
-            to="/user/account/linking"
-            className={({ isActive }) =>
-              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
-                ? "bg-navy-500/10 text-navy-700"
-                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
-              }`
-            }
-          >
-            <Settings className="h-5 w-5" />
-            <span>Account Settings</span>
-          </NavLink>
-        </nav>
-      </div>
-      <div className="p-6">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center space-x-2 w-full justify-start">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={user?.user_metadata?.avatar_url || ""} />
-                <AvatarFallback>{user?.email?.[0]?.toUpperCase() || "U"}</AvatarFallback>
-              </Avatar>
-              <span className="text-sm font-medium text-gray-700">{user?.name || user?.email}</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56" align="end" forceMount>
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuItem onClick={() => setIsProfileSheetOpen(true)}>
-              <User className="mr-2 h-4 w-4" />
-              <span>Profile</span>
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={async () => {
-              await logout();
-              navigate("/login");
-            }}
-              className="cursor-pointer"
+    <>
+      <div 
+        className={cn(
+          "h-screen bg-white fixed inset-y-0 left-0 z-30 transition-all duration-300 ease-in-out border-r border-navy-100 flex flex-col",
+          isCollapsed ? "w-[70px]" : "w-64"
+        )}
+      >
+        {isCollapsed ? (
+          <div className="p-4 flex justify-center border-b border-navy-100">
+            <Badge className="bg-navy-100 text-navy-700 uppercase font-semibold">
+              CP
+            </Badge>
+          </div>
+        ) : (
+          <div className="p-4 border-b flex justify-between items-center">
+            <div>
+              <h2 className="font-bold text-xl text-navy-700">Client Portal</h2>
+              <p className="text-xs text-navy-500 mt-1">User Dashboard</p>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleCollapsed}
+              className="ml-auto text-navy-400 hover:text-navy-600"
             >
-              <LogOut className="mr-2 h-4 w-4" />
-              <span>Log out</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-
-      <Sheet open={isProfileSheetOpen} onOpenChange={setIsProfileSheetOpen}>
-        <SheetContent className="sm:max-w-md">
-          <SheetHeader>
-            <SheetTitle>Profile</SheetTitle>
-            <SheetDescription>
-              Make changes to your profile here. Click save when you're done.
-            </SheetDescription>
-          </SheetHeader>
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input placeholder="John Doe" {...field} />
-                    </FormControl>
-                    <FormDescription>
-                      This is your public display name.
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <div className="flex justify-end">
-                <Button type="submit" disabled={isSaving}>
-                  {isSaving ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    "Save changes"
+              <ChevronLeft size={20} />
+            </Button>
+          </div>
+        )}
+        
+        {isCollapsed ? (
+          <div className="flex-1 p-2 space-y-4 overflow-y-auto">
+            {navItems.map((item, index) => (
+              <Link key={index} to={item.path} onClick={closeSidebarOnMobile}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className={cn(
+                    "w-full h-10",
+                    isActive(item.path) 
+                      ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                      : "text-navy-600 hover:bg-navy-50"
                   )}
+                >
+                  {item.icon}
                 </Button>
-              </div>
-            </form>
-          </Form>
-        </SheetContent>
-      </Sheet>
-    </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          renderSidebarContent()
+        )}
+        
+        {isCollapsed && (
+          <div className="p-2 mt-auto border-t border-navy-100">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-full text-navy-600 hover:bg-navy-50"
+              onClick={toggleCollapsed}
+            >
+              <ChevronRight size={20} />
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="w-full mt-2 text-navy-600 hover:bg-navy-50"
+              onClick={handleLogout}
+            >
+              <LogOut size={18} />
+            </Button>
+          </div>
+        )}
+      </div>
+      
+      {/* Add a spacer div to prevent content from being hidden behind the sidebar */}
+      <div className={isCollapsed ? "w-[70px]" : "w-64"} />
+    </>
   );
 };
 
