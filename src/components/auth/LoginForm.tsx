@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useLayoutEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -21,8 +21,14 @@ const LoginForm = () => {
   
   const { login } = useAuth();
 
-  useEffect(() => {
+  const firstRender = React.useRef(true);
+
+  useLayoutEffect(() => {
+    if (!firstRender.current) return;
+      firstRender.current = false;
+    
     const signOutOnMount = async () => {
+
       try {
         await supabase.auth.signOut();
         console.log("User signed out successfully");
@@ -32,7 +38,7 @@ const LoginForm = () => {
         setIsLoading(false);
       }
     };
-    
+
     signOutOnMount();
   }, []);
 
@@ -47,22 +53,26 @@ const LoginForm = () => {
     }
     
     try {
-      await login(email, password);
-      
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('account_type')
-          .eq('id', user.id)
-          .single();
-        
-        if (profile?.account_type === "CONSOLE") {
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      });
+
+      console.log('data', data);
+      console.log('error', error);
+
+      if (data.user !== null && data.user.user_metadata) {
+        const user_metadata = data.user.user_metadata;
+        if (user_metadata.account_type === "CONSOLE") {
           navigate("/admin/dashboard");
         } else {
           navigate("/user/dashboard");
         }
+      }
+      else {
+        console.error("Login error:", error);
+        setError(error.message || "Login failed");
+        setIsLoading(false);
       }
     } catch (error: any) {
       console.error("Login error:", error);
