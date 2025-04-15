@@ -11,23 +11,23 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
-  useEffect(() => {
-    // Create an inner async function that only runs on initial mount
-    const handleInitialSignOut = async () => {
-      if (!hasLoggedOut) {
-        try {
-          await supabase.auth.signOut();
-          console.log("User signed out successfully");
-          setHasLoggedOut(true);
-        } catch (error) {
-          console.error("Error signing out:", error);
-        }
-      }
-    };
+  // useEffect(() => {
+  //   // Create an inner async function that only runs on initial mount
+  //   const handleInitialSignOut = async () => {
+  //     if (!hasLoggedOut) {
+  //       try {
+  //         await supabase.auth.signOut();
+  //         console.log("User signed out successfully");
+  //         setHasLoggedOut(true);
+  //       } catch (error) {
+  //         console.error("Error signing out:", error);
+  //       }
+  //     }
+  //   };
   
-    // Call the async function only on initial mount
-    handleInitialSignOut();
-  }, [hasLoggedOut]);
+  //   // Call the async function only on initial mount
+  //   handleInitialSignOut();
+  // }, [hasLoggedOut]);
   
   // // Redirect if already authenticated
   // useEffect(() => {
