@@ -1,15 +1,14 @@
-
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, Lock, Mail } from "lucide-react";
+import { Loader2, Lock, Mail, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -18,8 +17,24 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [resetEmailSent, setResetEmailSent] = useState(false);
+  const navigate = useNavigate();
   
   const { login } = useAuth();
+
+  useEffect(() => {
+    const signOutOnMount = async () => {
+      try {
+        await supabase.auth.signOut();
+        console.log("User signed out successfully");
+      } catch (error) {
+        console.error("Error signing out:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    signOutOnMount();
+  }, []);
 
   const handleLogin = async () => {
     setError("");
@@ -33,6 +48,22 @@ const LoginForm = () => {
     
     try {
       await login(email, password);
+      
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('account_type')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.account_type === "CONSOLE") {
+          navigate("/admin/dashboard");
+        } else {
+          navigate("/user/dashboard");
+        }
+      }
     } catch (error: any) {
       console.error("Login error:", error);
       setError(error.message || "Login failed");
@@ -51,7 +82,6 @@ const LoginForm = () => {
     }
     
     try {
-      // Use the full URL including the https:// protocol to ensure proper redirection
       const redirectUrl = `${window.location.origin}/reset-password`;
       console.log("Reset password redirect URL:", redirectUrl);
       
@@ -78,10 +108,6 @@ const LoginForm = () => {
     setResetEmailSent(false);
     setError("");
   };
-
-  React.useEffect(() => {
-    setIsLoading(false);
-  }, []);
 
   if (isForgotPassword) {
     return (
