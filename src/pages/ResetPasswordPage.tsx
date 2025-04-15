@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from "react";
-import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Loader2, Lock, CheckCircle, AlertCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -22,16 +24,13 @@ const resetPasswordSchema = z.object({
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
 const ResetPasswordPage = () => {
-  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const location = useLocation();
   
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isTokenValid, setIsTokenValid] = useState(false);
-  const [isProcessingToken, setIsProcessingToken] = useState(true);
-  const [tokenDebugInfo, setTokenDebugInfo] = useState<any>(null);
+  const [isProcessing, setIsProcessing] = useState(true);
   
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -42,101 +41,48 @@ const ResetPasswordPage = () => {
   });
   
   useEffect(() => {
-    const verifyToken = async () => {
-      setIsProcessingToken(true);
-      setError(null);
+    const checkForErrors = () => {
+      setIsProcessing(true);
       
       try {
-        // Get URL and all potential token sources
-        const fullUrl = window.location.href;
-        const urlParams = new URLSearchParams(window.location.search);
+        console.log("Current URL:", window.location.href);
+        console.log("URL hash:", window.location.hash);
+        
+        // Check for error in the URL hash
         const hashPart = window.location.hash.substring(1);
-        const hashParams = hashPart ? new URLSearchParams(hashPart) : null;
         
-        // Debug information
-        const debugInfo = {
-          fullUrl,
-          urlSearch: window.location.search,
-          urlHash: window.location.hash,
-          searchParams: Object.fromEntries(urlParams.entries()),
-          hashParams: hashParams ? Object.fromEntries(hashParams.entries()) : null,
-        };
-        console.log("Debug info:", debugInfo);
-        setTokenDebugInfo(debugInfo);
-        
-        // Extract token from all possible locations
-        let token = null;
-        
-        // 1. Check URL query parameters
-        token = urlParams.get("token") || urlParams.get("access_token");
-        
-        // 2. If not found, check hash fragment
-        if (!token && hashParams) {
-          token = hashParams.get("token") || hashParams.get("access_token");
-        }
-        
-        // 3. If still not found, attempt to parse the hash in other formats
-        if (!token && hashPart) {
-          // Try to handle complex hash formats that might not be standard URLSearchParams
-          if (hashPart.includes("access_token=")) {
-            const tokenMatch = hashPart.match(/access_token=([^&]+)/);
-            if (tokenMatch && tokenMatch[1]) {
-              token = tokenMatch[1];
-            }
+        if (hashPart && hashPart.includes("error=")) {
+          // Parse the hash to extract error details
+          const hashParams = new URLSearchParams(hashPart);
+          const errorType = hashParams.get("error");
+          const errorCode = hashParams.get("error_code");
+          const errorDescription = hashParams.get("error_description")?.replace(/\+/g, " ");
+          
+          console.log("Error details:", { errorType, errorCode, errorDescription });
+          
+          if (errorDescription) {
+            setError(errorDescription);
+          } else if (errorCode === "otp_expired") {
+            setError("The password reset link has expired. Please request a new one.");
+          } else {
+            setError("Invalid or expired password reset link. Please request a new one.");
           }
-        }
-        
-        // 4. Try to extract from full URL as a last resort
-        if (!token && fullUrl.includes("access_token=")) {
-          const tokenMatch = fullUrl.match(/access_token=([^&]+)/);
-          if (tokenMatch && tokenMatch[1]) {
-            token = tokenMatch[1];
-          }
-        }
-        
-        console.log("Extracted token:", token);
-        
-        if (!token) {
-          console.error("Could not extract token from URL");
-          setError("Invalid password reset link. The link might be malformed or expired.");
-          setIsTokenValid(false);
-          setIsProcessingToken(false);
-          return;
-        }
-        
-        // Verify the reset token with Supabase - using the correct type
-        const { data, error: verifyError } = await supabase.auth.verifyOtp({
-          token_hash: token,
-          type: "recovery",
-        });
-        
-        if (verifyError) {
-          console.error("Token verification error:", verifyError);
-          setError("This password reset link is invalid or has expired");
-          setIsTokenValid(false);
         } else {
-          console.log("Token verification successful:", data);
-          setIsTokenValid(true);
+          // No error in URL, we can proceed with password reset
           setError(null);
         }
       } catch (err: any) {
-        console.error("Error in token verification process:", err);
-        setError(err.message || "Failed to verify reset link");
-        setIsTokenValid(false);
+        console.error("Error checking URL for errors:", err);
+        setError("Something went wrong. Please try again or request a new password reset link.");
       } finally {
-        setIsProcessingToken(false);
+        setIsProcessing(false);
       }
     };
     
-    verifyToken();
-  }, [searchParams]);
+    checkForErrors();
+  }, [location]);
   
   const onSubmit = async (data: ResetPasswordFormValues) => {
-    if (!isTokenValid) {
-      setError("Cannot reset password with an invalid token");
-      return;
-    }
-    
     setIsLoading(true);
     setError(null);
     
@@ -167,8 +113,8 @@ const ResetPasswordPage = () => {
     }
   };
   
-  // Show loading state while verifying token
-  if (isProcessingToken) {
+  // Show loading state while checking URL
+  if (isProcessing) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 to-navy-600 px-6 py-12">
         <div className="w-full max-w-md">
@@ -188,7 +134,7 @@ const ResetPasswordPage = () => {
     );
   }
   
-  // Show error state if token is invalid
+  // Show error state if there's an error
   if (error) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 to-navy-600 px-6 py-12">
@@ -197,11 +143,15 @@ const ResetPasswordPage = () => {
             <CardHeader className="text-center">
               <CardTitle className="text-xl text-red-600">Invalid Reset Link</CardTitle>
               <CardDescription>
-                This password reset link is invalid or has expired.
+                We couldn't process your password reset request.
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-center">
               <AlertCircle className="h-16 w-16 text-red-500 mb-4" />
+              <Alert variant="destructive" className="mb-4">
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
               <p className="text-gray-600 mb-6 text-center">
                 Please request a new password reset link from the login page.
               </p>
