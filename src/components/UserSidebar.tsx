@@ -13,6 +13,8 @@ import {
   FileText,
   HelpCircle,
   LogOut,
+  BarChart,
+  Bell,
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -168,6 +170,30 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ isCollapsed, activePath }) =>
           >
             <Wallet className="h-5 w-5" />
             <span>Invoices</span>
+          </NavLink>
+          <NavLink
+            to="/user/profit-and-loss"
+            className={({ isActive }) =>
+              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
+                ? "bg-navy-500/10 text-navy-700"
+                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
+              }`
+            }
+          >
+            <BarChart className="h-5 w-5" />
+            <span>Profit & Loss</span>
+          </NavLink>
+          <NavLink
+            to="/user/call-to-actions"
+            className={({ isActive }) =>
+              `flex items-center gap-2 p-2 mb-1 rounded-md ${isActive
+                ? "bg-navy-500/10 text-navy-700"
+                : "text-gray-600 hover:bg-navy-500/5 hover:text-navy-600"
+              }`
+            }
+          >
+            <Bell className="h-5 w-5" />
+            <span>Call To Actions</span>
           </NavLink>
           <NavLink
             to="/user/calendar"
