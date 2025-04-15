@@ -4,22 +4,38 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import LoginForm from "@/components/auth/LoginForm";
 import { Mountain } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 const LoginPage = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  
-  // Redirect if already authenticated
+
   useEffect(() => {
-    if (isAuthenticated && user) {
-      console.log("User is authenticated, redirecting to dashboard");
-      if (user.accountType === "CONSOLE") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/user/dashboard");
+    // Create an inner async function
+    const handleSignOut = async () => {
+      try {
+        await supabase.auth.signOut();
+        console.log("User signed out successfully");
+      } catch (error) {
+        console.error("Error signing out:", error);
       }
-    }
-  }, [isAuthenticated, user, navigate]);
+    };
+  
+    // Call the async function
+    handleSignOut();
+  }, []);
+  
+  // // Redirect if already authenticated
+  // useEffect(() => {
+  //   if (isAuthenticated && user) {
+  //     console.log("User is authenticated, redirecting to dashboard");
+  //     if (user.accountType === "CONSOLE") {
+  //       navigate("/admin/dashboard");
+  //     } else {
+  //       navigate("/user/dashboard");
+  //     }
+  //   }
+  // }, [isAuthenticated, user, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-navy-900 to-navy-600 px-6 py-12">
