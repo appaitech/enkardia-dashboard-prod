@@ -9,21 +9,25 @@ import { supabase } from "@/integrations/supabase/client";
 const LoginPage = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [hasLoggedOut, setHasLoggedOut] = useState(false);
 
   useEffect(() => {
-    // Create an inner async function
-    const handleSignOut = async () => {
-      try {
-        await supabase.auth.signOut();
-        console.log("User signed out successfully");
-      } catch (error) {
-        console.error("Error signing out:", error);
+    // Create an inner async function that only runs on initial mount
+    const handleInitialSignOut = async () => {
+      if (!hasLoggedOut) {
+        try {
+          await supabase.auth.signOut();
+          console.log("User signed out successfully");
+          setHasLoggedOut(true);
+        } catch (error) {
+          console.error("Error signing out:", error);
+        }
       }
     };
   
-    // Call the async function
-    handleSignOut();
-  }, []);
+    // Call the async function only on initial mount
+    handleInitialSignOut();
+  }, [hasLoggedOut]);
   
   // // Redirect if already authenticated
   // useEffect(() => {
