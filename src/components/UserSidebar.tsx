@@ -1,3 +1,4 @@
+
 import React from "react";
 import { NavLink } from "react-router-dom";
 import {
@@ -63,10 +64,11 @@ const profileFormSchema = z.object({
 });
 
 interface UserSidebarProps {
-  isCollapsed: boolean;
+  isCollapsed?: boolean;
+  activePath?: string;
 }
 
-const UserSidebar: React.FC<UserSidebarProps> = ({ isCollapsed }) => {
+const UserSidebar: React.FC<UserSidebarProps> = ({ isCollapsed, activePath }) => {
   const { user, logout, refreshUserData } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();

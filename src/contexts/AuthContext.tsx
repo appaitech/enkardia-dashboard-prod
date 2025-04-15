@@ -14,6 +14,14 @@ export interface User extends SupabaseUser {
   role: UserRole;
 }
 
+// Define the UserIdentity type to match Supabase's requirements
+interface UserIdentity {
+  id: string;
+  user_id: string;
+  identity_id: string;
+  provider: string;
+}
+
 interface AuthContextProps {
   user: User | null;
   session: Session | null;
@@ -309,12 +317,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // New method to unlink Google
+  // Fixed unlinkGoogle method to use the correct type signature
   const unlinkGoogle = async () => {
     try {
-      const { error } = await supabase.auth.unlinkIdentity({
-        provider: "google"
-      });
+      // Get the user's identities first to extract the required fields
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser || !currentUser.identities || currentUser.identities.length === 0) {
+        throw new Error("No user identities found");
+      }
+      
+      // Find the Google identity
+      const googleIdentity = currentUser.identities.find(identity => identity.provider === 'google');
+      
+      if (!googleIdentity) {
+        throw new Error("No Google identity found to unlink");
+      }
+      
+      // Now use the complete identity object
+      const { error } = await supabase.auth.unlinkIdentity(googleIdentity);
       
       if (error) throw error;
       
