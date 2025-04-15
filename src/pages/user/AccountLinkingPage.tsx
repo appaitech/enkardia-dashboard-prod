@@ -11,6 +11,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 
+// Define UserIdentity interface to match the one in AuthContext
+interface UserIdentity {
+  id: string;
+  user_id: string;
+  identity_id: string;
+  provider: string;
+}
+
 const AccountLinkingPage = () => {
   const { user, refreshUserData } = useAuth();
   const navigate = useNavigate();
@@ -92,9 +100,22 @@ const AccountLinkingPage = () => {
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.unlinkIdentity({
-        provider: "google"
-      });
+      // Get the user's identities first to extract the required fields
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      
+      if (!currentUser || !currentUser.identities || currentUser.identities.length === 0) {
+        throw new Error("No user identities found");
+      }
+      
+      // Find the Google identity
+      const googleIdentity = currentUser.identities.find(identity => identity.provider === 'google');
+      
+      if (!googleIdentity) {
+        throw new Error("No Google identity found to unlink");
+      }
+      
+      // Now use the complete identity object
+      const { error } = await supabase.auth.unlinkIdentity(googleIdentity as UserIdentity);
       
       if (error) throw error;
       
