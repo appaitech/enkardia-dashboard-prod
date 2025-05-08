@@ -11,6 +11,7 @@ import {
   getDepartmentComparisonData,
   getCustomDateRangeData,
   getCashVsAccrualData,
+  getFinancialYearData,
   FinancialDataType,
   getDefaultStartDate,
   getDefaultEndDate,
@@ -29,6 +30,7 @@ import QuarterlyBreakdownView from "@/components/ProfitAndLoss/QuarterlyBreakdow
 import DepartmentComparisonView from "@/components/ProfitAndLoss/DepartmentComparisonView";
 import CustomDateRangeView from "@/components/ProfitAndLoss/CustomDateRangeView";
 import CashVsAccrualView from "@/components/ProfitAndLoss/CashVsAccrualView";
+import FinancialYearView from "@/components/ProfitAndLoss/FinancialYearView";
 import { 
   Loader2, 
   AlertTriangle, 
@@ -175,6 +177,17 @@ const ProfitAndLossPage: React.FC = () => {
     enabled: !!selectedBusinessId && activeTab === "cash-vs-accrual",
   });
 
+  const {
+    data: financialYearData,
+    isLoading: isLoadingFinancialYear,
+    isError: isErrorFinancialYear,
+    refetch: refetchFinancialYear
+  } = useQuery({
+    queryKey: ["profit-and-loss", selectedBusinessId, "financial-year"],
+    queryFn: () => getFinancialYearData(selectedBusinessId),
+    enabled: !!selectedBusinessId && activeTab === "financial-year",
+  });
+
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
       const validBusinesses = clientBusinesses.filter(business => business !== null);
@@ -224,6 +237,9 @@ const ProfitAndLossPage: React.FC = () => {
         break;
       case "cash-vs-accrual":
         refetchCashVsAccrual();
+        break;
+      case "financial-year":
+        refetchFinancialYear();
         break;
     }
   };
@@ -280,7 +296,8 @@ const ProfitAndLossPage: React.FC = () => {
     (isLoadingQuarterly && activeTab === "quarterly" && !!selectedBusinessId) ||
     (isLoadingDepartment && activeTab === "department" && !!selectedBusinessId) ||
     (isLoadingCustomDate && activeTab === "custom-date" && !!selectedBusinessId) ||
-    (isLoadingCashVsAccrual && activeTab === "cash-vs-accrual" && !!selectedBusinessId);
+    (isLoadingCashVsAccrual && activeTab === "cash-vs-accrual" && !!selectedBusinessId) ||
+    (isLoadingFinancialYear && activeTab === "financial-year" && !!selectedBusinessId);
 
   if (isLoading) {
     return (
@@ -304,7 +321,8 @@ const ProfitAndLossPage: React.FC = () => {
     (isErrorQuarterly && activeTab === "quarterly" && !!selectedBusinessId) ||
     (isErrorDepartment && activeTab === "department" && !!selectedBusinessId) ||
     (isErrorCustomDate && activeTab === "custom-date" && !!selectedBusinessId) ||
-    (isErrorCashVsAccrual && activeTab === "cash-vs-accrual" && !!selectedBusinessId);
+    (isErrorCashVsAccrual && activeTab === "cash-vs-accrual" && !!selectedBusinessId) ||
+    (isErrorFinancialYear && activeTab === "financial-year" && !!selectedBusinessId);
 
   if (hasError) {
     return (
@@ -726,6 +744,14 @@ const ProfitAndLossPage: React.FC = () => {
                     <span className="md:hidden">Current</span>
                   </TabsTrigger>
                   <TabsTrigger 
+                    value="financial-year"
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span className="hidden md:inline">Financial Year</span>
+                    <span className="md:hidden">FY</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
                     value="visual"
                     className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
                   >
@@ -767,147 +793,4 @@ const ProfitAndLossPage: React.FC = () => {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="cash-vs-accrual"
-                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-                  >
-                    <CreditCard className="h-4 w-4" />
-                    <span className="hidden md:inline">Cash vs Accrual</span>
-                    <span className="md:hidden">Cash/Accrual</span>
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="monthly"
-                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
-                  >
-                    <TrendingUp className="h-4 w-4" />
-                    <span className="hidden md:inline">Monthly Breakdown</span>
-                    <span className="md:hidden">Monthly</span>
-                  </TabsTrigger>
-                </TabsList>
-              </div>
-              
-              <TabsContent value="current-year" className="space-y-6">
-                {plData && (
-                  <div className="grid gap-6">
-                    <ProfitAndLossSummary report={plData.Reports[0]} />
-
-                    <Card className="bg-white border-navy-100">
-                      <CardHeader>
-                        <CardTitle className="text-xl font-semibold text-navy-800">
-                          Revenue & Expenses
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="overflow-x-auto">
-                        <div className="min-w-[500px] max-w-[900px] mx-auto">
-                          <ProfitAndLossChart rows={plData.Reports[0].Rows} />
-                        </div>
-                      </CardContent>
-                    </Card>
-
-                    <Card className="bg-white border-navy-100">
-                      <CardHeader>
-                        <CardTitle className="text-xl font-semibold text-navy-800">
-                          Detailed Statement
-                        </CardTitle>
-                        <CardDescription>
-                          {startDate} to {endDate}
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="overflow-x-auto">
-                        <div className="max-w-[800px] mx-auto">
-                          <ProfitAndLossTable 
-                            rows={plData.Reports[0].Rows} 
-                            period={plData.Reports[0].ReportDate} 
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="monthly">
-                {activeTab === "monthly" && !monthlyData && noDataMessage("Monthly")}
-                
-                {monthlyData && (
-                  <Card>
-                    <CardHeader>
-                      <CardTitle className="text-xl font-semibold text-navy-800">
-                        Monthly Breakdown
-                      </CardTitle>
-                      <CardDescription>
-                        {startDate} to {endDate}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="overflow-x-auto">
-                      <div className="min-w-[700px]">
-                        <MonthlyProfitAndLossTable data={monthlyData} />
-                      </div>
-                    </CardContent>
-                  </Card>
-                )}
-              </TabsContent>
-              
-              <TabsContent value="visual">
-                {activeTab === "visual" && !visualData && noDataMessage("Visual Dashboard")}
-                
-                {visualData && (
-                  <VisualDashboard data={visualData} />
-                )}
-              </TabsContent>
-
-              <TabsContent value="annual">
-                {activeTab === "annual" && !annualData && noDataMessage("Annual Comparison")}
-                
-                {annualData && (
-                  <AnnualComparisonView data={annualData} />
-                )}
-              </TabsContent>
-
-              <TabsContent value="quarterly">
-                {activeTab === "quarterly" && !quarterlyData && noDataMessage("Quarterly Breakdown")}
-                
-                {quarterlyData && (
-                  <QuarterlyBreakdownView data={quarterlyData} />
-                )}
-              </TabsContent>
-
-              <TabsContent value="department">
-                <DepartmentComparisonView 
-                  data={departmentData}
-                  businessId={selectedBusinessId}
-                  onTrackingCategorySelect={handleTrackingCategorySelect}
-                  isLoading={isLoadingDepartment}
-                />
-              </TabsContent>
-
-              <TabsContent value="custom-date">
-                {activeTab === "custom-date" && !customDateData && noDataMessage("Custom Date Range")}
-                
-                {customDateData && (
-                  <CustomDateRangeView 
-                    data={customDateData} 
-                    fromDate={customStartDate}
-                    toDate={customEndDate}
-                  />
-                )}
-              </TabsContent>
-
-              <TabsContent value="cash-vs-accrual">
-                {activeTab === "cash-vs-accrual" && !cashVsAccrualData && noDataMessage("Cash vs Accrual")}
-                
-                {cashVsAccrualData && (
-                  <CashVsAccrualView 
-                    cashData={cashVsAccrualData[0]} 
-                    accrualData={cashVsAccrualData[1]}
-                    date={cashVsAccrualDate}
-                  />
-                )}
-              </TabsContent>
-            </Tabs>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default ProfitAndLossPage;
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace

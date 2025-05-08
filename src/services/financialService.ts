@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface ProfitAndLossRow {
@@ -60,7 +59,8 @@ export enum FinancialDataType {
   QUARTERLY_BREAKDOWN = "quarterlyBreakdown",
   DEPARTMENT_COMPARISON = "departmentCostCenterComparison",
   CUSTOM_DATE_RANGE = "customDateRangeAnalysis",
-  CASH_VS_ACCRUAL = "cashVsAccrualComparison"
+  CASH_VS_ACCRUAL = "cashVsAccrualComparison",
+  FINANCIAL_YEAR = "financialYearStatement"
 }
 
 export interface ReportParams {
@@ -126,6 +126,24 @@ export const getFirstDayLastQuarter = (): string => {
   const month = lastQuarter * 3; // First month of the quarter (0, 3, 6, 9)
   
   return `${year}-${String(month + 1).padStart(2, '0')}-01`;
+};
+
+/**
+ * Get the financial year start date based on the year
+ * @param year The financial year (e.g. 2025 means FY2025 which starts in 2024)
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getFinancialYearStartDate = (year: number): string => {
+  return `${year - 1}-03-01`;
+};
+
+/**
+ * Get the financial year end date based on the year
+ * @param year The financial year (e.g. 2025 means FY2025 which ends in 2025)
+ * @returns Date string in YYYY-MM-DD format
+ */
+export const getFinancialYearEndDate = (year: number): string => {
+  return `${year}-02-28`;
 };
 
 /**
@@ -460,6 +478,34 @@ export async function getFinancialSummary(businessId: string | null): Promise<an
     console.error("Error fetching financial summary:", error);
     throw error;
   }
+}
+
+/**
+ * Fetches financial year profit and loss data from Xero
+ * @param businessId The client business ID
+ * @param year The financial year (e.g. 2025 for FY2025)
+ * @returns Promise with the profit and loss data
+ * @throws Error if businessId is null or if fetching fails
+ */
+export async function getFinancialYearData(
+  businessId: string | null, 
+  year: number = new Date().getFullYear()
+): Promise<MonthlyProfitAndLoss> {
+  const fromDate = getFinancialYearStartDate(year);
+  const toDate = getFinancialYearEndDate(year);
+
+  return getProfitAndLossWithParams(
+    businessId,
+    "monthly-breakdown",
+    {
+      fromDate: fromDate,
+      toDate: toDate,
+      periods: 12,
+      timeframe: "MONTH",
+      standardLayout: true,
+      paymentsOnly: false
+    }
+  ) as Promise<MonthlyProfitAndLoss>;
 }
 
 // Function to get tracking categories (departments/cost centers) for a business
