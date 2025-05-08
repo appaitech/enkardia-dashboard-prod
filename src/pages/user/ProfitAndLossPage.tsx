@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import UserSidebar from "@/components/UserSidebar";
@@ -793,4 +794,96 @@ const ProfitAndLossPage: React.FC = () => {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="cash-vs-accrual"
-                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    <span className="hidden md:inline">Cash vs Accrual</span>
+                    <span className="md:hidden">Cash</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+
+              <TabsContent value="current-year" className="mt-6 space-y-6">
+                {plData ? (
+                  <>
+                    <ProfitAndLossSummary report={plData?.Reports?.[0]} />
+                    <ProfitAndLossTable rows={plData?.Reports?.[0]?.Rows || []} period={plData?.Reports?.[0]?.ReportTitles?.[0] || ""} />
+                    <ProfitAndLossChart data={plData} />
+                  </>
+                ) : (
+                  noDataMessage("Current Year")
+                )}
+              </TabsContent>
+
+              <TabsContent value="financial-year" className="mt-6">
+                {financialYearData ? (
+                  <FinancialYearView businessId={selectedBusinessId} />
+                ) : (
+                  noDataMessage("Financial Year")
+                )}
+              </TabsContent>
+
+              <TabsContent value="visual" className="mt-6">
+                {visualData ? (
+                  <VisualDashboard data={visualData} />
+                ) : (
+                  noDataMessage("Visual Dashboard")
+                )}
+              </TabsContent>
+
+              <TabsContent value="annual" className="mt-6">
+                {annualData ? (
+                  <AnnualComparisonView data={annualData} />
+                ) : (
+                  noDataMessage("Annual Comparison")
+                )}
+              </TabsContent>
+
+              <TabsContent value="quarterly" className="mt-6">
+                {quarterlyData ? (
+                  <QuarterlyBreakdownView data={quarterlyData} />
+                ) : (
+                  noDataMessage("Quarterly Breakdown")
+                )}
+              </TabsContent>
+
+              <TabsContent value="department" className="mt-6">
+                {departmentData ? (
+                  <DepartmentComparisonView 
+                    data={departmentData} 
+                    businessId={selectedBusinessId || ""}
+                    onTrackingCategorySelect={handleTrackingCategorySelect}
+                  />
+                ) : (
+                  noDataMessage("Department Comparison")
+                )}
+              </TabsContent>
+
+              <TabsContent value="custom-date" className="mt-6">
+                {customDateData ? (
+                  <CustomDateRangeView data={customDateData} />
+                ) : (
+                  noDataMessage("Custom Date Range")
+                )}
+              </TabsContent>
+
+              <TabsContent value="cash-vs-accrual" className="mt-6">
+                {cashVsAccrualData ? (
+                  <CashVsAccrualView 
+                    cashData={cashVsAccrualData[0]} 
+                    accrualData={cashVsAccrualData[1]}
+                    reportDate={cashVsAccrualDate}
+                  />
+                ) : (
+                  noDataMessage("Cash vs Accrual")
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfitAndLossPage;

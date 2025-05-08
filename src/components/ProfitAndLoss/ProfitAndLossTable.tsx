@@ -7,7 +7,7 @@ import { ProfitAndLossRow, ProfitAndLossReport, ProfitAndLossResponse } from "@/
 interface ProfitAndLossTableProps {
   rows: ProfitAndLossRow[];
   period: string;
-  data?: ProfitAndLossResponse; // Add this for backward compatibility
+  data?: ProfitAndLossResponse;
 }
 
 const ProfitAndLossTable: React.FC<ProfitAndLossTableProps> = ({ rows, period, data }) => {
