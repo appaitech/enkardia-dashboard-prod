@@ -793,4 +793,98 @@ const ProfitAndLossPage: React.FC = () => {
                   </TabsTrigger>
                   <TabsTrigger 
                     value="cash-vs-accrual"
-                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace
+                    className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
+                  >
+                    <CreditCard className="h-4 w-4" />
+                    <span className="hidden md:inline">Cash vs. Accrual</span>
+                    <span className="md:hidden">Cash</span>
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <TabsContent value="current-year">
+                {plData ? (
+                  <div className="space-y-6">
+                    <ProfitAndLossSummary data={plData} />
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                      <div className="lg:col-span-2">
+                        <ProfitAndLossTable data={plData} />
+                      </div>
+                      <div className="lg:col-span-1">
+                        <ProfitAndLossChart data={plData} />
+                      </div>
+                    </div>
+                  </div>
+                ) : noDataMessage("Current Year")}
+              </TabsContent>
+              
+              <TabsContent value="financial-year">
+                {financialYearData ? (
+                  <FinancialYearView businessId={selectedBusinessId} />
+                ) : noDataMessage("Financial Year")}
+              </TabsContent>
+              
+              <TabsContent value="monthly">
+                {monthlyData ? (
+                  <MonthlyProfitAndLossTable data={monthlyData} />
+                ) : noDataMessage("Monthly")}
+              </TabsContent>
+              
+              <TabsContent value="visual">
+                {visualData ? (
+                  <VisualDashboard data={visualData} />
+                ) : noDataMessage("Visual Dashboard")}
+              </TabsContent>
+              
+              <TabsContent value="annual">
+                {annualData ? (
+                  <AnnualComparisonView data={annualData} />
+                ) : noDataMessage("Annual Comparison")}
+              </TabsContent>
+              
+              <TabsContent value="quarterly">
+                {quarterlyData ? (
+                  <QuarterlyBreakdownView 
+                    data={quarterlyData} 
+                    startDate={quarterlyStartDate}
+                    endDate={quarterlyEndDate}
+                  />
+                ) : noDataMessage("Quarterly Breakdown")}
+              </TabsContent>
+              
+              <TabsContent value="department">
+                <DepartmentComparisonView 
+                  data={departmentData} 
+                  businessId={selectedBusinessId} 
+                  onTrackingCategorySelect={handleTrackingCategorySelect}
+                  selectedTrackingCategoryId={selectedTrackingCategoryId}
+                />
+              </TabsContent>
+              
+              <TabsContent value="custom-date">
+                {customDateData ? (
+                  <CustomDateRangeView 
+                    data={customDateData} 
+                    startDate={customStartDate}
+                    endDate={customEndDate}
+                  />
+                ) : noDataMessage("Custom Date Range")}
+              </TabsContent>
+              
+              <TabsContent value="cash-vs-accrual">
+                {cashVsAccrualData ? (
+                  <CashVsAccrualView 
+                    data={cashVsAccrualData} 
+                    reportDate={cashVsAccrualDate}
+                  />
+                ) : noDataMessage("Cash vs. Accrual")}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ProfitAndLossPage;
