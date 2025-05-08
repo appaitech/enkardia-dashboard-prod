@@ -494,13 +494,14 @@ export async function getFinancialYearData(
   const fromDate = getFinancialYearStartDate(year);
   const toDate = getFinancialYearEndDate(year);
 
+  // Use periods=11 (maximum allowed by Xero API) instead of 12
   return getProfitAndLossWithParams(
     businessId,
     "monthly-breakdown",
     {
       fromDate: fromDate,
       toDate: toDate,
-      periods: 12,
+      periods: 11, // Updated from 12 to 11 to comply with Xero API limits
       timeframe: "MONTH",
       standardLayout: true,
       paymentsOnly: false
