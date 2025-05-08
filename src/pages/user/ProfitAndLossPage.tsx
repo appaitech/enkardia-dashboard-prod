@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import UserSidebar from "@/components/UserSidebar";
@@ -804,11 +803,11 @@ const ProfitAndLossPage: React.FC = () => {
               </div>
 
               <TabsContent value="current-year" className="mt-6 space-y-6">
-                {plData ? (
+                {plData && plData.Reports?.[0] ? (
                   <>
-                    <ProfitAndLossSummary report={plData?.Reports?.[0]} />
-                    <ProfitAndLossTable rows={plData?.Reports?.[0]?.Rows || []} period={plData?.Reports?.[0]?.ReportTitles?.[0] || ""} />
-                    <ProfitAndLossChart data={plData} />
+                    <ProfitAndLossSummary report={plData.Reports[0]} />
+                    <ProfitAndLossTable rows={plData.Reports[0].Rows || []} period={plData.Reports[0].ReportTitles?.[0] || ""} />
+                    <ProfitAndLossChart rows={plData.Reports[0].Rows || []} />
                   </>
                 ) : (
                   noDataMessage("Current Year")
@@ -853,6 +852,7 @@ const ProfitAndLossPage: React.FC = () => {
                     data={departmentData} 
                     businessId={selectedBusinessId || ""}
                     onTrackingCategorySelect={handleTrackingCategorySelect}
+                    isLoading={isLoadingDepartment}
                   />
                 ) : (
                   noDataMessage("Department Comparison")
@@ -861,7 +861,11 @@ const ProfitAndLossPage: React.FC = () => {
 
               <TabsContent value="custom-date" className="mt-6">
                 {customDateData ? (
-                  <CustomDateRangeView data={customDateData} />
+                  <CustomDateRangeView 
+                    data={customDateData} 
+                    fromDate={customStartDate} 
+                    toDate={customEndDate} 
+                  />
                 ) : (
                   noDataMessage("Custom Date Range")
                 )}

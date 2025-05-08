@@ -18,3 +18,12 @@ export function formatCurrency(value: string | number, currency = 'USD'): string
     maximumFractionDigits: 2
   }).format(value);
 }
+
+/**
+ * Formats a date into a readable string
+ */
+export function formatDate(date: Date): string {
+  return new Intl.NumberFormat('en-US', {
+    dateStyle: 'medium'
+  }).format(date);
+}

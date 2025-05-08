@@ -1,7 +1,7 @@
 
 import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ProfitAndLossRow } from "@/services/financialService";
+import { ProfitAndLossRow, ProfitAndLossResponse } from "@/services/financialService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { chartConfig, useIsMobile, ResponsiveChartContainer } from '@/components/ui/chart';
 import { formatCurrency } from "@/lib/utils";
@@ -164,14 +164,6 @@ const ProfitAndLossChart: React.FC<ProfitAndLossChartProps> = ({ rows }) => {
                         </div>
                       );
                     })}
-                  </div>
-                  <div className="mt-4 pt-3 border-t">
-                    <div className="flex justify-between items-center text-sm font-semibold text-navy-800">
-                      <span>Total Expenses</span>
-                      <span className="font-mono tabular-nums">
-                        {formatCurrency(expensesData.reduce((sum, item) => sum + item.value, 0))}
-                      </span>
-                    </div>
                   </div>
                 </div>
               )}
