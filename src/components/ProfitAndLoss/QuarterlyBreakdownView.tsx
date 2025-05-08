@@ -7,9 +7,11 @@ import { formatCurrency } from '@/lib/utils';
 
 interface QuarterlyBreakdownViewProps {
   data: ProfitAndLossResponse;
+  startDate?: string;  // Adding the missing prop
+  endDate?: string;    // Adding the missing prop
 }
 
-const QuarterlyBreakdownView: React.FC<QuarterlyBreakdownViewProps> = ({ data }) => {
+const QuarterlyBreakdownView: React.FC<QuarterlyBreakdownViewProps> = ({ data, startDate, endDate }) => {
   if (!data || !data.Reports || !data.Reports.length) {
     return <div>No quarterly breakdown data available</div>;
   }
@@ -107,6 +109,11 @@ const QuarterlyBreakdownView: React.FC<QuarterlyBreakdownViewProps> = ({ data })
         <CardHeader>
           <CardTitle>Quarterly Financial Performance</CardTitle>
           <CardDescription>Revenue, expenses and profit by quarter</CardDescription>
+          {startDate && endDate && (
+            <div className="text-sm text-muted-foreground mt-1">
+              Period: {startDate} to {endDate}
+            </div>
+          )}
         </CardHeader>
         <CardContent>
           <div className="h-[400px]">

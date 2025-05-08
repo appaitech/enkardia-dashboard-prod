@@ -2,11 +2,12 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/utils";
-import { ProfitAndLossReport } from "@/services/financialService";
+import { ProfitAndLossReport, ProfitAndLossResponse } from "@/services/financialService";
 import { ArrowUpCircle, ArrowDownCircle, DollarSign } from "lucide-react";
 
 interface ProfitAndLossSummaryProps {
-  report: ProfitAndLossReport;
+  report?: ProfitAndLossReport;
+  data?: ProfitAndLossResponse;
 }
 
 // Helper function to find a specific row by title
@@ -38,12 +39,19 @@ const parseFinancialValue = (value: string | null): number => {
   return parseFloat(numericValue) || 0;
 };
 
-const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report }) => {
-  const totalIncome = findValueByTitle(report.Rows, 'Total Income') || '0';
-  const totalCostOfSales = findValueByTitle(report.Rows, 'Total Cost of Sales') || '0';
-  const totalExpenses = findValueByTitle(report.Rows, 'Total Operating Expenses') || '0';
-  const netProfit = findValueByTitle(report.Rows, 'Net Profit') || '0';
-  const grossProfit = findValueByTitle(report.Rows, 'Gross Profit') || '0';
+const ProfitAndLossSummary: React.FC<ProfitAndLossSummaryProps> = ({ report, data }) => {
+  // Use report if provided directly, otherwise try to get it from data
+  const summaryReport = report || (data?.Reports?.[0]);
+  
+  if (!summaryReport) {
+    return <div>No summary data available</div>;
+  }
+
+  const totalIncome = findValueByTitle(summaryReport.Rows, 'Total Income') || '0';
+  const totalCostOfSales = findValueByTitle(summaryReport.Rows, 'Total Cost of Sales') || '0';
+  const totalExpenses = findValueByTitle(summaryReport.Rows, 'Total Operating Expenses') || '0';
+  const netProfit = findValueByTitle(summaryReport.Rows, 'Net Profit') || '0';
+  const grossProfit = findValueByTitle(summaryReport.Rows, 'Gross Profit') || '0';
 
   // Parse string values to numbers for formatCurrency
   const totalIncomeValue = parseFinancialValue(totalIncome);

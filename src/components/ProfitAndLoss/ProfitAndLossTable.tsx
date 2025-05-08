@@ -1,14 +1,20 @@
+
 import React from "react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/utils";
-import { ProfitAndLossRow } from "@/services/financialService";
+import { ProfitAndLossRow, ProfitAndLossReport, ProfitAndLossResponse } from "@/services/financialService";
 
 interface ProfitAndLossTableProps {
   rows: ProfitAndLossRow[];
   period: string;
+  data?: ProfitAndLossResponse; // Add this for backward compatibility
 }
 
-const ProfitAndLossTable: React.FC<ProfitAndLossTableProps> = ({ rows, period }) => {
+const ProfitAndLossTable: React.FC<ProfitAndLossTableProps> = ({ rows, period, data }) => {
+  // If data is provided, use its rows (backwards compatibility)
+  const tableRows = data?.Reports?.[0]?.Rows || rows;
+  const tablePeriod = data?.Reports?.[0]?.ReportTitles?.[0] || period;
+
   const renderRows = (rows: ProfitAndLossRow[], depth = 0) => {
     return rows.map((row, index) => {
       if (row.RowType === "Header") {
@@ -79,10 +85,10 @@ const ProfitAndLossTable: React.FC<ProfitAndLossTableProps> = ({ rows, period })
         <TableHeader>
           <TableRow className="bg-navy-50">
             <TableHead className="w-[60%] py-3 font-semibold text-navy-800">Account</TableHead>
-            <TableHead className="w-[40%] text-right py-3 font-semibold text-navy-800">{period}</TableHead>
+            <TableHead className="w-[40%] text-right py-3 font-semibold text-navy-800">{tablePeriod}</TableHead>
           </TableRow>
         </TableHeader>
-        <TableBody>{renderRows(rows)}</TableBody>
+        <TableBody>{renderRows(tableRows)}</TableBody>
       </Table>
     </div>
   );
