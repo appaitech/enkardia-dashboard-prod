@@ -50,7 +50,7 @@ function App() {
               <Route 
                 path="/admin/dashboard" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`AdminDashboard`}>
                     <AdminDashboard />
                   </ProtectedRoute>
                 } 
@@ -59,7 +59,7 @@ function App() {
               <Route 
                 path="/admin/clients" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`ClientsList`}>
                     <ClientsList />
                   </ProtectedRoute>
                 } 
@@ -68,7 +68,7 @@ function App() {
               <Route 
                 path="/admin/clients/:id" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`ClientDetail`}>
                     <ClientDetail />
                   </ProtectedRoute>
                 } 
@@ -77,7 +77,7 @@ function App() {
               <Route 
                 path="/admin/users" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`UsersManagement`}>
                     <UsersManagement />
                   </ProtectedRoute>
                 } 
@@ -86,7 +86,7 @@ function App() {
               <Route 
                 path="/admin/xero-connections" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]}>
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`XeroConnectionsPage`}>
                     <XeroConnectionsPage />
                   </ProtectedRoute>
                 } 
@@ -95,7 +95,7 @@ function App() {
               <Route 
                 path="/user/dashboard" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]} expectedComponent={`UserDashboard`}>
                     <UserDashboard />
                   </ProtectedRoute>
                 } 
@@ -104,7 +104,7 @@ function App() {
               <Route 
                 path="/user/financial/profit-loss" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]} expectedComponent={`ProfitAndLossPage`}>
                     <ProfitAndLossPage />
                   </ProtectedRoute>
                 } 
@@ -113,7 +113,7 @@ function App() {
               <Route 
                 path="/user/tasks" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]} expectedComponent={`TasksPage`}>
                     <TasksPage />
                   </ProtectedRoute>
                 } 
@@ -122,7 +122,7 @@ function App() {
               <Route 
                 path="/user/call-to-actions" 
                 element={
-                  <ProtectedRoute allowedAccountTypes={["CLIENT"]}>
+                  <ProtectedRoute allowedAccountTypes={["CLIENT"]} expectedComponent={`CallToActionsPage`}>
                     <CallToActionsPage />
                   </ProtectedRoute>
                 } 

@@ -8,12 +8,14 @@ interface ProtectedRouteProps {
   children: React.ReactNode;
   allowedAccountTypes?: AccountType[];
   allowedRoles?: UserRole[];
+  expectedComponent?: string;
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   allowedAccountTypes = [],
   allowedRoles = [],
+  expectedComponent = null
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
@@ -28,6 +30,11 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
+
+  console.log('expectedComponent', expectedComponent);
+  console.log('allowedAccountTypes', allowedAccountTypes);
+  console.log('user.accountType', user.accountType);
+  console.log('user', user);
 
   // Check account type restrictions
   if (allowedAccountTypes.length > 0 && user && !allowedAccountTypes.includes(user.accountType)) {
