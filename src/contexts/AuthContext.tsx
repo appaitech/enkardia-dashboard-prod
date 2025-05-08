@@ -76,8 +76,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (session?.user) {
         const enhancedUser = {
           ...session.user,
-          accountType: accountType as AccountType || "CLIENT",
-          role: role as UserRole || "STANDARD",
+          accountType: accountType as AccountType || null,
+          role: role as UserRole || null,
           name: null
         };
         setUser(enhancedUser);
@@ -96,8 +96,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       if (session?.user) {
         const enhancedUser = {
           ...session.user,
-          accountType: accountType as AccountType || "CLIENT",
-          role: role as UserRole || "STANDARD",
+          accountType: accountType as AccountType || null,
+          role: role as UserRole || null,
           name: null
         };
         setUser(enhancedUser);
@@ -131,8 +131,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
               const enhancedUser = {
                 ...user,
                 name: profile?.name || null,
-                accountType: profile?.account_type as AccountType || "CLIENT",
-                role: profile?.role as UserRole || "STANDARD"
+                accountType: profile?.account_type as AccountType || null,
+                role: profile?.role as UserRole || null
               };
               setUser(enhancedUser);
             }
@@ -246,8 +246,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             const enhancedUser = {
               ...refreshedUser,
               name: profile?.name || null,
-              accountType: profile?.account_type as AccountType || "CLIENT",
-              role: profile?.role as UserRole || "STANDARD"
+              accountType: profile?.account_type as AccountType || null,
+              role: profile?.role as UserRole || null
             };
             setUser(enhancedUser);
           }

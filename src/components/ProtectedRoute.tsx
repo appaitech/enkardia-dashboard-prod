@@ -19,7 +19,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 }) => {
   const { user, isAuthenticated, isLoading } = useAuth();
 
-  if (isLoading) {
+  if (isLoading || user.accountType === null || user.role === null) {
     return (
       <div className="h-screen w-screen flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
