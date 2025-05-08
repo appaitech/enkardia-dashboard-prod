@@ -61,7 +61,7 @@ const CustomDateRangeView: React.FC<CustomDateRangeViewProps> = ({ data, fromDat
   // Calculate meaningful metrics
   const totalIncomeValue = parseFloat(totalIncome.replace(/,/g, ''));
   const totalExpensesValue = parseFloat(totalExpenses.replace(/,/g, ''));
-  const netProfitValue = parseFloat(netProfit.replace(/,/g, '));
+  const netProfitValue = parseFloat(netProfit.replace(/,/g, ''));
   
   const profitMargin = totalIncomeValue > 0 ? (netProfitValue / totalIncomeValue) * 100 : 0;
   const expenseRatio = totalIncomeValue > 0 ? (totalExpensesValue / totalIncomeValue) * 100 : 0;
