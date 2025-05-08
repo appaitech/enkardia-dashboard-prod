@@ -30,7 +30,8 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
   };
 
   const renderYearOptions = () => {
-    const years = [currentYear, currentYear - 1, currentYear - 2];
+    // Add FY 2026 to the years array
+    const years = [currentYear + 1, currentYear, currentYear - 1, currentYear - 2];
     return years.map(year => (
       <SelectItem key={year} value={year.toString()}>
         FY {year}

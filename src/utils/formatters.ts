@@ -23,7 +23,7 @@ export function formatCurrency(value: string | number, currency = 'USD'): string
  * Formats a date into a readable string
  */
 export function formatDate(date: Date): string {
-  return new Intl.NumberFormat('en-US', {
+  return new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium'
   }).format(date);
 }
