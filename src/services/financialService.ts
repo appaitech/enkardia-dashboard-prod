@@ -516,42 +516,43 @@ export async function getFinancialYearData(
     }
   ) as MonthlyProfitAndLoss;
   
-  // Second call: Get data for February (last month of financial year)
-  const februaryStartDate = `${year}-02-01`;
-  const februaryData = await getProfitAndLossWithParams(
-    businessId,
-    "monthly-breakdown",
-    {
-      fromDate: '2026-02-01',
-      toDate: '2026-02-28',
-      periods: 1,
-      timeframe: "MONTH",
-      standardLayout: true,
-      paymentsOnly: false
-    }
-  ) as MonthlyProfitAndLoss;
+  // // Second call: Get data for February (last month of financial year)
+  // const februaryStartDate = `${year}-02-01`;
+  // const februaryData = await getProfitAndLossWithParams(
+  //   businessId,
+  //   "monthly-breakdown",
+  //   {
+  //     fromDate: '2026-02-01',
+  //     toDate: '2026-02-28',
+  //     periods: 1,
+  //     timeframe: "MONTH",
+  //     standardLayout: true,
+  //     paymentsOnly: false
+  //   }
+  // ) as MonthlyProfitAndLoss;
+  const februaryData = {};
   
   // Combine the results
-  if (firstElevenMonthsData && firstElevenMonthsData.Reports && 
-      firstElevenMonthsData.Reports.length > 0 && 
-      februaryData && februaryData.Reports && 
-      februaryData.Reports.length > 0) {
+  // if (firstElevenMonthsData && firstElevenMonthsData.Reports && 
+  //     firstElevenMonthsData.Reports.length > 0 && 
+  //     februaryData && februaryData.Reports && 
+  //     februaryData.Reports.length > 0) {
     
-    // Merge the cells from February into the first 11 months data
-    const combinedData = { ...firstElevenMonthsData };
-    const mainReport = combinedData.Reports[0];
-    const februaryReport = februaryData.Reports[0];
+  //   // Merge the cells from February into the first 11 months data
+  //   const combinedData = { ...firstElevenMonthsData };
+  //   const mainReport = combinedData.Reports[0];
+  //   const februaryReport = februaryData.Reports[0];
     
-    // For each row in the report, add the February data as an additional column
-    if (mainReport.Rows && februaryReport.Rows) {
-      combineReportRows(mainReport.Rows, februaryReport.Rows);
+  //   // For each row in the report, add the February data as an additional column
+  //   if (mainReport.Rows && februaryReport.Rows) {
+  //     combineReportRows(mainReport.Rows, februaryReport.Rows);
       
-      // Update report titles to reflect the full year
-      mainReport.ReportTitles = [`Financial Year ${year-1}-${year}`];
-    }
+  //     // Update report titles to reflect the full year
+  //     mainReport.ReportTitles = [`Financial Year ${year-1}-${year}`];
+  //   }
     
-    return combinedData;
-  }
+  //   return combinedData;
+  // }
   
   // If either call fails or has no data, return the data we have
   return firstElevenMonthsData;
