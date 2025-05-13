@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getFinancialYearData } from "@/services/financialService";
@@ -84,12 +83,49 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
   const fromDate = `${selectedYear - 1}-03-01`;
   const toDate = `${selectedYear}-02-28`;
 
+  // Reorder the columns so February appears first, followed by January and other months
+  const reorderColumns = (rows: any[]) => {
+    if (!rows || rows.length === 0 || !rows[0].Cells) {
+      return rows;
+    }
+
+    // Create a deep copy of the rows to avoid mutation
+    const newRows = JSON.parse(JSON.stringify(rows));
+
+    // For each row, move February (last month) to the first position
+    newRows.forEach((row: any) => {
+      if (row.Cells && row.Cells.length > 1) {
+        // First column is usually the label/account name - keep that
+        const firstColumn = row.Cells[0];
+        
+        // February is the last column in our data
+        const februaryColumn = row.Cells[row.Cells.length - 1];
+        
+        // All other columns
+        const otherColumns = row.Cells.slice(1, row.Cells.length - 1);
+        
+        // Reorder: [label, february, other months]
+        row.Cells = [firstColumn, februaryColumn, ...otherColumns];
+      }
+      
+      // Recursively reorder columns in nested rows
+      if (row.Rows && row.Rows.length > 0) {
+        row.Rows = reorderColumns(row.Rows);
+      }
+    });
+
+    return newRows;
+  };
+
+  // Apply the reordering to the report rows
+  const orderedRows = reorderColumns(report.Rows);
+
   const renderTableHeaders = () => {
-    if (!report.Rows || report.Rows.length === 0 || !report.Rows[0].Cells) {
+    if (!orderedRows || orderedRows.length === 0 || !orderedRows[0].Cells) {
       return null;
     }
 
-    return report.Rows[0].Cells.map((cell, index) => (
+    return orderedRows[0].Cells.map((cell: any, index: number) => (
       <TableHead key={index} className={index === 0 ? "w-48" : "text-right"}>
         {cell.Value}
       </TableHead>
@@ -97,15 +133,15 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
   };
 
   const renderTableRows = () => {
-    if (!report.Rows) {
+    if (!orderedRows) {
       return null;
     }
 
-    return report.Rows.slice(1).map((section, sectionIndex) => {
+    return orderedRows.slice(1).map((section: any, sectionIndex: number) => {
       if (!section.Rows) {
         return (
           <TableRow key={`section-${sectionIndex}`}>
-            <TableCell colSpan={report.Rows?.[0]?.Cells?.length || 1} className="bg-slate-50 font-semibold">
+            <TableCell colSpan={orderedRows?.[0]?.Cells?.length || 1} className="bg-slate-50 font-semibold">
               {section.Title}
             </TableCell>
           </TableRow>
@@ -115,13 +151,13 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
       return (
         <React.Fragment key={`section-${sectionIndex}`}>
           <TableRow>
-            <TableCell colSpan={report.Rows?.[0]?.Cells?.length || 1} className="bg-slate-50 font-semibold">
+            <TableCell colSpan={orderedRows?.[0]?.Cells?.length || 1} className="bg-slate-50 font-semibold">
               {section.Title}
             </TableCell>
           </TableRow>
-          {section.Rows.map((row, rowIndex) => (
+          {section.Rows.map((row: any, rowIndex: number) => (
             <TableRow key={`section-${sectionIndex}-row-${rowIndex}`} className={row.RowType === "SummaryRow" ? "bg-slate-100 font-medium" : ""}>
-              {row.Cells?.map((cell, cellIndex) => (
+              {row.Cells?.map((cell: any, cellIndex: number) => (
                 <TableCell key={`section-${sectionIndex}-row-${rowIndex}-cell-${cellIndex}`} className={cellIndex === 0 ? "" : "text-right"}>
                   {cell.Value}
                 </TableCell>
