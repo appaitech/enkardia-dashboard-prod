@@ -491,22 +491,102 @@ export async function getFinancialYearData(
   businessId: string | null, 
   year: number = new Date().getFullYear()
 ): Promise<MonthlyProfitAndLoss> {
+  if (!businessId) {
+    throw new Error('No business ID provided');
+  }
+
   const fromDate = getFinancialYearStartDate(year);
   const toDate = getFinancialYearEndDate(year);
+  console.log(`Fetching financial year data for ${year}: ${fromDate} to ${toDate}`);
 
-  // Use periods=11 (maximum allowed by Xero API) instead of 12
-  return getProfitAndLossWithParams(
+  // To get all 12 months, we need to make two API calls because Xero API has a limit of 11 periods
+  
+  // First call: Get data for first 11 months (Mar to Jan)
+  const januaryEndDate = `${year}-01-31`;
+  const firstElevenMonthsData = await getProfitAndLossWithParams(
     businessId,
     "monthly-breakdown",
     {
       fromDate: fromDate,
-      toDate: toDate,
-      periods: 11, // Updated from 12 to 11 to comply with Xero API limits
+      toDate: januaryEndDate,
+      periods: 11,
       timeframe: "MONTH",
       standardLayout: true,
       paymentsOnly: false
     }
-  ) as Promise<MonthlyProfitAndLoss>;
+  ) as MonthlyProfitAndLoss;
+  
+  // Second call: Get data for February (last month of financial year)
+  const februaryStartDate = `${year}-02-01`;
+  const februaryData = await getProfitAndLossWithParams(
+    businessId,
+    "monthly-breakdown",
+    {
+      fromDate: februaryStartDate,
+      toDate: toDate,
+      periods: 1,
+      timeframe: "MONTH",
+      standardLayout: true,
+      paymentsOnly: false
+    }
+  ) as MonthlyProfitAndLoss;
+  
+  // Combine the results
+  if (firstElevenMonthsData && firstElevenMonthsData.Reports && 
+      firstElevenMonthsData.Reports.length > 0 && 
+      februaryData && februaryData.Reports && 
+      februaryData.Reports.length > 0) {
+    
+    // Merge the cells from February into the first 11 months data
+    const combinedData = { ...firstElevenMonthsData };
+    const mainReport = combinedData.Reports[0];
+    const februaryReport = februaryData.Reports[0];
+    
+    // For each row in the report, add the February data as an additional column
+    if (mainReport.Rows && februaryReport.Rows) {
+      combineReportRows(mainReport.Rows, februaryReport.Rows);
+      
+      // Update report titles to reflect the full year
+      mainReport.ReportTitles = [`Financial Year ${year-1}-${year}`];
+    }
+    
+    return combinedData;
+  }
+  
+  // If either call fails or has no data, return the data we have
+  return firstElevenMonthsData;
+}
+
+/**
+ * Helper function to recursively combine rows from two reports
+ * @param mainRows Rows from the main report (first 11 months)
+ * @param februaryRows Rows from the February report
+ */
+function combineReportRows(mainRows: ProfitAndLossRow[], februaryRows: ProfitAndLossRow[]) {
+  // Process each row recursively
+  for (let i = 0; i < mainRows.length; i++) {
+    const mainRow = mainRows[i];
+    const febRow = februaryRows[i];
+    
+    if (!febRow) continue;
+    
+    // If the row has cells, add February data
+    if (mainRow.Cells && febRow.Cells && febRow.Cells.length > 0) {
+      // For header rows that have column titles
+      if (mainRow.RowType === "Header") {
+        mainRow.Cells.push(febRow.Cells[1]); // Add February column header
+      } 
+      // For data and summary rows
+      else if (mainRow.Cells.length > 0 && febRow.Cells.length > 0) {
+        mainRow.Cells.push(febRow.Cells[1]); // Add February value
+      }
+    }
+    
+    // Recursively process nested rows
+    if (mainRow.Rows && febRow.Rows) {
+      combineReportRows(mainRow.Rows, febRow.Rows);
+    }
+  }
 }
 
 // Function to get tracking categories (departments/cost centers) for a business
