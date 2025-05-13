@@ -507,9 +507,9 @@ export async function getFinancialYearData(
     businessId,
     "monthly-breakdown",
     {
-      fromDate: fromDate,
-      toDate: januaryEndDate,
-      periods: 11,
+      fromDate: '2026-01-01',
+      toDate: '2026-01-31',
+      periods: 10,
       timeframe: "MONTH",
       standardLayout: true,
       paymentsOnly: false
@@ -522,8 +522,8 @@ export async function getFinancialYearData(
     businessId,
     "monthly-breakdown",
     {
-      fromDate: februaryStartDate,
-      toDate: toDate,
+      fromDate: '2026-02-01',
+      toDate: '2026-02-28',
       periods: 1,
       timeframe: "MONTH",
       standardLayout: true,
