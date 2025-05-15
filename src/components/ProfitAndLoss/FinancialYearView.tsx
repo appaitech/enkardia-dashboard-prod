@@ -118,7 +118,8 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
   };
 
   // Apply the reordering to the report rows
-  const orderedRows = reorderColumns(report.Rows);
+  // const orderedRows = reorderColumns(report.Rows);
+  const orderedRows = report.Rows;
 
   const renderTableHeaders = () => {
     if (!orderedRows || orderedRows.length === 0 || !orderedRows[0].Cells) {

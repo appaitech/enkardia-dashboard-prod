@@ -480,6 +480,166 @@ export async function getFinancialSummary(businessId: string | null): Promise<an
   }
 }
 
+// CUSTOM function to merge data START
+const buildAndPopulateProfitSection = (inputXeroReportRow, inputReportDataArray, inputPropertyName, inputInitialHeadingsCount) => {
+  const title = inputXeroReportRow.Title;
+  const rows = inputXeroReportRow.Rows;
+  
+  const existingSection = inputReportDataArray[inputPropertyName].find(x => x.title === title);
+
+  if (existingSection) {
+    rows.forEach((row: ProfitAndLossRow) => {
+      const cells = row.Cells;
+      const rowTitle = cells[0].Value;
+
+      const existingDataRowObject = existingSection.dataRowObjects.find(x => x.rowTitle === rowTitle)
+
+      if (existingDataRowObject) {
+        cells.forEach((cell, index) => {
+          if (index === 0)
+            return;
+
+          existingDataRowObject.rowData.push(cell.Value);
+        });
+      }
+      else {
+        const dataRowObject = {
+          rowType: row.RowType,
+          rowTitle: rowTitle,
+          rowData: [],
+        };
+
+        for (let k = 0; k < inputInitialHeadingsCount; k++) {
+          dataRowObject.rowData.push(0);
+        }
+
+        cells.forEach((cell, index) => {
+          if (index === 0)
+            return;
+
+          dataRowObject.rowData.push(cell.Value);
+        });
+
+        existingSection.dataRowObjects.push(dataRowObject);
+      }
+    });
+  }
+  else {
+    const sectionObject = {
+      title: title,
+      dataRowObjects: []          
+    };
+
+    rows.forEach((row: ProfitAndLossRow) => {
+      const cells = row.Cells;
+      const rowTitle = cells[0].Value;
+
+      const dataRowObject = {
+        rowType: row.RowType,
+        rowTitle: rowTitle,
+        rowData: [],
+      };
+
+      cells.forEach((cell, index) => {
+        if (index === 0)
+          return;
+
+        dataRowObject.rowData.push(cell.Value);
+      });
+
+      sectionObject.dataRowObjects.push(dataRowObject);
+    });
+
+    inputReportDataArray[inputPropertyName].push(sectionObject);
+  }
+}
+
+
+const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], inputReportDataArray = null) => {
+  let reportDataArray = {
+    headings: [],
+    grossProfitSections: [],
+    grossProfitDataRow: [],
+    netProfitSections: [],
+    netProfitDataRow: [],
+  };
+
+  if (inputReportDataArray !== null)
+    reportDataArray = inputReportDataArray;
+
+  const initialHeadingsCount = reportDataArray.headings.length;
+
+  let isGrossProfitSectionFlag = true;
+
+  let headerCount = 0;
+
+  xeroReportRows.forEach((xeroReportRow: ProfitAndLossRow, index) => {
+    if (isHeaderRow(xeroReportRow)) {
+      const cells = xeroReportRow.Cells;
+      cells.forEach((cell, index) => {
+        if (index === 0)
+          return;
+
+        reportDataArray.headings.push(cell.Value);
+        headerCount++;
+      });
+
+      return;
+    }
+
+    if (isGrossProfitSection(xeroReportRow)) {
+      // indicating it has now ended
+      isGrossProfitSectionFlag = false;
+      return;
+    }
+
+    if (isGrossProfitSectionFlag && isSectionRow(xeroReportRow)) { // && 
+      buildAndPopulateProfitSection(xeroReportRow, reportDataArray, `grossProfitSections`, initialHeadingsCount);
+      return;
+    }
+
+    if (!isGrossProfitSectionFlag && isSectionRow(xeroReportRow)) { // && 
+      buildAndPopulateProfitSection(xeroReportRow, reportDataArray, `netProfitSections`, initialHeadingsCount);
+      return;
+    }
+  });
+
+  reportDataArray.grossProfitSections.forEach((section) => {
+    section.dataRowObjects.forEach((dataRowObject) => {
+      if (dataRowObject.rowData.length === initialHeadingsCount)
+      {
+        for (let k = 0; k < headerCount; k++) 
+        {
+          dataRowObject.rowData.push(0);
+        }
+      }
+    });
+  });
+  
+  return reportDataArray;
+}
+
+const isHeaderRow = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Header`;
+}
+
+const isSectionRow = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Section` && rowObject.Title;
+}
+
+const isGrossProfitSection = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Section` && rowObject.Title === `` && rowObject.Rows[0].RowType === `Row` && rowObject.Rows[0].Cells[0].Value === `Gross Profit`;
+}
+
+const isDataRow = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Row`;
+}
+
+const isSummaryROw = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `SummaryRow`
+}
+// CUSTOM function to merge data END
+
 /**
  * Fetches financial year profit and loss data from Xero
  * @param businessId The client business ID
@@ -507,32 +667,168 @@ export async function getFinancialYearData(
     businessId,
     "monthly-breakdown",
     {
-      fromDate: '2026-01-01',
-      toDate: '2026-01-31',
-      periods: 10,
+      fromDate: '2025-01-01',
+      toDate: '2025-01-31',
+      periods: 10,//10
       timeframe: "MONTH",
       standardLayout: true,
       paymentsOnly: false
     }
   ) as MonthlyProfitAndLoss;
+
   
-  // // Second call: Get data for February (last month of financial year)
-  // const februaryStartDate = `${year}-02-01`;
-  // const februaryData = await getProfitAndLossWithParams(
-  //   businessId,
-  //   "monthly-breakdown",
-  //   {
-  //     fromDate: '2026-02-01',
-  //     toDate: '2026-02-28',
-  //     periods: 1,
-  //     timeframe: "MONTH",
-  //     standardLayout: true,
-  //     paymentsOnly: false
-  //   }
-  // ) as MonthlyProfitAndLoss;
-  const februaryData = {};
+
   
-  // Combine the results
+  const deepCopyFirstElevenMonthsData = JSON.parse(JSON.stringify(firstElevenMonthsData));
+  console.log('deepCopyFirstElevenMonthsData', deepCopyFirstElevenMonthsData);
+
+  
+  // Second call: Get data for February (last month of financial year)
+  const februaryStartDate = `${year}-02-01`;
+  const februaryData = await getProfitAndLossWithParams(
+    businessId,
+    "monthly-breakdown",
+    {
+      fromDate: '2025-02-01',
+      toDate: '2025-02-28',
+      periods: 0,
+      timeframe: "MONTH",
+      standardLayout: true,
+      paymentsOnly: false
+    }
+  ) as MonthlyProfitAndLoss;
+  //const februaryData = {};
+  console.log('februaryData', februaryData);
+
+  const deepCopyfebruaryData = JSON.parse(JSON.stringify(februaryData));
+  console.log('deepCopyfebruaryData', deepCopyfebruaryData);
+
+  const test1 = buildProfitAndLossReportDataArray(februaryData.Reports[0].Rows);
+  console.log('test1', test1);
+
+  try{
+    const test2 = buildProfitAndLossReportDataArray(firstElevenMonthsData.Reports[0].Rows, test1);
+    console.log('test2', test2);
+  }
+  catch(error) {
+    console.log('error', error);
+  }
+  
+
+  // // mod start
+  // if (firstElevenMonthsData && firstElevenMonthsData.Reports && 
+  //     firstElevenMonthsData.Reports.length > 0 && 
+  //     februaryData && februaryData.Reports && 
+  //     februaryData.Reports.length > 0) 
+  // {
+  //   // test
+  //   const combinedData = { ...firstElevenMonthsData };
+  //   const mainReport = combinedData.Reports[0];
+  //   const februaryReport = februaryData.Reports[0];
+
+  //   const headingsRow = mainReport.Rows[0];
+  //   console.log('headingsRow', headingsRow);
+
+  //   // main report
+  //   const rows = mainReport.Rows;
+  //   const sections = [];
+  //   const rowNames = [];
+  //   rows.forEach((row, index) => {
+  //     if (index === 0)
+  //       return;
+
+  //     if (row.RowType === 'Section' && row.Title) {
+  //       sections.push(row.Title);
+
+  //       const dynamicRows = row.Rows;
+
+  //       const tempRowNameArray = [];
+
+  //       dynamicRows.forEach((dynamicRow, index) => {
+          
+  //         const cells = dynamicRow.Cells;
+  //         const rowTitle = cells[0].Value;
+  //         tempRowNameArray.push(rowTitle);
+  //       });
+
+  //       rowNames.push(tempRowNameArray);
+  //     }
+  //   });
+
+  //   console.log('sections', sections);
+  //   console.log('rowNames', rowNames);
+
+  //   // feb report
+  //   const febRows = februaryReport.Rows;
+  //   const febHeadingsRow = februaryReport.Rows[0];
+  //   console.log('febHeadingsRow', febHeadingsRow);
+
+
+
+  //   febRows.forEach((row, index) => {
+  //     if (index === 0)
+  //       return;
+
+  //     if (row.RowType === "Section" && row.Title === "") {
+  //       // This is compulsory sub total row
+  //       const subtotalRows = row.Rows;
+  //       const subtotalRow = subtotalRows[0]; // there will only be one
+  //       const cells = subtotalRow.Cells;
+  //       const febRowName = cells[0].Value;
+  //       const febRowValue = cells[1].Value;
+  //     }
+
+  //     if (row.RowType === "Section" && sections.indexOf(row.Title) > -1) {
+  //       // do something
+  //       const sectionRows = row.Rows;
+  //       sectionRows.forEach((sectionRow, index) => {
+  //         const cells = sectionRow.Cells;
+  //         const febRowName = cells[0].Value;
+  //         const febRowValue = cells[1].Value
+
+          
+
+  //         const mainReportRows = mainReport.Rows;
+  //         const mainReportSection = mainReportRows.find(x => x.RowType === "Section" && x.Title === row.Title);
+
+  //         console.log('index', index);
+  //         console.log('mainReportSection', mainReportSection);
+          
+  //         const mainReportSectionRows = mainReportSection.Rows;
+  //         console.log('mainReportSectionRows', mainReportSectionRows);
+  //         // const mainReportSectionRow = mainReportSectionRows[index]
+
+  //         console.log('febRowName', febRowName);
+  //         console.log('febRowValue', febRowValue);
+  //         const mainReportSectionRow = mainReportSectionRows.find(x => x.Cells[0].Value === febRowName);
+  //         console.log('mainReportSectionRow', mainReportSectionRow);
+
+  //         // TODO - need to accommodate things in february that don't exist in the other 11 months
+          
+  //         const mainReportSectionRowCells = mainReportSectionRow.Cells;
+  //         const nameCellObject = mainReportSectionRowCells[0];
+  //         // console.log('nameCellObject.Value', nameCellObject.Value);
+  //         // console.log('febRowName', febRowName);
+  //         if (nameCellObject.Value === febRowName) {
+  //           const valueObject = {Value: febRowValue};
+  //           mainReportSectionRowCells.push(valueObject);
+  //         }
+  //         else {
+  //           const valueObject = {Value: '0'};
+  //           mainReportSectionRowCells.push(valueObject);
+  //         }
+          
+  //       }); 
+  //     }
+  //   });
+
+  //   console.log('combinedData', combinedData);
+
+  //   return combinedData;
+  // }
+  // // mod end
+  
+  //Combine the results
   // if (firstElevenMonthsData && firstElevenMonthsData.Reports && 
   //     firstElevenMonthsData.Reports.length > 0 && 
   //     februaryData && februaryData.Reports && 
@@ -551,6 +847,9 @@ export async function getFinancialYearData(
   //     mainReport.ReportTitles = [`Financial Year ${year-1}-${year}`];
   //   }
     
+  //   const deepCopyCombinedData = JSON.parse(JSON.stringify(combinedData));
+  //   console.log('deepCopyCombinedData', deepCopyCombinedData);
+
   //   return combinedData;
   // }
   
@@ -563,32 +862,32 @@ export async function getFinancialYearData(
  * @param mainRows Rows from the main report (first 11 months)
  * @param februaryRows Rows from the February report
  */
-function combineReportRows(mainRows: ProfitAndLossRow[], februaryRows: ProfitAndLossRow[]) {
-  // Process each row recursively
-  for (let i = 0; i < mainRows.length; i++) {
-    const mainRow = mainRows[i];
-    const febRow = februaryRows[i];
+// function combineReportRows(mainRows: ProfitAndLossRow[], februaryRows: ProfitAndLossRow[]) {
+//   // Process each row recursively
+//   for (let i = 0; i < mainRows.length; i++) {
+//     const mainRow = mainRows[i];
+//     const febRow = februaryRows[i];
     
-    if (!febRow) continue;
+//     if (!febRow) continue;
     
-    // If the row has cells, add February data
-    if (mainRow.Cells && febRow.Cells && febRow.Cells.length > 0) {
-      // For header rows that have column titles
-      if (mainRow.RowType === "Header") {
-        mainRow.Cells.push(febRow.Cells[1]); // Add February column header
-      } 
-      // For data and summary rows
-      else if (mainRow.Cells.length > 0 && febRow.Cells.length > 0) {
-        mainRow.Cells.push(febRow.Cells[1]); // Add February value
-      }
-    }
+//     // If the row has cells, add February data
+//     if (mainRow.Cells && febRow.Cells && febRow.Cells.length > 0) {
+//       // For header rows that have column titles
+//       if (mainRow.RowType === "Header") {
+//         mainRow.Cells.push(febRow.Cells[1]); // Add February column header
+//       } 
+//       // For data and summary rows
+//       else if (mainRow.Cells.length > 0 && febRow.Cells.length > 0) {
+//         mainRow.Cells.push(febRow.Cells[1]); // Add February value
+//       }
+//     }
     
-    // Recursively process nested rows
-    if (mainRow.Rows && febRow.Rows) {
-      combineReportRows(mainRow.Rows, febRow.Rows);
-    }
-  }
-}
+//     // Recursively process nested rows
+//     if (mainRow.Rows && febRow.Rows) {
+//       combineReportRows(mainRow.Rows, febRow.Rows);
+//     }
+//   }
+// }
 
 // Function to get tracking categories (departments/cost centers) for a business
 export async function getTrackingCategories(businessId: string | null): Promise<any[]> {
