@@ -531,7 +531,7 @@ const buildAndPopulateProfitSection = (inputXeroReportRow, inputReportDataArray,
         };
 
         for (let k = 0; k < inputInitialHeadingsCount; k++) {
-          dataRowObject.rowData.push(0);
+          dataRowObject.rowData.push(`0.00`);
         }
 
         cells.forEach((cell, index) => {
@@ -654,7 +654,19 @@ const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], i
       {
         for (let k = 0; k < headerCount; k++) 
         {
-          dataRowObject.rowData.push(`0`);
+          dataRowObject.rowData.push(`0.00`);
+        }
+      }
+    });
+  });
+
+  reportDataArray.netProfitSections.forEach((section) => {
+    section.dataRowObjects.forEach((dataRowObject) => {
+      if (dataRowObject.rowData.length === initialHeadingsCount)
+      {
+        for (let k = 0; k < headerCount; k++) 
+        {
+          dataRowObject.rowData.push(`0.00`);
         }
       }
     });
@@ -753,6 +765,12 @@ export async function getFinancialYearData(
 
   const financialYearProfitAndLossModel2 = buildProfitAndLossReportDataArray(firstElevenMonthsData.Reports[0].Rows, financialYearProfitAndLossModel);
   console.log('financialYearProfitAndLossModel2', financialYearProfitAndLossModel2);
+
+  // TODO - ordering of rows
+  // TODO - Directors
+  // TODO - Activity / Interactions
+  // TODO - CLient fields, custom fields
+
 
   return financialYearProfitAndLossModel2;
   
