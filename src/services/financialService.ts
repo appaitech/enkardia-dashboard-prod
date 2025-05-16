@@ -43,6 +43,27 @@ export interface MonthlyProfitAndLoss {
   Reports: ProfitAndLossReport[]; // Monthly reports have the same structure but with multiple periods
 }
 
+// MOD CUSTOM INTERFACES START
+export interface FinancialYearProfitAndLossModel {
+  headings: string[],
+  grossProfitSections: ProfitSectionModel[],
+  grossProfitDataRow: [],
+  netProfitSections: ProfitSectionModel[],
+  netProfitDataRow: [],
+}
+
+export interface ProfitSectionModel {
+  title: string,
+  dataRowObjects: DataRowObject[]
+}
+
+export interface DataRowObject {
+  rowType: `Row` | `SummaryRow`,
+  rowTitle: string,
+  rowData: string[]
+}
+// MOD CUSTOM INTERFACES END
+
 export interface VisualDashboardData {
   Id: string;
   Status: string;
@@ -555,8 +576,8 @@ const buildAndPopulateProfitSection = (inputXeroReportRow, inputReportDataArray,
 }
 
 
-const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], inputReportDataArray = null) => {
-  let reportDataArray = {
+const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], inputReportDataArray: FinancialYearProfitAndLossModel = null): FinancialYearProfitAndLossModel => {
+  let reportDataArray: FinancialYearProfitAndLossModel = {
     headings: [],
     grossProfitSections: [],
     grossProfitDataRow: [],
@@ -610,12 +631,12 @@ const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], i
       {
         for (let k = 0; k < headerCount; k++) 
         {
-          dataRowObject.rowData.push(0);
+          dataRowObject.rowData.push(`0`);
         }
       }
     });
   });
-  
+
   return reportDataArray;
 }
 
@@ -647,10 +668,11 @@ const isSummaryROw = (rowObject: ProfitAndLossRow) => {
  * @returns Promise with the profit and loss data
  * @throws Error if businessId is null or if fetching fails
  */
+//MonthlyProfitAndLoss
 export async function getFinancialYearData(
   businessId: string | null, 
   year: number = new Date().getFullYear()
-): Promise<MonthlyProfitAndLoss> {
+): Promise<FinancialYearProfitAndLossModel> {
   if (!businessId) {
     throw new Error('No business ID provided');
   }
@@ -676,13 +698,9 @@ export async function getFinancialYearData(
     }
   ) as MonthlyProfitAndLoss;
 
-  
-
-  
   const deepCopyFirstElevenMonthsData = JSON.parse(JSON.stringify(firstElevenMonthsData));
   console.log('deepCopyFirstElevenMonthsData', deepCopyFirstElevenMonthsData);
 
-  
   // Second call: Get data for February (last month of financial year)
   const februaryStartDate = `${year}-02-01`;
   const februaryData = await getProfitAndLossWithParams(
@@ -703,158 +721,16 @@ export async function getFinancialYearData(
   const deepCopyfebruaryData = JSON.parse(JSON.stringify(februaryData));
   console.log('deepCopyfebruaryData', deepCopyfebruaryData);
 
-  const test1 = buildProfitAndLossReportDataArray(februaryData.Reports[0].Rows);
-  console.log('test1', test1);
+  const financialYearProfitAndLossModel = buildProfitAndLossReportDataArray(februaryData.Reports[0].Rows);
+  console.log('financialYearProfitAndLossModel', financialYearProfitAndLossModel);
 
-  try{
-    const test2 = buildProfitAndLossReportDataArray(firstElevenMonthsData.Reports[0].Rows, test1);
-    console.log('test2', test2);
-  }
-  catch(error) {
-    console.log('error', error);
-  }
-  
+  const financialYearProfitAndLossModel2 = buildProfitAndLossReportDataArray(firstElevenMonthsData.Reports[0].Rows, financialYearProfitAndLossModel);
+  console.log('financialYearProfitAndLossModel2', financialYearProfitAndLossModel2);
 
-  // // mod start
-  // if (firstElevenMonthsData && firstElevenMonthsData.Reports && 
-  //     firstElevenMonthsData.Reports.length > 0 && 
-  //     februaryData && februaryData.Reports && 
-  //     februaryData.Reports.length > 0) 
-  // {
-  //   // test
-  //   const combinedData = { ...firstElevenMonthsData };
-  //   const mainReport = combinedData.Reports[0];
-  //   const februaryReport = februaryData.Reports[0];
-
-  //   const headingsRow = mainReport.Rows[0];
-  //   console.log('headingsRow', headingsRow);
-
-  //   // main report
-  //   const rows = mainReport.Rows;
-  //   const sections = [];
-  //   const rowNames = [];
-  //   rows.forEach((row, index) => {
-  //     if (index === 0)
-  //       return;
-
-  //     if (row.RowType === 'Section' && row.Title) {
-  //       sections.push(row.Title);
-
-  //       const dynamicRows = row.Rows;
-
-  //       const tempRowNameArray = [];
-
-  //       dynamicRows.forEach((dynamicRow, index) => {
-          
-  //         const cells = dynamicRow.Cells;
-  //         const rowTitle = cells[0].Value;
-  //         tempRowNameArray.push(rowTitle);
-  //       });
-
-  //       rowNames.push(tempRowNameArray);
-  //     }
-  //   });
-
-  //   console.log('sections', sections);
-  //   console.log('rowNames', rowNames);
-
-  //   // feb report
-  //   const febRows = februaryReport.Rows;
-  //   const febHeadingsRow = februaryReport.Rows[0];
-  //   console.log('febHeadingsRow', febHeadingsRow);
-
-
-
-  //   febRows.forEach((row, index) => {
-  //     if (index === 0)
-  //       return;
-
-  //     if (row.RowType === "Section" && row.Title === "") {
-  //       // This is compulsory sub total row
-  //       const subtotalRows = row.Rows;
-  //       const subtotalRow = subtotalRows[0]; // there will only be one
-  //       const cells = subtotalRow.Cells;
-  //       const febRowName = cells[0].Value;
-  //       const febRowValue = cells[1].Value;
-  //     }
-
-  //     if (row.RowType === "Section" && sections.indexOf(row.Title) > -1) {
-  //       // do something
-  //       const sectionRows = row.Rows;
-  //       sectionRows.forEach((sectionRow, index) => {
-  //         const cells = sectionRow.Cells;
-  //         const febRowName = cells[0].Value;
-  //         const febRowValue = cells[1].Value
-
-          
-
-  //         const mainReportRows = mainReport.Rows;
-  //         const mainReportSection = mainReportRows.find(x => x.RowType === "Section" && x.Title === row.Title);
-
-  //         console.log('index', index);
-  //         console.log('mainReportSection', mainReportSection);
-          
-  //         const mainReportSectionRows = mainReportSection.Rows;
-  //         console.log('mainReportSectionRows', mainReportSectionRows);
-  //         // const mainReportSectionRow = mainReportSectionRows[index]
-
-  //         console.log('febRowName', febRowName);
-  //         console.log('febRowValue', febRowValue);
-  //         const mainReportSectionRow = mainReportSectionRows.find(x => x.Cells[0].Value === febRowName);
-  //         console.log('mainReportSectionRow', mainReportSectionRow);
-
-  //         // TODO - need to accommodate things in february that don't exist in the other 11 months
-          
-  //         const mainReportSectionRowCells = mainReportSectionRow.Cells;
-  //         const nameCellObject = mainReportSectionRowCells[0];
-  //         // console.log('nameCellObject.Value', nameCellObject.Value);
-  //         // console.log('febRowName', febRowName);
-  //         if (nameCellObject.Value === febRowName) {
-  //           const valueObject = {Value: febRowValue};
-  //           mainReportSectionRowCells.push(valueObject);
-  //         }
-  //         else {
-  //           const valueObject = {Value: '0'};
-  //           mainReportSectionRowCells.push(valueObject);
-  //         }
-          
-  //       }); 
-  //     }
-  //   });
-
-  //   console.log('combinedData', combinedData);
-
-  //   return combinedData;
-  // }
-  // // mod end
-  
-  //Combine the results
-  // if (firstElevenMonthsData && firstElevenMonthsData.Reports && 
-  //     firstElevenMonthsData.Reports.length > 0 && 
-  //     februaryData && februaryData.Reports && 
-  //     februaryData.Reports.length > 0) {
-    
-  //   // Merge the cells from February into the first 11 months data
-  //   const combinedData = { ...firstElevenMonthsData };
-  //   const mainReport = combinedData.Reports[0];
-  //   const februaryReport = februaryData.Reports[0];
-    
-  //   // For each row in the report, add the February data as an additional column
-  //   if (mainReport.Rows && februaryReport.Rows) {
-  //     combineReportRows(mainReport.Rows, februaryReport.Rows);
-      
-  //     // Update report titles to reflect the full year
-  //     mainReport.ReportTitles = [`Financial Year ${year-1}-${year}`];
-  //   }
-    
-  //   const deepCopyCombinedData = JSON.parse(JSON.stringify(combinedData));
-  //   console.log('deepCopyCombinedData', deepCopyCombinedData);
-
-  //   return combinedData;
-  // }
+  return financialYearProfitAndLossModel2;
   
   // If either call fails or has no data, return the data we have
-  return firstElevenMonthsData;
+  //return firstElevenMonthsData;
 }
 
 /**
