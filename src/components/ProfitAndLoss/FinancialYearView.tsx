@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getFinancialYearData } from "@/services/financialService";
@@ -63,7 +64,7 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
     );
   }
 
-  if (!data || !data.Reports || data.Reports.length === 0) {
+  if (!data) {
     return (
       <Card className="bg-navy-50/30 border-navy-100">
         <CardContent className="flex flex-col items-center justify-center py-12">
@@ -79,96 +80,8 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
     );
   }
 
-  const report = data.Reports[0];
   const fromDate = `${selectedYear - 1}-03-01`;
   const toDate = `${selectedYear}-02-28`;
-
-  // Reorder the columns so February appears first, followed by January and other months
-  const reorderColumns = (rows: any[]) => {
-    if (!rows || rows.length === 0 || !rows[0].Cells) {
-      return rows;
-    }
-
-    // Create a deep copy of the rows to avoid mutation
-    const newRows = JSON.parse(JSON.stringify(rows));
-
-    // For each row, move February (last month) to the first position
-    newRows.forEach((row: any) => {
-      if (row.Cells && row.Cells.length > 1) {
-        // First column is usually the label/account name - keep that
-        const firstColumn = row.Cells[0];
-        
-        // February is the last column in our data
-        const februaryColumn = row.Cells[row.Cells.length - 1];
-        
-        // All other columns
-        const otherColumns = row.Cells.slice(1, row.Cells.length - 1);
-        
-        // Reorder: [label, february, other months]
-        row.Cells = [firstColumn, februaryColumn, ...otherColumns];
-      }
-      
-      // Recursively reorder columns in nested rows
-      if (row.Rows && row.Rows.length > 0) {
-        row.Rows = reorderColumns(row.Rows);
-      }
-    });
-
-    return newRows;
-  };
-
-  // Apply the reordering to the report rows
-  // const orderedRows = reorderColumns(report.Rows);
-  const orderedRows = report.Rows;
-
-  const renderTableHeaders = () => {
-    if (!orderedRows || orderedRows.length === 0 || !orderedRows[0].Cells) {
-      return null;
-    }
-
-    return orderedRows[0].Cells.map((cell: any, index: number) => (
-      <TableHead key={index} className={index === 0 ? "w-48" : "text-right"}>
-        {cell.Value}
-      </TableHead>
-    ));
-  };
-
-  const renderTableRows = () => {
-    if (!orderedRows) {
-      return null;
-    }
-
-    return orderedRows.slice(1).map((section: any, sectionIndex: number) => {
-      if (!section.Rows) {
-        return (
-          <TableRow key={`section-${sectionIndex}`}>
-            <TableCell colSpan={orderedRows?.[0]?.Cells?.length || 1} className="bg-slate-50 font-semibold">
-              {section.Title}
-            </TableCell>
-          </TableRow>
-        );
-      }
-
-      return (
-        <React.Fragment key={`section-${sectionIndex}`}>
-          <TableRow>
-            <TableCell colSpan={orderedRows?.[0]?.Cells?.length || 1} className="bg-slate-50 font-semibold">
-              {section.Title}
-            </TableCell>
-          </TableRow>
-          {section.Rows.map((row: any, rowIndex: number) => (
-            <TableRow key={`section-${sectionIndex}-row-${rowIndex}`} className={row.RowType === "SummaryRow" ? "bg-slate-100 font-medium" : ""}>
-              {row.Cells?.map((cell: any, cellIndex: number) => (
-                <TableCell key={`section-${sectionIndex}-row-${rowIndex}-cell-${cellIndex}`} className={cellIndex === 0 ? "" : "text-right"}>
-                  {cell.Value}
-                </TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </React.Fragment>
-      );
-    });
-  };
 
   return (
     <div className="space-y-6">
@@ -194,19 +107,106 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
           </div>
         </CardHeader>
         <CardContent className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {renderTableHeaders()}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {renderTableRows()}
-            </TableBody>
-          </Table>
+          <FinancialYearTable data={data} />
         </CardContent>
       </Card>
     </div>
+  );
+};
+
+// Create a new component specifically for the Financial Year table
+const FinancialYearTable = ({ data }: { data: any }) => {
+  if (!data || !data.headings || data.headings.length === 0) {
+    return <div>No data available</div>;
+  }
+
+  const renderGrossProfit = () => {
+    return (
+      <>
+        {data.grossProfitSections.map((section, sectionIndex) => (
+          <React.Fragment key={`gross-section-${sectionIndex}`}>
+            <TableRow>
+              <TableCell colSpan={data.headings.length + 1} className="bg-slate-50 font-semibold">
+                {section.title}
+              </TableCell>
+            </TableRow>
+            {section.dataRowObjects.map((row, rowIndex) => (
+              <TableRow 
+                key={`gross-row-${sectionIndex}-${rowIndex}`} 
+                className={row.rowType === "SummaryRow" ? "bg-slate-100 font-medium" : ""}
+              >
+                <TableCell>{row.rowTitle}</TableCell>
+                {row.rowData.map((cell, cellIndex) => (
+                  <TableCell key={`gross-cell-${sectionIndex}-${rowIndex}-${cellIndex}`} className="text-right">
+                    {cell}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </React.Fragment>
+        ))}
+        <TableRow className="bg-navy-50/30 font-semibold">
+          <TableCell>Gross Profit</TableCell>
+          {data.grossProfitDataRow.map((value, index) => (
+            <TableCell key={`gross-profit-${index}`} className="text-right">{value}</TableCell>
+          ))}
+        </TableRow>
+      </>
+    );
+  };
+
+  const renderNetProfit = () => {
+    return (
+      <>
+        {data.netProfitSections.map((section, sectionIndex) => (
+          <React.Fragment key={`net-section-${sectionIndex}`}>
+            <TableRow>
+              <TableCell colSpan={data.headings.length + 1} className="bg-slate-50 font-semibold">
+                {section.title}
+              </TableCell>
+            </TableRow>
+            {section.dataRowObjects.map((row, rowIndex) => (
+              <TableRow 
+                key={`net-row-${sectionIndex}-${rowIndex}`} 
+                className={row.rowType === "SummaryRow" ? "bg-slate-100 font-medium" : ""}
+              >
+                <TableCell>{row.rowTitle}</TableCell>
+                {row.rowData.map((cell, cellIndex) => (
+                  <TableCell key={`net-cell-${sectionIndex}-${rowIndex}-${cellIndex}`} className="text-right">
+                    {cell}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </React.Fragment>
+        ))}
+        <TableRow className="bg-navy-50/30 font-semibold">
+          <TableCell>Net Profit</TableCell>
+          {data.netProfitDataRow.map((value, index) => (
+            <TableCell key={`net-profit-${index}`} className="text-right">{value}</TableCell>
+          ))}
+        </TableRow>
+      </>
+    );
+  };
+
+  return (
+    <Table className="min-w-[800px]">
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-48">Account</TableHead>
+          {data.headings.map((heading, index) => (
+            <TableHead key={`heading-${index}`} className="text-right">
+              {heading}
+            </TableHead>
+          ))}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {renderGrossProfit()}
+        {renderNetProfit()}
+      </TableBody>
+    </Table>
   );
 };
 
