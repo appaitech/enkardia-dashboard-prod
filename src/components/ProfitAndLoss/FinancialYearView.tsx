@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getFinancialYearData } from "@/services/financialService";
@@ -5,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, AlertTriangle } from "lucide-react";
-import FinancialYearCharts from "./FinancialYearCharts";
 
 interface FinancialYearViewProps {
   businessId: string | null;
@@ -106,21 +106,15 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
             </Select>
           </div>
         </CardHeader>
-        <CardContent>
-          {/* Add the new Financial Year Charts above the table */}
-          <FinancialYearCharts data={data} />
-          
-          {/* Existing Financial Year Table */}
-          <div className="overflow-x-auto">
-            <FinancialYearTable data={data} />
-          </div>
+        <CardContent className="overflow-x-auto">
+          <FinancialYearTable data={data} />
         </CardContent>
       </Card>
     </div>
   );
 };
 
-// Keep the existing FinancialYearTable component
+// Create a new component specifically for the Financial Year table
 const FinancialYearTable = ({ data }: { data: any }) => {
   if (!data || !data.headings || data.headings.length === 0) {
     return <div>No data available</div>;
