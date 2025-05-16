@@ -47,9 +47,9 @@ export interface MonthlyProfitAndLoss {
 export interface FinancialYearProfitAndLossModel {
   headings: string[],
   grossProfitSections: ProfitSectionModel[],
-  grossProfitDataRow: [],
+  grossProfitDataRow: string[],
   netProfitSections: ProfitSectionModel[],
-  netProfitDataRow: [],
+  netProfitDataRow: string[],
 }
 
 export interface ProfitSectionModel {
@@ -611,6 +611,29 @@ const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], i
     if (isGrossProfitSection(xeroReportRow)) {
       // indicating it has now ended
       isGrossProfitSectionFlag = false;
+
+      const cells = xeroReportRow.Rows[0].Cells;
+
+      cells.forEach((cell, index) => {
+        if (index === 0)
+          return;
+
+        reportDataArray.grossProfitDataRow.push(cell.Value);
+      });
+
+      return;
+    }
+
+    if (isNetProfitSection(xeroReportRow)) {
+      const cells = xeroReportRow.Rows[0].Cells;
+
+      cells.forEach((cell, index) => {
+        if (index === 0)
+          return;
+        
+        reportDataArray.netProfitDataRow.push(cell.Value);
+      });
+
       return;
     }
 
@@ -652,6 +675,10 @@ const isGrossProfitSection = (rowObject: ProfitAndLossRow) => {
   return rowObject.RowType === `Section` && rowObject.Title === `` && rowObject.Rows[0].RowType === `Row` && rowObject.Rows[0].Cells[0].Value === `Gross Profit`;
 }
 
+const isNetProfitSection = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Section` && rowObject.Title === `` && rowObject.Rows[0].RowType === `Row` && rowObject.Rows[0].Cells[0].Value === `Net Profit`;
+}
+
 const isDataRow = (rowObject: ProfitAndLossRow) => {
   return rowObject.RowType === `Row`;
 }
@@ -668,7 +695,7 @@ const isSummaryROw = (rowObject: ProfitAndLossRow) => {
  * @returns Promise with the profit and loss data
  * @throws Error if businessId is null or if fetching fails
  */
-//MonthlyProfitAndLoss
+// MonthlyProfitAndLoss
 export async function getFinancialYearData(
   businessId: string | null, 
   year: number = new Date().getFullYear()
