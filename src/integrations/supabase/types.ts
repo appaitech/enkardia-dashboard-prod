@@ -108,6 +108,47 @@ export type Database = {
           },
         ]
       }
+      client_activities: {
+        Row: {
+          activity_date: string
+          client_business_id: string
+          content: string
+          created_at: string
+          created_by: string
+          id: string
+          updated_at: string
+          updated_by: string
+        }
+        Insert: {
+          activity_date: string
+          client_business_id: string
+          content: string
+          created_at?: string
+          created_by: string
+          id?: string
+          updated_at?: string
+          updated_by: string
+        }
+        Update: {
+          activity_date?: string
+          client_business_id?: string
+          content?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          updated_at?: string
+          updated_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_activities_client_business_id_fkey"
+            columns: ["client_business_id"]
+            isOneToOne: false
+            referencedRelation: "client_businesses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       client_businesses: {
         Row: {
           contact_name: string

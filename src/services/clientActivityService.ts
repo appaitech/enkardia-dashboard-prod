@@ -1,24 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
-
-export interface ClientActivity {
-  id: string;
-  clientBusinessId: string;
-  content: string;
-  activityDate: string;
-  createdAt: string;
-  updatedAt: string;
-  createdBy: string;
-  updatedBy: string;
-  createdByName: string;
-  updatedByName: string;
-}
-
-export interface ClientActivityFormData {
-  clientBusinessId: string;
-  content: string;
-  activityDate: Date;
-}
+import { ClientActivity, ClientActivityFormData } from "@/types/clientActivity";
 
 export async function getClientActivities(clientId: string): Promise<ClientActivity[]> {
   const { data, error } = await supabase

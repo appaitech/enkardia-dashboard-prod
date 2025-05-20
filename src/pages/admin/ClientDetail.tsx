@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -220,7 +219,7 @@ function ClientDetail() {
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="overview" className="space-y-6">
+            <TabsContent value="overview">
               <Card>
                 <CardHeader>
                   <CardTitle>Business Information</CardTitle>
