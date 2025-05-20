@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -15,8 +14,8 @@ import {
   getClientActivities,
   createClientActivity,
   updateClientActivity,
-  ClientActivity
 } from "@/services/clientActivityService";
+import { ClientActivity } from "@/types/clientActivity";
 
 interface ClientActivitiesProps {
   clientId: string;
