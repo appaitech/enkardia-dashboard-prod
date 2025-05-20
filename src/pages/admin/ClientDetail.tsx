@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ClientBusiness } from "@/types/client";
@@ -21,6 +21,8 @@ import { ClientActivities } from "@/components/ClientActivities";
 import EditClientForm from "@/components/EditClientForm";
 import { CustomFieldsManager } from "@/components/CustomFieldsManager";
 import { updateClientBusiness } from "@/services/clientService";
+import { getClientFieldValues } from "@/services/customFieldService";
+import { CustomField } from "@/types/customField";
 
 function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -32,6 +34,7 @@ function ClientDetail() {
   const [directorId, setDirectorId] = useState<string>("");
   const [isEditingClient, setIsEditingClient] = useState(false);
 
+  // Load client details
   const { data: client, isLoading, isError, refetch } = useQuery({
     queryKey: ["client", id],
     queryFn: async () => {
@@ -58,6 +61,17 @@ function ClientDetail() {
     },
   });
 
+  // Load custom fields for this client
+  const { 
+    data: customFields, 
+    isLoading: isLoadingCustomFields 
+  } = useQuery({
+    queryKey: ["client-custom-fields-overview", id],
+    queryFn: () => getClientFieldValues(id!),
+    enabled: !!id && activeTab === "overview",
+  });
+
+  // Load directors
   const { data: directors, isLoading: isLoadingDirectors } = useQuery({
     queryKey: ["client-directors", id],
     queryFn: () => getClientDirectors(id!),
@@ -117,6 +131,7 @@ function ClientDetail() {
         description: "Client details updated successfully",
       });
       queryClient.invalidateQueries({ queryKey: ["client", id] });
+      queryClient.invalidateQueries({ queryKey: ["client-custom-fields-overview", id] });
       setIsEditingClient(false);
     },
     onError: (error: Error) => {
@@ -130,6 +145,7 @@ function ClientDetail() {
 
   const handleRefresh = () => {
     refetch();
+    queryClient.invalidateQueries({ queryKey: ["client-custom-fields-overview", id] });
   };
 
   const handleAddDirector = () => {
@@ -148,6 +164,24 @@ function ClientDetail() {
 
   const handleUpdateClient = async (updates: Partial<ClientBusiness>) => {
     updateClientMutation.mutate(updates);
+  };
+
+  // Format custom field value for display
+  const formatFieldValue = (field: CustomField) => {
+    if (field.value === null) return "Not set";
+    
+    switch (field.definition.field_type) {
+      case 'boolean':
+        return field.value === 'true' ? 'Yes' : 'No';
+      case 'date':
+        try {
+          return new Date(field.value).toLocaleDateString();
+        } catch {
+          return field.value;
+        }
+      default:
+        return field.value;
+    }
   };
 
   if (isLoading) {
@@ -267,68 +301,100 @@ function ClientDetail() {
                   onCancel={() => setIsEditingClient(false)} 
                 />
               ) : (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Business Information</CardTitle>
-                    <CardDescription>
-                      Details about the client business
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-500 mb-1">Business Name</h3>
-                        <p className="text-slate-800">{client.name}</p>
+                <>
+                  <Card className="mb-6">
+                    <CardHeader>
+                      <CardTitle>Business Information</CardTitle>
+                      <CardDescription>
+                        Details about the client business
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                          <h3 className="text-sm font-medium text-slate-500 mb-1">Business Name</h3>
+                          <p className="text-slate-800">{client.name}</p>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-sm font-medium text-slate-500 mb-1">Industry</h3>
+                          <p className="text-slate-800">{client.industry || "Not specified"}</p>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-sm font-medium text-slate-500 mb-1">Contact Person</h3>
+                          <p className="text-slate-800">{client.contactName}</p>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-sm font-medium text-slate-500 mb-1">Email</h3>
+                          <p className="text-slate-800">{client.email}</p>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-sm font-medium text-slate-500 mb-1">Phone</h3>
+                          <p className="text-slate-800">{client.phone || "Not provided"}</p>
+                        </div>
+                        
+                        <div>
+                          <h3 className="text-sm font-medium text-slate-500 mb-1">Created</h3>
+                          <p className="text-slate-800">
+                            {new Date(client.createdAt).toLocaleDateString()}
+                          </p>
+                        </div>
                       </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-500 mb-1">Industry</h3>
-                        <p className="text-slate-800">{client.industry || "Not specified"}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-500 mb-1">Contact Person</h3>
-                        <p className="text-slate-800">{client.contactName}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-500 mb-1">Email</h3>
-                        <p className="text-slate-800">{client.email}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-500 mb-1">Phone</h3>
-                        <p className="text-slate-800">{client.phone || "Not provided"}</p>
-                      </div>
-                      
-                      <div>
-                        <h3 className="text-sm font-medium text-slate-500 mb-1">Created</h3>
-                        <p className="text-slate-800">
-                          {new Date(client.createdAt).toLocaleDateString()}
-                        </p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Custom Fields Card */}
+                  {customFields && customFields.length > 0 && (
+                    <Card className="mb-6">
+                      <CardHeader>
+                        <CardTitle>Custom Fields</CardTitle>
+                        <CardDescription>
+                          Additional information about this client
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          {customFields.map((field) => (
+                            <div key={field.definition.id}>
+                              <h3 className="text-sm font-medium text-slate-500 mb-1">
+                                {field.definition.name}
+                              </h3>
+                              <p className="text-slate-800">{formatFieldValue(field)}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
 
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <LinkIcon className="mr-2 h-5 w-5 text-blue-500" />
-                    Xero Integration
-                  </CardTitle>
-                  <CardDescription>
-                    Manage Xero connection for this client
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <XeroConnectionSelector 
-                    clientBusiness={client} 
-                    onUpdate={handleRefresh}
-                  />
-                </CardContent>
-              </Card>
+                  {isLoadingCustomFields && (
+                    <div className="flex justify-center py-4">
+                      <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-200 border-t-blue-600"></div>
+                    </div>
+                  )}
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center">
+                        <LinkIcon className="mr-2 h-5 w-5 text-blue-500" />
+                        Xero Integration
+                      </CardTitle>
+                      <CardDescription>
+                        Manage Xero connection for this client
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <XeroConnectionSelector 
+                        clientBusiness={client} 
+                        onUpdate={handleRefresh}
+                      />
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </TabsContent>
             
             <TabsContent value="users">
