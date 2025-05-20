@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Director, DirectorFormData, ClientDirector } from "@/types/director";
+import { ClientBusiness } from "@/types/client";
 
 export async function getDirectors(): Promise<Director[]> {
   const { data, error } = await supabase
@@ -141,4 +142,45 @@ export async function removeDirectorFromClient(
     console.error(`Error removing director ${directorId} from client ${clientId}:`, error);
     throw error;
   }
+}
+
+export async function getAssociatedClients(directorId: string): Promise<ClientBusiness[]> {
+  const { data: clientDirectors, error } = await supabase
+    .from('client_directors')
+    .select('client_business_id')
+    .eq('director_id', directorId);
+
+  if (error) {
+    console.error(`Error fetching clients for director ${directorId}:`, error);
+    throw error;
+  }
+
+  if (!clientDirectors || clientDirectors.length === 0) {
+    return [];
+  }
+
+  const clientIds = clientDirectors.map(cd => cd.client_business_id);
+  
+  const { data: clients, error: clientsError } = await supabase
+    .from('client_businesses')
+    .select('*')
+    .in('id', clientIds);
+
+  if (clientsError) {
+    console.error("Error fetching clients by ids:", clientsError);
+    throw clientsError;
+  }
+
+  return clients.map(client => ({
+    id: client.id,
+    name: client.name,
+    contactName: client.contact_name,
+    email: client.email,
+    phone: client.phone || undefined,
+    industry: client.industry || undefined,
+    tenantId: client.tenant_id || undefined,
+    createdAt: client.created_at,
+    updatedAt: client.updated_at,
+    createdBy: client.created_by || undefined
+  })) || [];
 }
