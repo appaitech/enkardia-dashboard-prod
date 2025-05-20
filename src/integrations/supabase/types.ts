@@ -147,6 +147,102 @@ export type Database = {
         }
         Relationships: []
       }
+      client_directors: {
+        Row: {
+          client_business_id: string
+          created_at: string
+          director_id: string
+          id: string
+        }
+        Insert: {
+          client_business_id: string
+          created_at?: string
+          director_id: string
+          id?: string
+        }
+        Update: {
+          client_business_id?: string
+          created_at?: string
+          director_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_directors_client_business_id_fkey"
+            columns: ["client_business_id"]
+            isOneToOne: false
+            referencedRelation: "client_businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_directors_director_id_fkey"
+            columns: ["director_id"]
+            isOneToOne: false
+            referencedRelation: "directors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      directors: {
+        Row: {
+          created_at: string
+          date_of_appointment: string | null
+          date_of_birth: string | null
+          date_of_resignation: string | null
+          director_type: string | null
+          email: string | null
+          full_name: string
+          id: string
+          identification_number: string | null
+          nationality: string | null
+          phone: string | null
+          position: string | null
+          residency_status: string | null
+          residential_address: string | null
+          tax_identification_number: string | null
+          tax_number: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          date_of_appointment?: string | null
+          date_of_birth?: string | null
+          date_of_resignation?: string | null
+          director_type?: string | null
+          email?: string | null
+          full_name: string
+          id?: string
+          identification_number?: string | null
+          nationality?: string | null
+          phone?: string | null
+          position?: string | null
+          residency_status?: string | null
+          residential_address?: string | null
+          tax_identification_number?: string | null
+          tax_number?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          date_of_appointment?: string | null
+          date_of_birth?: string | null
+          date_of_resignation?: string | null
+          director_type?: string | null
+          email?: string | null
+          full_name?: string
+          id?: string
+          identification_number?: string | null
+          nationality?: string | null
+          phone?: string | null
+          position?: string | null
+          residency_status?: string | null
+          residential_address?: string | null
+          tax_identification_number?: string | null
+          tax_number?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       invitations: {
         Row: {
           accepted: boolean | null

@@ -11,12 +11,12 @@ import {
   Building, 
   Settings, 
   LogOut, 
-  Bell, 
   Menu,
   X,
   ChevronLeft,
   ChevronRight,
-  Link as LinkIcon
+  Link as LinkIcon,
+  UserRound
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -124,6 +124,12 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
             icon={<Building size={20} />} 
             label="Clients" 
             href="/admin/clients" 
+            onClick={closeSidebarOnMobile}
+          />
+          <SidebarItem 
+            icon={<UserRound size={20} />} 
+            label="Directors" 
+            href="/admin/directors" 
             onClick={closeSidebarOnMobile}
           />
           <SidebarItem 
@@ -263,6 +269,21 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
                 )}
               >
                 <Building size={20} />
+              </Button>
+            </Link>
+            
+            <Link to="/admin/directors" onClick={closeSidebarOnMobile}>
+              <Button
+                variant="ghost"
+                size="icon"
+                className={cn(
+                  "w-full h-10",
+                  activePath === "/admin/directors" 
+                    ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                    : "text-navy-600 hover:bg-navy-50"
+                )}
+              >
+                <UserRound size={20} />
               </Button>
             </Link>
             

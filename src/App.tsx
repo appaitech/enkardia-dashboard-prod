@@ -9,6 +9,10 @@ import ErrorPage from './pages/ErrorPage';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import ClientsList from './pages/admin/ClientsList';
 import ClientDetail from './pages/admin/ClientDetail';
+import DirectorsList from './pages/admin/DirectorsList';
+import DirectorDetail from './pages/admin/DirectorDetail';
+import CreateDirector from './pages/admin/CreateDirector';
+import EditDirector from './pages/admin/EditDirector';
 import UserDashboard from './pages/user/UserDashboard';
 import TasksPage from './pages/user/TasksPage';
 import CallToActionsPage from './pages/user/CallToActionsPage';
@@ -88,6 +92,43 @@ function App() {
                 element={
                   <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`XeroConnectionsPage`}>
                     <XeroConnectionsPage />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              {/* Directors Routes */}
+              <Route 
+                path="/admin/directors" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`DirectorsList`}>
+                    <DirectorsList />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/directors/:id" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`DirectorDetail`}>
+                    <DirectorDetail />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/directors/new" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`CreateDirector`}>
+                    <CreateDirector />
+                  </ProtectedRoute>
+                } 
+              />
+              
+              <Route 
+                path="/admin/directors/:id/edit" 
+                element={
+                  <ProtectedRoute allowedAccountTypes={["CONSOLE"]} expectedComponent={`EditDirector`}>
+                    <EditDirector />
                   </ProtectedRoute>
                 } 
               />
