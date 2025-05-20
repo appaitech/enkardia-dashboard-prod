@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -7,7 +8,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell, User, Plus, X, FileText } from "lucide-react";
+import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell, User, Plus, X, FileText, Edit, Settings } from "lucide-react";
 import ClientDetailUsers from "@/components/ClientDetailUsers";
 import TasksManagement from "@/components/TasksManagement";
 import { XeroConnectionSelector } from "@/components/XeroConnectionSelector";
@@ -17,6 +18,9 @@ import { Director } from "@/types/director";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ClientActivities } from "@/components/ClientActivities";
+import EditClientForm from "@/components/EditClientForm";
+import { CustomFieldsManager } from "@/components/CustomFieldsManager";
+import { updateClientBusiness } from "@/services/clientService";
 
 function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +30,7 @@ function ClientDetail() {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
   const [directorId, setDirectorId] = useState<string>("");
+  const [isEditingClient, setIsEditingClient] = useState(false);
 
   const { data: client, isLoading, isError, refetch } = useQuery({
     queryKey: ["client", id],
@@ -104,6 +109,25 @@ function ClientDetail() {
     },
   });
 
+  const updateClientMutation = useMutation({
+    mutationFn: (updates: Partial<ClientBusiness>) => updateClientBusiness(id!, updates),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Client details updated successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["client", id] });
+      setIsEditingClient(false);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to update client: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleRefresh = () => {
     refetch();
   };
@@ -120,6 +144,10 @@ function ClientDetail() {
 
   const navigateToDirector = (directorId: string) => {
     navigate(`/admin/directors/${directorId}`);
+  };
+
+  const handleUpdateClient = async (updates: Partial<ClientBusiness>) => {
+    updateClientMutation.mutate(updates);
   };
 
   if (isLoading) {
@@ -188,6 +216,14 @@ function ClientDetail() {
                 <RefreshCw className="mr-2 h-3.5 w-3.5" />
                 Refresh
               </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setIsEditingClient(true)}
+              >
+                <Edit className="mr-2 h-3.5 w-3.5" />
+                Edit Details
+              </Button>
             </div>
           </div>
 
@@ -217,52 +253,64 @@ function ClientDetail() {
                 <FileText className="h-4 w-4 mr-2" />
                 Activities
               </TabsTrigger>
+              <TabsTrigger value="custom-fields">
+                <Settings className="h-4 w-4 mr-2" />
+                Custom Fields
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Business Information</CardTitle>
-                  <CardDescription>
-                    Details about the client business
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-500 mb-1">Business Name</h3>
-                      <p className="text-slate-800">{client.name}</p>
+              {isEditingClient ? (
+                <EditClientForm 
+                  client={client}
+                  onSubmit={handleUpdateClient}
+                  onCancel={() => setIsEditingClient(false)} 
+                />
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Business Information</CardTitle>
+                    <CardDescription>
+                      Details about the client business
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-500 mb-1">Business Name</h3>
+                        <p className="text-slate-800">{client.name}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-500 mb-1">Industry</h3>
+                        <p className="text-slate-800">{client.industry || "Not specified"}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-500 mb-1">Contact Person</h3>
+                        <p className="text-slate-800">{client.contactName}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-500 mb-1">Email</h3>
+                        <p className="text-slate-800">{client.email}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-500 mb-1">Phone</h3>
+                        <p className="text-slate-800">{client.phone || "Not provided"}</p>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium text-slate-500 mb-1">Created</h3>
+                        <p className="text-slate-800">
+                          {new Date(client.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
                     </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-500 mb-1">Industry</h3>
-                      <p className="text-slate-800">{client.industry || "Not specified"}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-500 mb-1">Contact Person</h3>
-                      <p className="text-slate-800">{client.contactName}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-500 mb-1">Email</h3>
-                      <p className="text-slate-800">{client.email}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-500 mb-1">Phone</h3>
-                      <p className="text-slate-800">{client.phone || "Not provided"}</p>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-sm font-medium text-slate-500 mb-1">Created</h3>
-                      <p className="text-slate-800">
-                        {new Date(client.createdAt).toLocaleDateString()}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               <Card>
                 <CardHeader>
@@ -394,6 +442,10 @@ function ClientDetail() {
 
             <TabsContent value="activities">
               <ClientActivities clientId={client.id} />
+            </TabsContent>
+
+            <TabsContent value="custom-fields">
+              <CustomFieldsManager clientId={client.id} />
             </TabsContent>
           </Tabs>
         </div>

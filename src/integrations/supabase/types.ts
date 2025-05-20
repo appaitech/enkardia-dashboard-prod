@@ -224,6 +224,72 @@ export type Database = {
           },
         ]
       }
+      client_field_definitions: {
+        Row: {
+          created_at: string
+          field_type: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          field_type: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          field_type?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      client_field_values: {
+        Row: {
+          client_business_id: string
+          created_at: string
+          field_definition_id: string
+          id: string
+          updated_at: string
+          value: string | null
+        }
+        Insert: {
+          client_business_id: string
+          created_at?: string
+          field_definition_id: string
+          id?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Update: {
+          client_business_id?: string
+          created_at?: string
+          field_definition_id?: string
+          id?: string
+          updated_at?: string
+          value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_field_values_client_business_id_fkey"
+            columns: ["client_business_id"]
+            isOneToOne: false
+            referencedRelation: "client_businesses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "client_field_values_field_definition_id_fkey"
+            columns: ["field_definition_id"]
+            isOneToOne: false
+            referencedRelation: "client_field_definitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       directors: {
         Row: {
           created_at: string
