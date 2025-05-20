@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { ClientActivity, ClientActivityFormData } from "@/types/clientActivity";
 
 export async function getClientActivities(clientId: string): Promise<ClientActivity[]> {
-  const { data, error } = await supabase
+  // First, get the client activities
+  const { data: activities, error } = await supabase
     .from('client_activities')
     .select(`
       id,
@@ -13,9 +14,7 @@ export async function getClientActivities(clientId: string): Promise<ClientActiv
       created_at,
       updated_at,
       created_by,
-      updated_by,
-      created_by_profile:profiles!created_by(name),
-      updated_by_profile:profiles!updated_by(name)
+      updated_by
     `)
     .eq('client_business_id', clientId)
     .order('activity_date', { ascending: false });
@@ -25,7 +24,26 @@ export async function getClientActivities(clientId: string): Promise<ClientActiv
     throw error;
   }
 
-  return (data || []).map(item => ({
+  // Get array of unique user IDs from the activities
+  const userIds = [...new Set([
+    ...activities.map(a => a.created_by),
+    ...activities.map(a => a.updated_by)
+  ])];
+
+  // Fetch user profiles separately for those IDs
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, name')
+    .in('id', userIds);
+
+  // Create a map of user IDs to names
+  const userNameMap = new Map();
+  profiles?.forEach(profile => {
+    userNameMap.set(profile.id, profile.name || 'Unknown');
+  });
+
+  // Map the activities with user names
+  return (activities || []).map(item => ({
     id: item.id,
     clientBusinessId: item.client_business_id,
     content: item.content,
@@ -34,8 +52,8 @@ export async function getClientActivities(clientId: string): Promise<ClientActiv
     updatedAt: item.updated_at,
     createdBy: item.created_by,
     updatedBy: item.updated_by,
-    createdByName: item.created_by_profile?.name || 'Unknown',
-    updatedByName: item.updated_by_profile?.name || 'Unknown'
+    createdByName: userNameMap.get(item.created_by) || 'Unknown',
+    updatedByName: userNameMap.get(item.updated_by) || 'Unknown'
   }));
 }
 
@@ -66,9 +84,7 @@ export async function createClientActivity(
       created_at,
       updated_at,
       created_by,
-      updated_by,
-      created_by_profile:profiles!created_by(name),
-      updated_by_profile:profiles!updated_by(name)
+      updated_by
     `)
     .single();
 
@@ -76,6 +92,13 @@ export async function createClientActivity(
     console.error("Error creating client activity:", error);
     throw error;
   }
+
+  // Get the creator's profile information
+  const { data: creatorProfile } = await supabase
+    .from('profiles')
+    .select('name')
+    .eq('id', user.id)
+    .single();
 
   return {
     id: data.id,
@@ -86,8 +109,8 @@ export async function createClientActivity(
     updatedAt: data.updated_at,
     createdBy: data.created_by,
     updatedBy: data.updated_by,
-    createdByName: data.created_by_profile?.name || 'Unknown',
-    updatedByName: data.updated_by_profile?.name || 'Unknown'
+    createdByName: creatorProfile?.name || 'Unknown',
+    updatedByName: creatorProfile?.name || 'Unknown'
   };
 }
 
@@ -127,9 +150,7 @@ export async function updateClientActivity(
       created_at,
       updated_at,
       created_by,
-      updated_by,
-      created_by_profile:profiles!created_by(name),
-      updated_by_profile:profiles!updated_by(name)
+      updated_by
     `)
     .single();
 
@@ -137,6 +158,18 @@ export async function updateClientActivity(
     console.error("Error updating client activity:", error);
     throw error;
   }
+
+  // Get creator and updater profile information separately
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, name')
+    .in('id', [data.created_by, data.updated_by]);
+
+  // Create a map of user IDs to names
+  const userNameMap = new Map();
+  profiles?.forEach(profile => {
+    userNameMap.set(profile.id, profile.name || 'Unknown');
+  });
 
   return {
     id: data.id,
@@ -147,8 +180,8 @@ export async function updateClientActivity(
     updatedAt: data.updated_at,
     createdBy: data.created_by,
     updatedBy: data.updated_by,
-    createdByName: data.created_by_profile?.name || 'Unknown',
-    updatedByName: data.updated_by_profile?.name || 'Unknown'
+    createdByName: userNameMap.get(data.created_by) || 'Unknown',
+    updatedByName: userNameMap.get(data.updated_by) || 'Unknown'
   };
 }
 
