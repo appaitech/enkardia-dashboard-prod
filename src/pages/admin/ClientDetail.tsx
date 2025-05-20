@@ -8,7 +8,7 @@ import AdminSidebar from "@/components/AdminSidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell, User, Plus, X } from "lucide-react";
+import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell, User, Plus, X, FileText } from "lucide-react";
 import ClientDetailUsers from "@/components/ClientDetailUsers";
 import TasksManagement from "@/components/TasksManagement";
 import { XeroConnectionSelector } from "@/components/XeroConnectionSelector";
@@ -17,6 +17,7 @@ import { getClientDirectors, getNonAssociatedDirectors, associateDirectorWithCli
 import { Director } from "@/types/director";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ClientActivities } from "@/components/ClientActivities";
 
 function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -213,6 +214,10 @@ function ClientDetail() {
                 <Bell className="h-4 w-4 mr-2" />
                 Call To Actions
               </TabsTrigger>
+              <TabsTrigger value="activities">
+                <FileText className="h-4 w-4 mr-2" />
+                Activities
+              </TabsTrigger>
             </TabsList>
             
             <TabsContent value="overview" className="space-y-6">
@@ -293,12 +298,6 @@ function ClientDetail() {
                   <div>
                     <CardTitle>Directors</CardTitle>
                     <CardDescription>Associated directors for {client.name}</CardDescription>
-                  </div>
-                  <div className="flex space-x-2">
-                    <Button onClick={() => navigate("/admin/directors/create")}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Director
-                    </Button>
                   </div>
                 </CardHeader>
                 <CardContent>
@@ -392,6 +391,10 @@ function ClientDetail() {
             
             <TabsContent value="call-to-actions">
               <CallToActionTab clientId={client.id} clientName={client.name} />
+            </TabsContent>
+
+            <TabsContent value="activities">
+              <ClientActivities clientId={client.id} />
             </TabsContent>
           </Tabs>
         </div>
