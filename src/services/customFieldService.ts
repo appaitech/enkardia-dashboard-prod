@@ -23,7 +23,7 @@ export async function getFieldDefinitions(): Promise<ClientFieldDefinition[]> {
   return data.map(item => ({
     id: item.id,
     name: item.name,
-    field_type: item.field_type,
+    field_type: item.field_type as "text" | "number" | "date" | "boolean" | "select",
     created_at: item.created_at,
     updated_at: item.updated_at
   }));
@@ -47,7 +47,7 @@ export async function createFieldDefinition(fieldDef: NewClientFieldDefinition):
   return {
     id: data.id,
     name: data.name,
-    field_type: data.field_type,
+    field_type: data.field_type as "text" | "number" | "date" | "boolean" | "select",
     created_at: data.created_at,
     updated_at: data.updated_at
   };
