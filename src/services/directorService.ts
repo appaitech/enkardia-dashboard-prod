@@ -33,9 +33,18 @@ export async function getDirector(id: string): Promise<Director | null> {
 }
 
 export async function createDirector(director: DirectorFormData): Promise<Director> {
+  // Clean up empty date fields before saving
+  const directorToSave = { ...director };
+  if (directorToSave.date_of_appointment === '') {
+    directorToSave.date_of_appointment = null;
+  }
+  if (directorToSave.date_of_resignation === '') {
+    directorToSave.date_of_resignation = null;
+  }
+
   const { data, error } = await supabase
     .from('directors')
-    .insert([director])
+    .insert([directorToSave])
     .select()
     .single();
 
@@ -48,9 +57,18 @@ export async function createDirector(director: DirectorFormData): Promise<Direct
 }
 
 export async function updateDirector(id: string, director: DirectorFormData): Promise<Director> {
+  // Clean up empty date fields before saving
+  const directorToUpdate = { ...director };
+  if (directorToUpdate.date_of_appointment === '') {
+    directorToUpdate.date_of_appointment = null;
+  }
+  if (directorToUpdate.date_of_resignation === '') {
+    directorToUpdate.date_of_resignation = null;
+  }
+
   const { data, error } = await supabase
     .from('directors')
-    .update(director)
+    .update(directorToUpdate)
     .eq('id', id)
     .select()
     .single();

@@ -21,19 +21,19 @@ import { Card, CardContent } from "@/components/ui/card";
 
 const directorSchema = z.object({
   full_name: z.string().min(1, "Full name is required"),
-  date_of_birth: z.string().optional(),
-  nationality: z.string().optional(),
-  identification_number: z.string().optional(),
-  residential_address: z.string().optional(),
-  email: z.string().email("Invalid email address").optional().or(z.literal("")),
-  phone: z.string().optional(),
-  position: z.string().optional(),
-  date_of_appointment: z.string().optional(),
-  date_of_resignation: z.string().optional(),
-  director_type: z.string().optional(),
-  tax_number: z.string().optional(),
-  tax_identification_number: z.string().optional(),
-  residency_status: z.string().optional(),
+  date_of_birth: z.string().optional().nullable(),
+  nationality: z.string().optional().nullable(),
+  identification_number: z.string().optional().nullable(),
+  residential_address: z.string().optional().nullable(),
+  email: z.string().email("Invalid email address").optional().nullable().or(z.literal("")),
+  phone: z.string().optional().nullable(),
+  position: z.string().optional().nullable(),
+  date_of_appointment: z.string().optional().nullable(),
+  date_of_resignation: z.string().optional().nullable(),
+  director_type: z.string().optional().nullable(),
+  tax_number: z.string().optional().nullable(),
+  tax_identification_number: z.string().optional().nullable(),
+  residency_status: z.string().optional().nullable(),
 });
 
 interface DirectorFormProps {
@@ -68,7 +68,7 @@ const DirectorForm: React.FC<DirectorFormProps> = ({
   });
 
   // Helper function to format dates for input fields
-  const formatDateForInput = (dateString: string | undefined) => {
+  const formatDateForInput = (dateString: string | undefined | null) => {
     if (!dateString) return "";
     try {
       const date = new Date(dateString);
