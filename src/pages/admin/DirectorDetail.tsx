@@ -20,7 +20,8 @@ import {
   Loader2, 
   Plus, 
   X, 
-  Building2
+  Building2,
+  ExternalLink
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -155,6 +156,10 @@ const DirectorDetail = () => {
 
   const handleRemoveClient = (clientId: string) => {
     removeClientMutation.mutate(clientId);
+  };
+
+  const navigateToClient = (clientId: string) => {
+    navigate(`/admin/clients/${clientId}`);
   };
 
   return (
@@ -309,20 +314,29 @@ const DirectorDetail = () => {
                   ) : associatedClients && associatedClients.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
                       {associatedClients.map((client) => (
-                        <Card key={client.id} className="bg-muted/30">
+                        <Card key={client.id} className="bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors">
                           <CardContent className="p-4">
                             <div className="flex justify-between items-center">
-                              <div className="flex items-center">
+                              <div 
+                                className="flex items-center flex-grow"
+                                onClick={() => navigateToClient(client.id)}
+                              >
                                 <Building2 className="h-4 w-4 mr-2 text-muted-foreground" />
                                 <div>
-                                  <div className="font-medium">{client.name}</div>
+                                  <div className="font-medium flex items-center">
+                                    {client.name}
+                                    <ExternalLink className="h-3 w-3 ml-1 text-muted-foreground" />
+                                  </div>
                                   <div className="text-xs text-muted-foreground">{client.email}</div>
                                 </div>
                               </div>
                               <Button 
                                 variant="ghost" 
                                 size="icon"
-                                onClick={() => handleRemoveClient(client.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleRemoveClient(client.id);
+                                }}
                                 disabled={removeClientMutation.isPending}
                               >
                                 <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />

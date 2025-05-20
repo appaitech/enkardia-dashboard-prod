@@ -8,11 +8,13 @@ import AdminSidebar from "@/components/AdminSidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell } from "lucide-react";
+import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell, User } from "lucide-react";
 import ClientDetailUsers from "@/components/ClientDetailUsers";
 import TasksManagement from "@/components/TasksManagement";
 import { XeroConnectionSelector } from "@/components/XeroConnectionSelector";
 import { CallToActionTab } from "@/components/CallToAction/CallToActionTab";
+import { getClientDirectors } from "@/services/directorService";
+import { Director } from "@/types/director";
 
 function ClientDetail() {
   const { id } = useParams<{ id: string }>();
@@ -46,8 +48,18 @@ function ClientDetail() {
     },
   });
 
+  const { data: directors, isLoading: isLoadingDirectors } = useQuery({
+    queryKey: ["client-directors", id],
+    queryFn: () => getClientDirectors(id!),
+    enabled: !!id,
+  });
+
   const handleRefresh = () => {
     refetch();
+  };
+
+  const navigateToDirector = (directorId: string) => {
+    navigate(`/admin/directors/${directorId}`);
   };
 
   if (isLoading) {
@@ -133,6 +145,10 @@ function ClientDetail() {
                 <ClipboardList className="h-4 w-4 mr-2" />
                 Tasks
               </TabsTrigger>
+              <TabsTrigger value="directors">
+                <User className="h-4 w-4 mr-2" />
+                Directors
+              </TabsTrigger>
               <TabsTrigger value="call-to-actions">
                 <Bell className="h-4 w-4 mr-2" />
                 Call To Actions
@@ -209,6 +225,51 @@ function ClientDetail() {
             
             <TabsContent value="tasks">
               <TasksManagement clientId={client.id} />
+            </TabsContent>
+
+            <TabsContent value="directors">
+              <Card>
+                <CardHeader>
+                  <CardTitle>Directors</CardTitle>
+                  <CardDescription>Associated directors for {client.name}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {isLoadingDirectors ? (
+                    <div className="flex justify-center py-4">
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+                    </div>
+                  ) : directors && directors.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {directors.map((director: Director) => (
+                        <Card 
+                          key={director.id} 
+                          className="bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors"
+                          onClick={() => navigateToDirector(director.id)}
+                        >
+                          <CardContent className="p-4">
+                            <div className="flex items-center">
+                              <User className="h-8 w-8 p-1 mr-3 rounded-full bg-primary/10 text-primary" />
+                              <div>
+                                <div className="font-medium">{director.full_name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {director.position || "No position specified"}
+                                </div>
+                                {director.email && (
+                                  <div className="text-xs text-muted-foreground mt-1">{director.email}</div>
+                                )}
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No directors are associated with this client.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             </TabsContent>
             
             <TabsContent value="call-to-actions">

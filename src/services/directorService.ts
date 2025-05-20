@@ -95,7 +95,8 @@ export async function getClientDirectors(clientId: string): Promise<Director[]> 
   const { data: directors, error: directorsError } = await supabase
     .from('directors')
     .select('*')
-    .in('id', directorIds);
+    .in('id', directorIds)
+    .order('full_name'); // Sort directors by name
 
   if (directorsError) {
     console.error("Error fetching directors by ids:", directorsError);
@@ -164,7 +165,8 @@ export async function getAssociatedClients(directorId: string): Promise<ClientBu
   const { data: clients, error: clientsError } = await supabase
     .from('client_businesses')
     .select('*')
-    .in('id', clientIds);
+    .in('id', clientIds)
+    .order('name'); // Sort clients alphabetically
 
   if (clientsError) {
     console.error("Error fetching clients by ids:", clientsError);
