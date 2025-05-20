@@ -1,26 +1,31 @@
 
 import React, { useState } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ClientBusiness } from "@/types/client";
 import { supabase } from "@/integrations/supabase/client";
 import AdminSidebar from "@/components/AdminSidebar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell, User } from "lucide-react";
+import { ArrowLeft, Building, Users, ClipboardList, RefreshCw, LinkIcon, Bell, User, Plus, X } from "lucide-react";
 import ClientDetailUsers from "@/components/ClientDetailUsers";
 import TasksManagement from "@/components/TasksManagement";
 import { XeroConnectionSelector } from "@/components/XeroConnectionSelector";
 import { CallToActionTab } from "@/components/CallToAction/CallToActionTab";
-import { getClientDirectors } from "@/services/directorService";
+import { getClientDirectors, getNonAssociatedDirectors, associateDirectorWithClient, removeDirectorFromClient } from "@/services/directorService";
 import { Director } from "@/types/director";
+import { useToast } from "@/hooks/use-toast";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 function ClientDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState("overview");
+  const [directorId, setDirectorId] = useState<string>("");
 
   const { data: client, isLoading, isError, refetch } = useQuery({
     queryKey: ["client", id],
@@ -54,8 +59,63 @@ function ClientDetail() {
     enabled: !!id,
   });
 
+  const { data: availableDirectors, isLoading: isLoadingAvailableDirectors } = useQuery({
+    queryKey: ["non-associated-directors", id],
+    queryFn: () => getNonAssociatedDirectors(id!),
+    enabled: !!id,
+  });
+
+  const addDirectorMutation = useMutation({
+    mutationFn: () => associateDirectorWithClient(directorId, id!),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Director associated with client successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["client-directors", id] });
+      queryClient.invalidateQueries({ queryKey: ["non-associated-directors", id] });
+      setDirectorId("");
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to associate director: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const removeDirectorMutation = useMutation({
+    mutationFn: (directorId: string) => removeDirectorFromClient(directorId, id!),
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Director removed from client successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["client-directors", id] });
+      queryClient.invalidateQueries({ queryKey: ["non-associated-directors", id] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: `Failed to remove director: ${error.message}`,
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleRefresh = () => {
     refetch();
+  };
+
+  const handleAddDirector = () => {
+    if (directorId) {
+      addDirectorMutation.mutate();
+    }
+  };
+
+  const handleRemoveDirector = (directorId: string) => {
+    removeDirectorMutation.mutate(directorId);
   };
 
   const navigateToDirector = (directorId: string) => {
@@ -229,45 +289,103 @@ function ClientDetail() {
 
             <TabsContent value="directors">
               <Card>
-                <CardHeader>
-                  <CardTitle>Directors</CardTitle>
-                  <CardDescription>Associated directors for {client.name}</CardDescription>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle>Directors</CardTitle>
+                    <CardDescription>Associated directors for {client.name}</CardDescription>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button onClick={() => navigate("/admin/directors/create")}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Director
+                    </Button>
+                  </div>
                 </CardHeader>
                 <CardContent>
-                  {isLoadingDirectors ? (
-                    <div className="flex justify-center py-4">
-                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
-                    </div>
-                  ) : directors && directors.length > 0 ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {directors.map((director: Director) => (
-                        <Card 
-                          key={director.id} 
-                          className="bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors"
-                          onClick={() => navigateToDirector(director.id)}
+                  <div className="space-y-4">
+                    <div className="flex items-end gap-2">
+                      <div className="flex-grow">
+                        <Select 
+                          value={directorId} 
+                          onValueChange={setDirectorId}
+                          disabled={!availableDirectors || availableDirectors.length === 0}
                         >
-                          <CardContent className="p-4">
-                            <div className="flex items-center">
-                              <User className="h-8 w-8 p-1 mr-3 rounded-full bg-primary/10 text-primary" />
-                              <div>
-                                <div className="font-medium">{director.full_name}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {director.position || "No position specified"}
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a director" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableDirectors && availableDirectors.map((director) => (
+                              <SelectItem key={director.id} value={director.id}>
+                                {director.full_name}
+                              </SelectItem>
+                            ))}
+                            {(!availableDirectors || availableDirectors.length === 0) && (
+                              <SelectItem value="none" disabled>
+                                No available directors
+                              </SelectItem>
+                            )}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <Button 
+                        onClick={handleAddDirector} 
+                        disabled={!directorId || addDirectorMutation.isPending}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Director
+                      </Button>
+                    </div>
+
+                    {isLoadingDirectors ? (
+                      <div className="flex justify-center py-4">
+                        <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-600"></div>
+                      </div>
+                    ) : directors && directors.length > 0 ? (
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {directors.map((director: Director) => (
+                          <Card 
+                            key={director.id} 
+                            className="bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors"
+                          >
+                            <CardContent className="p-4">
+                              <div className="flex justify-between items-center">
+                                <div 
+                                  className="flex items-center flex-grow"
+                                  onClick={() => navigateToDirector(director.id)}
+                                >
+                                  <User className="h-8 w-8 p-1 mr-3 rounded-full bg-primary/10 text-primary" />
+                                  <div>
+                                    <div className="font-medium">{director.full_name}</div>
+                                    <div className="text-sm text-muted-foreground">
+                                      {director.position || "No position specified"}
+                                    </div>
+                                    {director.email && (
+                                      <div className="text-xs text-muted-foreground mt-1">{director.email}</div>
+                                    )}
+                                  </div>
                                 </div>
-                                {director.email && (
-                                  <div className="text-xs text-muted-foreground mt-1">{director.email}</div>
-                                )}
+                                <Button 
+                                  variant="ghost" 
+                                  size="icon"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleRemoveDirector(director.id);
+                                  }}
+                                  disabled={removeDirectorMutation.isPending}
+                                >
+                                  <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                                </Button>
                               </div>
-                            </div>
-                          </CardContent>
-                        </Card>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      No directors are associated with this client.
-                    </div>
-                  )}
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        No directors are associated with this client.
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
             </TabsContent>

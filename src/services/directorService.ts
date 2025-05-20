@@ -204,3 +204,36 @@ export async function getAssociatedClients(directorId: string): Promise<ClientBu
     createdBy: client.created_by || undefined
   })) || [];
 }
+
+export async function getNonAssociatedDirectors(clientId: string): Promise<Director[]> {
+  // First, get all currently associated director IDs
+  const { data: clientDirectors, error: clientDirectorsError } = await supabase
+    .from('client_directors')
+    .select('director_id')
+    .eq('client_business_id', clientId);
+
+  if (clientDirectorsError) {
+    console.error(`Error fetching associated directors for client ${clientId}:`, clientDirectorsError);
+    throw clientDirectorsError;
+  }
+
+  // Get all directors 
+  const { data: allDirectors, error: directorsError } = await supabase
+    .from('directors')
+    .select('*')
+    .order('full_name'); // Sort directors alphabetically
+
+  if (directorsError) {
+    console.error("Error fetching all directors:", directorsError);
+    throw directorsError;
+  }
+
+  if (!clientDirectors || clientDirectors.length === 0) {
+    // No associated directors, return all directors
+    return allDirectors || [];
+  }
+
+  // Filter out already associated directors
+  const associatedDirectorIds = clientDirectors.map(cd => cd.director_id);
+  return allDirectors.filter(director => !associatedDirectorIds.includes(director.id)) || [];
+}
