@@ -700,6 +700,19 @@ const isSummaryROw = (rowObject: ProfitAndLossRow) => {
 }
 // CUSTOM function to merge data END
 
+function getLastDayOfFebruary(year) {
+  // Create a date for March 1st of the given year
+  const marchFirst = new Date(`${year}-03-01T00:00:00`);
+  
+  // Subtract 1 second to get February's last day
+  const lastDayOfFeb = new Date(marchFirst.getTime() - 1000);
+  
+  // Format to get the day as a 2-digit string
+  const day = String(lastDayOfFeb.getDate()).padStart(2, '0');
+  
+  return day;
+}
+
 /**
  * Fetches financial year profit and loss data from Xero
  * @param businessId The client business ID
@@ -716,11 +729,18 @@ export async function getFinancialYearData(
     throw new Error('No business ID provided');
   }
 
-  const fromDate = getFinancialYearStartDate(year);
-  const toDate = getFinancialYearEndDate(year);
-  console.log(`Fetching financial year data for ${year}: ${fromDate} to ${toDate}`);
+  // const fromDate = getFinancialYearStartDate(year);
+  // const toDate = getFinancialYearEndDate(year);
+  // console.log(`Fetching financial year data for ${year}: ${fromDate} to ${toDate}`);
 
   // To get all 12 months, we need to make two API calls because Xero API has a limit of 11 periods
+
+  const janFromDate = `${year}-01-01`;
+  const janToDate = `${year}-01-31`;
+
+  const febFromDate = `${year}-02-01`;
+  const lastDayOfFeb = getLastDayOfFebruary(year);
+  const febToDate = `${year}-02-${lastDayOfFeb}`;
   
   // First call: Get data for first 11 months (Mar to Jan)
   const januaryEndDate = `${year}-01-31`;
@@ -728,8 +748,8 @@ export async function getFinancialYearData(
     businessId,
     "monthly-breakdown",
     {
-      fromDate: '2025-01-01',
-      toDate: '2025-01-31',
+      fromDate: janFromDate,
+      toDate: janToDate,
       periods: 10,//10
       timeframe: "MONTH",
       standardLayout: true,
@@ -746,8 +766,8 @@ export async function getFinancialYearData(
     businessId,
     "monthly-breakdown",
     {
-      fromDate: '2025-02-01',
-      toDate: '2025-02-28',
+      fromDate: febFromDate,
+      toDate: febToDate,
       periods: 0,
       timeframe: "MONTH",
       standardLayout: true,
@@ -766,11 +786,14 @@ export async function getFinancialYearData(
   const financialYearProfitAndLossModel2 = buildProfitAndLossReportDataArray(firstElevenMonthsData.Reports[0].Rows, financialYearProfitAndLossModel);
   console.log('financialYearProfitAndLossModel2', financialYearProfitAndLossModel2);
 
-  // TODO - ordering of rows
-  // TODO - Directors
-  // TODO - Activity / Interactions
-  // TODO - CLient fields, custom fields
+  // const financialYearProfitAndLossModel2 = buildProfitAndLossReportDataArray(februaryData.Reports[0].Rows);
+  // console.log('financialYearProfitAndLossModel2', financialYearProfitAndLossModel2);
 
+  // TODO - ordering of rows
+  // TODO - Directors - done
+  // TODO - Activity / Interactions - done
+  // TODO - CLient fields, custom fields - done
+  // TODO - 2026 - handle fields that don't exist at all in feb
 
   return financialYearProfitAndLossModel2;
   

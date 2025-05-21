@@ -13,7 +13,7 @@ interface FinancialYearViewProps {
 
 const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => {
   const currentYear = new Date().getFullYear();
-  const [selectedYear, setSelectedYear] = useState<number>(currentYear);
+  const [selectedYear, setSelectedYear] = useState<number>(2026);
   
   const {
     data,

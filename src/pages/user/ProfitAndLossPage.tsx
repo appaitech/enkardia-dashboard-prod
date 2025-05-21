@@ -64,7 +64,7 @@ import { Badge } from "@/components/ui/badge";
 const ProfitAndLossPage: React.FC = () => {
   const { user } = useAuth();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
-  const [activeTab, setActiveTab] = useState<string>("current-year");
+  const [activeTab, setActiveTab] = useState<string>("financial-year");
   const isMobile = useIsMobile();
   
   const [startDate, setStartDate] = useState<string>(getDefaultStartDate());
@@ -728,21 +728,21 @@ const ProfitAndLossPage: React.FC = () => {
           
           <div className="w-full overflow-x-auto">
             <Tabs 
-              defaultValue="current-year" 
+              defaultValue="financial-year" 
               value={activeTab}
               onValueChange={handleTabChange}
               className="space-y-6"
             >
               <div className="overflow-x-auto pb-2">
                 <TabsList className="inline-flex items-center justify-start rounded-md bg-navy-50/50 p-1 text-navy-600 w-auto">
-                  <TabsTrigger 
+                  {/* <TabsTrigger 
                     value="current-year"
                     className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
                   >
                     <BarChart className="h-4 w-4" />
                     <span className="hidden md:inline">Current Year</span>
                     <span className="md:hidden">Current</span>
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                   <TabsTrigger 
                     value="financial-year"
                     className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
@@ -751,7 +751,7 @@ const ProfitAndLossPage: React.FC = () => {
                     <span className="hidden md:inline">Financial Year</span>
                     <span className="md:hidden">FY</span>
                   </TabsTrigger>
-                  <TabsTrigger 
+                  {/* <TabsTrigger 
                     value="visual"
                     className="data-[state=active]:bg-white data-[state=active]:text-navy-800 data-[state=active]:shadow-sm gap-2 whitespace-nowrap"
                   >
@@ -798,11 +798,11 @@ const ProfitAndLossPage: React.FC = () => {
                     <CreditCard className="h-4 w-4" />
                     <span className="hidden md:inline">Cash vs Accrual</span>
                     <span className="md:hidden">Cash</span>
-                  </TabsTrigger>
+                  </TabsTrigger> */}
                 </TabsList>
               </div>
 
-              <TabsContent value="current-year" className="mt-6 space-y-6">
+              {/* <TabsContent value="current-year" className="mt-6 space-y-6">
                 {plData && plData.Reports?.[0] ? (
                   <>
                     <ProfitAndLossSummary report={plData.Reports[0]} />
@@ -812,7 +812,7 @@ const ProfitAndLossPage: React.FC = () => {
                 ) : (
                   noDataMessage("Current Year")
                 )}
-              </TabsContent>
+              </TabsContent> */}
 
               <TabsContent value="financial-year" className="mt-6">
                 {financialYearData ? (
@@ -822,7 +822,7 @@ const ProfitAndLossPage: React.FC = () => {
                 )}
               </TabsContent>
 
-              <TabsContent value="visual" className="mt-6">
+              {/* <TabsContent value="visual" className="mt-6">
                 {visualData ? (
                   <VisualDashboard data={visualData} />
                 ) : (
@@ -881,7 +881,7 @@ const ProfitAndLossPage: React.FC = () => {
                 ) : (
                   noDataMessage("Cash vs Accrual")
                 )}
-              </TabsContent>
+              </TabsContent> */}
             </Tabs>
           </div>
         </div>
