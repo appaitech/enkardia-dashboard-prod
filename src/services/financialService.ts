@@ -503,6 +503,10 @@ export async function getFinancialSummary(businessId: string | null): Promise<an
 
 // CUSTOM function to merge data START
 const buildAndPopulateProfitSection = (inputXeroReportRow, inputReportDataArray, inputPropertyName, inputInitialHeadingsCount) => {
+
+  // TODO - got all the row headings now
+  // TODO - need to loop through and create table template,
+
   const title = inputXeroReportRow.Title;
   const rows = inputXeroReportRow.Rows;
   
@@ -576,7 +580,7 @@ const buildAndPopulateProfitSection = (inputXeroReportRow, inputReportDataArray,
 }
 
 
-const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], inputReportDataArray: FinancialYearProfitAndLossModel = null): FinancialYearProfitAndLossModel => {
+const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], inputReportDataArray: FinancialYearProfitAndLossModel = null, inputRowHeadings: string[]): FinancialYearProfitAndLossModel => {
   let reportDataArray: FinancialYearProfitAndLossModel = {
     headings: [],
     grossProfitSections: [],
@@ -675,21 +679,7 @@ const buildProfitAndLossReportDataArray = (xeroReportRows: ProfitAndLossRow[], i
   return reportDataArray;
 }
 
-const isHeaderRow = (rowObject: ProfitAndLossRow) => {
-  return rowObject.RowType === `Header`;
-}
 
-const isSectionRow = (rowObject: ProfitAndLossRow) => {
-  return rowObject.RowType === `Section` && rowObject.Title;
-}
-
-const isGrossProfitSection = (rowObject: ProfitAndLossRow) => {
-  return rowObject.RowType === `Section` && rowObject.Title === `` && rowObject.Rows[0].RowType === `Row` && rowObject.Rows[0].Cells[0].Value === `Gross Profit`;
-}
-
-const isNetProfitSection = (rowObject: ProfitAndLossRow) => {
-  return rowObject.RowType === `Section` && rowObject.Title === `` && rowObject.Rows[0].RowType === `Row` && rowObject.Rows[0].Cells[0].Value === `Net Profit`;
-}
 
 const isDataRow = (rowObject: ProfitAndLossRow) => {
   return rowObject.RowType === `Row`;
@@ -757,6 +747,8 @@ export async function getFinancialYearData(
     }
   ) as MonthlyProfitAndLoss;
 
+  console.log("firstElevenMonthsData", firstElevenMonthsData);
+
   const deepCopyFirstElevenMonthsData = JSON.parse(JSON.stringify(firstElevenMonthsData));
   console.log('deepCopyFirstElevenMonthsData', deepCopyFirstElevenMonthsData);
 
@@ -780,11 +772,63 @@ export async function getFinancialYearData(
   const deepCopyfebruaryData = JSON.parse(JSON.stringify(februaryData));
   console.log('deepCopyfebruaryData', deepCopyfebruaryData);
 
-  const financialYearProfitAndLossModel = buildProfitAndLossReportDataArray(februaryData.Reports[0].Rows);
+  const firstElevenRowHeadings = [];
+
+  const firstElevenSections = firstElevenMonthsData.Reports[0].Rows.filter(x => x.RowType === 'Section' && x.Title !== '');
+  console.log('firstElevenSections', firstElevenSections);
+  firstElevenSections.forEach((section) => {
+    const sectionRows = section.Rows;
+    sectionRows.forEach((sectionRow) => {
+      const rowHeading = sectionRow.Cells[0].Value;
+      firstElevenRowHeadings.push(rowHeading);
+    });
+  });
+  console.log('firstElevenRowHeadings', firstElevenRowHeadings);
+
+  const febRowHeadings = [];
+
+  const febSections = februaryData.Reports[0].Rows.filter(x => x.RowType === 'Section' && x.Title !== '');
+  console.log('firstElevenSections', firstElevenSections);
+  febSections.forEach((section) => {
+    const sectionRows = section.Rows;
+    sectionRows.forEach((sectionRow) => {
+      const rowHeading = sectionRow.Cells[0].Value;
+      febRowHeadings.push(rowHeading);
+    });
+  });
+  console.log('febSections', febSections);
+  console.log('febRowHeadings', febRowHeadings);
+
+  const distinctRows = [...new Set([...firstElevenRowHeadings, ...febRowHeadings])];
+  console.log('distinctRows', distinctRows);
+  
+  const sortedRowHeadings = distinctRows.sort();
+  console.log('sortedRowHeadings', sortedRowHeadings);
+
+  const financialYearProfitAndLossModel = buildProfitAndLossReportDataArray(februaryData.Reports[0].Rows, null, sortedRowHeadings);
   console.log('financialYearProfitAndLossModel', financialYearProfitAndLossModel);
 
-  const financialYearProfitAndLossModel2 = buildProfitAndLossReportDataArray(firstElevenMonthsData.Reports[0].Rows, financialYearProfitAndLossModel);
+  const financialYearProfitAndLossModel2 = buildProfitAndLossReportDataArray(firstElevenMonthsData.Reports[0].Rows, financialYearProfitAndLossModel, sortedRowHeadings);
   console.log('financialYearProfitAndLossModel2', financialYearProfitAndLossModel2);
+
+
+  try {
+    console.log("try");
+    const financialYearProfitAndLossModelRealTest = buildFinancialYearProfitAndLossModel(sortedRowHeadings, februaryData.Reports[0].Rows, firstElevenMonthsData.Reports[0].Rows);
+    console.log('financialYearProfitAndLossModelRealTest', financialYearProfitAndLossModelRealTest);
+  }
+  catch (err){
+    console.log('err', err);
+  }
+
+  const financialYearProfitAndLossModelReal = buildFinancialYearProfitAndLossModel(sortedRowHeadings, februaryData.Reports[0].Rows, firstElevenMonthsData.Reports[0].Rows);
+  console.log('TEST TEST TEST TEST TEST TEST TEST TEST');
+  console.log('financialYearProfitAndLossModel2', financialYearProfitAndLossModel2);
+  console.log('financialYearProfitAndLossModelReal', financialYearProfitAndLossModelReal);
+
+  populatModelWithValues(financialYearProfitAndLossModelReal, februaryData.Reports[0].Rows, firstElevenMonthsData.Reports[0].Rows, sortedRowHeadings)
+
+  return financialYearProfitAndLossModelReal;
 
   // const financialYearProfitAndLossModel2 = buildProfitAndLossReportDataArray(februaryData.Reports[0].Rows);
   // console.log('financialYearProfitAndLossModel2', financialYearProfitAndLossModel2);
@@ -793,12 +837,393 @@ export async function getFinancialYearData(
   // TODO - Directors - done
   // TODO - Activity / Interactions - done
   // TODO - CLient fields, custom fields - done
-  // TODO - 2026 - handle fields that don't exist at all in feb
-
-  return financialYearProfitAndLossModel2;
+  // TODO - 2026 - handle fields that don't exist at all in feb 
   
   // If either call fails or has no data, return the data we have
   //return firstElevenMonthsData;
+}
+
+const populatModelWithValues = (financialYearProfitAndLossModel: FinancialYearProfitAndLossModel, febRows: ProfitAndLossRow[], otherRows: ProfitAndLossRow[], sortedRowHeadings: string[]) => {
+  console.log('populatModelWithValues financialYearProfitAndLossModel', financialYearProfitAndLossModel);
+  const dataRowObjects = extractAllDataRowObjects(financialYearProfitAndLossModel);
+  console.log('populatModelWithValues dataRowObjects', dataRowObjects);
+
+  const combinedRows = [ ...febRows, ...otherRows];
+  console.log('populatModelWithValues combinedRows', combinedRows);
+
+  const febValueRows = extractAllDataRowObjectsFromProfitAndLossRowArray(febRows);
+  const otherValueRows = extractAllDataRowObjectsFromProfitAndLossRowArray(otherRows);
+  const allValueRows = [...febValueRows, ...otherValueRows];
+  console.log('populatModelWithValues allValueRows', allValueRows);
+
+  dataRowObjects.forEach(dataRowObject => {
+
+    //const rows = allValueRows.filter(x => x.Cells[0].Value === dataRowObject.rowTitle);
+    const febProfitAndLossRow = febValueRows.find(x => x.Cells[0].Value === dataRowObject.rowTitle);
+    const otherProfitAndLossRow = otherValueRows.find(x => x.Cells[0].Value === dataRowObject.rowTitle);
+    
+    for (let k = 0; k < 12; k++) {
+      if (k === 0){
+        if (febProfitAndLossRow !== undefined) {
+          dataRowObject.rowData[k] = febProfitAndLossRow.Cells[k].Value === "0.00" ? "-" : febProfitAndLossRow.Cells[k].Value;
+        }
+        else {
+          dataRowObject.rowData[k] = "-";
+        }
+      }
+      else {
+        if (otherProfitAndLossRow !== undefined) {
+          dataRowObject.rowData[k] = otherProfitAndLossRow.Cells[k].Value === "0.00" ? "-" : otherProfitAndLossRow.Cells[k].Value;
+        }
+        else {
+          dataRowObject.rowData[k] = "-";
+        }
+      }      
+    }
+  });
+
+  const febGrossProfitSection = febRows.find(x => isGrossProfitSection(x)); 
+  const febNetProfitSection = febRows.find(x => isNetProfitSection(x)); 
+  console.log('populatModelWithValues febGrossProfitSection', febGrossProfitSection);
+  console.log('populatModelWithValues febNetProfitSection', febNetProfitSection);
+
+  financialYearProfitAndLossModel.grossProfitDataRow[0] = febGrossProfitSection.Rows[0].Cells[1].Value === "0.00" ? "-" : febGrossProfitSection.Rows[0].Cells[1].Value;
+  financialYearProfitAndLossModel.netProfitDataRow[0] = febNetProfitSection.Rows[0].Cells[1].Value === "0.00" ? "-" : febNetProfitSection.Rows[0].Cells[1].Value;
+
+  const otherGrossProfitSection = otherRows.find(x => isGrossProfitSection(x)); 
+  const otherNetProfitSection = otherRows.find(x => isNetProfitSection(x)); 
+  console.log('populatModelWithValues otherGrossProfitSection', otherGrossProfitSection);
+  console.log('populatModelWithValues otherNetProfitSection', otherNetProfitSection);
+
+  for (let k = 1; k < 12; k++) {
+    financialYearProfitAndLossModel.grossProfitDataRow[k] = otherGrossProfitSection.Rows[0].Cells[k].Value === "0.00" ? "-" : otherGrossProfitSection.Rows[0].Cells[k].Value;
+    financialYearProfitAndLossModel.netProfitDataRow[k] = otherNetProfitSection.Rows[0].Cells[k].Value === "0.00" ? "-" : otherNetProfitSection.Rows[0].Cells[k].Value;
+  }
+
+  console.log('populatModelWithValues financialYearProfitAndLossModel', financialYearProfitAndLossModel);
+
+  return financialYearProfitAndLossModel;
+}
+
+const extractAllDataRowObjects =(model: FinancialYearProfitAndLossModel): DataRowObject[] => {
+  const fromGross = model.grossProfitSections.flatMap(section => section.dataRowObjects);
+  const fromNet = model.netProfitSections.flatMap(section => section.dataRowObjects);
+
+  return [...fromGross, ...fromNet];
+}
+
+const extractAllDataRowObjectsFromProfitAndLossRowArray =(models: ProfitAndLossRow[]): ProfitAndLossRow[]=> {
+  const rows: ProfitAndLossRow[] = [];
+  models.forEach(model => {
+    if (model.RowType === 'Section' && model.Title) {
+      rows.push(...model.Rows)
+    } 
+  })
+
+  return rows;
+}
+
+export interface ProfitSectionModelTest {
+  title: string,
+  dataRowObjects: DataRowObject[]
+}
+
+export interface DataRowObjectTest {
+  rowType: `Row` | `SummaryRow`,
+  rowTitle: string,
+  rowData: string[]
+}
+
+const buildFinancialYearProfitAndLossModel = (headings: string[], febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+  const financialYearProfitAndLossModel: FinancialYearProfitAndLossModel = {
+    headings: [],
+    grossProfitSections: [],
+    grossProfitDataRow: [],
+    netProfitSections: [],
+    netProfitDataRow: [],
+  };
+
+  console.log('headings', headings);
+  console.log('febDataRows', febDataRows);
+  console.log('firstElevenMonthsRows', firstElevenMonthsRows);
+
+  // months
+  const monthHeaders = getMonthHeaders(febDataRows, firstElevenMonthsRows);
+  console.log('monthHeaders', monthHeaders);
+  financialYearProfitAndLossModel.headings = monthHeaders;
+
+  const grossProfitSectionHeadings = getGrossProfitSectionHeadings(febDataRows, firstElevenMonthsRows);
+  console.log('grossProfitSectionHeadings', grossProfitSectionHeadings);
+
+  const netProfitSectionHeadings = getNetProfitSectionHeadings(febDataRows, firstElevenMonthsRows);
+  console.log('netProfitSectionHeadings', netProfitSectionHeadings);
+
+  const grossProfitSectionModels = buildProfitSectionModel(grossProfitSectionHeadings, febDataRows, firstElevenMonthsRows);
+  const netProfitSectionModels = buildProfitSectionModel(netProfitSectionHeadings, febDataRows, firstElevenMonthsRows);
+
+  console.log('grossProfitSectionModels', grossProfitSectionModels);
+  console.log('netProfitSectionModels', netProfitSectionModels);
+
+  financialYearProfitAndLossModel.grossProfitSections = grossProfitSectionModels;
+  financialYearProfitAndLossModel.netProfitSections = netProfitSectionModels;
+
+  // gross net profit totals
+  // const febGrossProfitDataRow = febDataRows.find(x => isGrossProfitSection(x));
+  // const grossProfitTitle = febGrossProfitDataRow.Rows[0].Cells[0].Value;
+  // const febNetProfitDataRow = febDataRows.find(x => isNetProfitSection(x));
+  // const netProfitTitle = febNetProfitDataRow.Rows[0].Cells[0].Value;
+  // financialYearProfitAndLossModel.grossProfitDataRow.push(grossProfitTitle);
+  // financialYearProfitAndLossModel.netProfitDataRow.push(netProfitTitle);
+  for (let k = 0; k < 12; k++){
+    financialYearProfitAndLossModel.grossProfitDataRow.push("-");
+  }
+  for (let k = 0; k < 12; k++){
+    financialYearProfitAndLossModel.netProfitDataRow.push("-");
+  }
+
+  console.log('financialYearProfitAndLossModel', financialYearProfitAndLossModel);
+
+  return financialYearProfitAndLossModel;
+}
+
+const buildProfitSectionModel = (sectionHeadings: string[], febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+  const profitSectionModels: ProfitSectionModel[] = [];
+
+  sectionHeadings.forEach((sectionHeading) => {
+    const profitSectionModel: ProfitSectionModel = {
+      title: sectionHeading,
+      dataRowObjects: []
+    };
+
+    const febSection = febDataRows.find(x => x.RowType === "Section" && x.Title === sectionHeading);
+    const otherSection = firstElevenMonthsRows.find(x => x.RowType === "Section" && x.Title === sectionHeading);
+
+    console.log('febSection', febSection);
+    console.log('otherSection', otherSection);
+
+
+    const febRows = febSection !== undefined ? febSection.Rows?.filter(x => x.RowType === "Row") : [];
+    const otherRows = otherSection !== undefined ? otherSection.Rows?.filter(x => x.RowType === "Row") : [];
+
+    
+    console.log('febRows', febRows);
+    console.log('otherRows', otherRows);
+
+
+    const febTitles = [];
+    const otherTitles = [];
+
+    for (let k = 0; k < febRows.length; k++) {
+      const rowCells = febRows[k].Cells;
+      const title = rowCells[0].Value;
+      febTitles.push(title);
+    }
+
+    for (let k = 0; k < otherRows.length; k++) {
+      const rowCells = otherRows[k].Cells;
+      const title = rowCells[0].Value;
+      otherTitles.push(title);
+    }
+
+    console.log('febTitles', febTitles);
+    console.log('otherTitles', otherTitles);
+
+    const distinctRows = [...new Set([...febTitles, ...otherTitles])];
+    const orderedDistinctRows = distinctRows.sort();
+    console.log('orderedDistinctRows', orderedDistinctRows);
+    orderedDistinctRows.forEach((row) => {
+      const dataRowObject: DataRowObject = {
+        rowType: "Row",
+        rowTitle: row,
+        rowData: ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
+      }
+
+      profitSectionModel.dataRowObjects.push(dataRowObject);
+    });
+
+    const febSummaryRow = febSection !== undefined ? febSection.Rows.find(x => x.RowType === "SummaryRow") : undefined;
+    const otherSummaryRow = otherSection !== undefined ? otherSection.Rows.find(x => x.RowType === "SummaryRow") : undefined;
+
+    console.log('febSummaryRow', febSummaryRow);
+    console.log('otherSummaryRow', otherSummaryRow);
+
+    if (febSummaryRow !== undefined) {
+      const cells = febSummaryRow.Cells;
+      const dataRowObject: DataRowObject = {
+        rowType: "SummaryRow",
+        rowTitle: cells[0].Value,
+        rowData: ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
+      };
+      profitSectionModel.dataRowObjects.push(dataRowObject);
+    }
+    else {
+      const cells = otherSummaryRow.Cells;
+      const dataRowObject: DataRowObject = {
+        rowType: "SummaryRow",
+        rowTitle: cells[0].Value,
+        rowData: ["-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-", "-"]
+      };
+      profitSectionModel.dataRowObjects.push(dataRowObject);
+    }
+
+    profitSectionModels.push(profitSectionModel);
+  });
+
+  return profitSectionModels;
+}
+
+const getMonthHeaders = (febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+  const febHeaderRow = febDataRows.find(x => x.RowType === "Header");
+  const firstElevenMonthsHeaderRow = firstElevenMonthsRows.find(x => x.RowType === "Header");
+
+  console.log('febHeaderRow', febHeaderRow);
+  console.log('firstElevenMonthsHeaderRow', firstElevenMonthsHeaderRow);
+
+  const headings = [];
+  const febHeader = febHeaderRow.Cells[1].Value;
+  headings.push(febHeader);
+
+  console.log('firstElevenMonthsHeaderRow.Cells', firstElevenMonthsHeaderRow.Cells);
+  for (let k = 1; k < firstElevenMonthsHeaderRow.Cells.length; k++) {
+    const monthHeader = firstElevenMonthsHeaderRow.Cells[k].Value;
+    headings.push(monthHeader);
+  }
+
+  return headings;
+}
+
+const getGrossProfitSectionHeadings = (febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+  const febTitles = [];
+  const otherTitles = [];
+
+  for (let k = 0; k < febDataRows.length; k++){
+    const row = febDataRows[k];
+
+    if (isHeaderRow(row)) {
+      continue;
+    }
+
+    if (isGrossProfitSection(row)) {
+      break;
+    }
+
+    if (isSectionRow(row)) {
+      febTitles.push(row.Title);
+    }
+  }
+
+  for (let k = 0; k < firstElevenMonthsRows.length; k++){
+    const row = firstElevenMonthsRows[k];
+
+    if (isHeaderRow(row)) {
+      continue;
+    }
+
+    if (isGrossProfitSection(row)) {
+      break;
+    }
+
+    if (isSectionRow(row)) {
+      otherTitles.push(row.Title);
+    }
+  }
+
+  const distinctRows = [...new Set([...febTitles, ...otherTitles])];
+  return distinctRows;
+}
+
+const getNetProfitSectionHeadings = (febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+  const febTitles = [];
+  const otherTitles = [];
+
+  let nextSectionIsNetProfitSectionForGross = false;
+  for (let k = 0; k < febDataRows.length; k++){
+    const row = febDataRows[k];
+
+    if (isHeaderRow(row)) {
+      continue;
+    }
+
+    if (isNetProfitSection(row)) {
+      break;
+    }
+
+    if (isGrossProfitSection(row)) {
+      nextSectionIsNetProfitSectionForGross = true;
+      continue;
+    }
+
+    if (nextSectionIsNetProfitSectionForGross === false) {
+      continue;
+    }
+
+    if (isSectionRow(row)) {
+      febTitles.push(row.Title);
+    }
+  }
+
+  let nextSectionIsNetProfitSectionForNet = false;
+  for (let k = 0; k < firstElevenMonthsRows.length; k++){
+    const row = firstElevenMonthsRows[k];
+
+    if (isHeaderRow(row)) {
+      continue;
+    }
+
+    if (isNetProfitSection(row)) {
+      break;
+    }
+
+    if (isGrossProfitSection(row)) {
+      nextSectionIsNetProfitSectionForNet = true;
+      continue;
+    }
+
+    if (nextSectionIsNetProfitSectionForNet === false) {
+      continue;
+    }
+
+    if (isSectionRow(row)) {
+      otherTitles.push(row.Title);
+    }
+  }
+
+  const distinctRows = [...new Set([...febTitles, ...otherTitles])];
+  return distinctRows;
+}
+
+// const getGrossProfitSectionRowHeadings = (febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+//   const grossProfitSectionRowHeadings = [];
+
+
+// }
+
+// const getGrossProfitSectionRowHeadings = (febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+
+// }
+
+// const getGrossProfitSectionRowHeadings = (febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+
+// }
+
+// const getGrossProfitSectionRowHeadings = (febDataRows: ProfitAndLossRow[], firstElevenMonthsRows: ProfitAndLossRow[]) => {
+
+// }
+
+const isHeaderRow = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Header`;
+}
+
+const isSectionRow = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Section` && rowObject.Title;
+}
+
+const isGrossProfitSection = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Section` && rowObject.Title === `` && rowObject.Rows[0].RowType === `Row` && rowObject.Rows[0].Cells[0].Value === `Gross Profit`;
+}
+
+const isNetProfitSection = (rowObject: ProfitAndLossRow) => {
+  return rowObject.RowType === `Section` && rowObject.Title === `` && rowObject.Rows[0].RowType === `Row` && rowObject.Rows[0].Cells[0].Value === `Net Profit`;
 }
 
 /**
