@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
@@ -45,6 +44,8 @@ import {
 } from "@/services/financialService";
 import { toast } from "sonner";
 import { chartConfig, useIsMobile, ResponsiveChartContainer } from '@/components/ui/chart';
+import MonthSelector from "@/components/ProfitAndLoss/MonthSelector";
+import MonthComparisonChart from "@/components/ProfitAndLoss/MonthComparisonChart";
 
 interface FinancialDashboardProps {
   businessId: string;
@@ -61,6 +62,8 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
   const [endDate, setEndDate] = useState<string>(getDefaultEndDate());
   const [fromDateOpen, setFromDateOpen] = useState(false);
   const [toDateOpen, setToDateOpen] = useState(false);
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [comparisonMonths, setComparisonMonths] = useState<string[]>([]);
 
   const isMobile = useIsMobile();
 
@@ -206,6 +209,14 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
 
   const revenueTrendData = processMonthlyData();
   const expensesData = processExpensesData();
+  const availableMonths = revenueTrendData.map(item => item.month);
+
+  // Set default selected month if not set
+  React.useEffect(() => {
+    if (availableMonths.length > 0 && !selectedMonth) {
+      setSelectedMonth(availableMonths[availableMonths.length - 1]); // Select the latest month
+    }
+  }, [availableMonths, selectedMonth]);
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -465,7 +476,25 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
             </Card>
           </div>
 
+          {availableMonths.length > 0 && (
+            <MonthSelector
+              availableMonths={availableMonths}
+              selectedMonth={selectedMonth}
+              onMonthSelect={setSelectedMonth}
+              comparisonMonths={comparisonMonths}
+              onComparisonMonthsChange={setComparisonMonths}
+            />
+          )}
+
           <RevenueTrendChart data={revenueTrendData} />
+
+          {selectedMonth && (
+            <MonthComparisonChart
+              data={revenueTrendData}
+              selectedMonth={selectedMonth}
+              comparisonMonths={comparisonMonths}
+            />
+          )}
 
           <TopExpensesChart data={expensesData} />
         </div>
