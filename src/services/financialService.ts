@@ -811,6 +811,10 @@ export async function getFinancialYearData(
   const financialYearProfitAndLossModel2 = buildProfitAndLossReportDataArray(firstElevenMonthsData.Reports[0].Rows, financialYearProfitAndLossModel, sortedRowHeadings);
   console.log('financialYearProfitAndLossModel2', financialYearProfitAndLossModel2);
 
+  const febRows = februaryData.Reports[0].Rows;
+  const otherRows = firstElevenMonthsData.Reports[0].Rows;
+  console.log('TEST TEST febRows', febRows);
+  console.log('TEST TESTotherRows', otherRows);
 
   try {
     console.log("try");

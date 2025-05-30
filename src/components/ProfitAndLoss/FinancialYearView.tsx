@@ -7,6 +7,8 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, AlertTriangle } from "lucide-react";
 
+import FinancialDashboardView from "@/components/ProfitAndLoss/FinancialDashboardView";
+
 interface FinancialYearViewProps {
   businessId: string | null;
 }
@@ -31,7 +33,7 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
 
   const renderYearOptions = () => {
     // Add FY 2026 to the years array
-    const years = [currentYear + 1, currentYear, currentYear - 1, currentYear - 2];
+    const years = [currentYear + 1, currentYear]; // , currentYear - 1, currentYear - 2
     return years.map(year => (
       <SelectItem key={year} value={year.toString()}>
         FY {year}
@@ -191,22 +193,27 @@ const FinancialYearTable = ({ data }: { data: any }) => {
   };
 
   return (
-    <Table className="min-w-[800px]">
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-48">Account</TableHead>
-          {data.headings.map((heading, index) => (
-            <TableHead key={`heading-${index}`} className="text-right">
-              {heading}
-            </TableHead>
-          ))}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {renderGrossProfit()}
-        {renderNetProfit()}
-      </TableBody>
-    </Table>
+    <>
+      <FinancialDashboardView inputData={data}/>
+
+      <Table className="min-w-[800px]">
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-48">Account</TableHead>
+            {data.headings.map((heading, index) => (
+              <TableHead key={`heading-${index}`} className="text-right">
+                {heading}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {renderGrossProfit()}
+          {renderNetProfit()}
+        </TableBody>
+      </Table>
+    </>
+    
   );
 };
 
