@@ -211,12 +211,12 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
   const expensesData = processExpensesData();
   const availableMonths = revenueTrendData.map(item => item.month);
 
-  // Set default selected month if not set
+  // Set default selected month if not set - fix the infinite loop by removing selectedMonth from dependencies
   React.useEffect(() => {
     if (availableMonths.length > 0 && !selectedMonth) {
       setSelectedMonth(availableMonths[availableMonths.length - 1]); // Select the latest month
     }
-  }, [availableMonths, selectedMonth]);
+  }, [availableMonths.length]); // Only depend on the length, not the actual selectedMonth
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
