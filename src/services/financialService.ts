@@ -861,11 +861,13 @@ const populatModelWithValues = (financialYearProfitAndLossModel: FinancialYearPr
     //const rows = allValueRows.filter(x => x.Cells[0].Value === dataRowObject.rowTitle);
     const febProfitAndLossRow = febValueRows.find(x => x.Cells[0].Value === dataRowObject.rowTitle);
     const otherProfitAndLossRow = otherValueRows.find(x => x.Cells[0].Value === dataRowObject.rowTitle);
+    console.log('febProfitAndLossRow', febProfitAndLossRow);
+    console.log('otherProfitAndLossRow', otherProfitAndLossRow);
     
     for (let k = 0; k < 12; k++) {
       if (k === 0){
         if (febProfitAndLossRow !== undefined) {
-          dataRowObject.rowData[k] = febProfitAndLossRow.Cells[k].Value === "0.00" ? "-" : febProfitAndLossRow.Cells[k].Value;
+          dataRowObject.rowData[k] = febProfitAndLossRow.Cells[k + 1].Value === "0.00" ? "-" : febProfitAndLossRow.Cells[k + 1].Value;
         }
         else {
           dataRowObject.rowData[k] = "-";
