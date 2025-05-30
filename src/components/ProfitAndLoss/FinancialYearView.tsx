@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, AlertTriangle } from "lucide-react";
+import FinancialYearCharts from "./FinancialYearCharts";
+import FinancialYearMonthSelector from "./FinancialYearMonthSelector";
 
 interface FinancialYearViewProps {
   businessId: string | null;
@@ -14,6 +16,8 @@ interface FinancialYearViewProps {
 const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => {
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(2026);
+  const [selectedMonth, setSelectedMonth] = useState<string>('');
+  const [comparisonMonths, setComparisonMonths] = useState<string[]>([]);
   
   const {
     data,
@@ -27,7 +31,17 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
 
   const handleYearChange = (value: string) => {
     setSelectedYear(parseInt(value));
+    // Reset month selections when year changes
+    setSelectedMonth('');
+    setComparisonMonths([]);
   };
+
+  // Set default selected month when data loads
+  React.useEffect(() => {
+    if (data && data.headings && data.headings.length > 0 && !selectedMonth) {
+      setSelectedMonth(data.headings[data.headings.length - 1]); // Select the latest month
+    }
+  }, [data?.headings?.length]);
 
   const renderYearOptions = () => {
     // Add FY 2026 to the years array
@@ -105,6 +119,32 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
               </SelectContent>
             </Select>
           </div>
+        </CardHeader>
+      </Card>
+
+      {/* Month Selection */}
+      {data.headings && data.headings.length > 0 && (
+        <FinancialYearMonthSelector
+          availableMonths={data.headings}
+          selectedMonth={selectedMonth}
+          onMonthSelect={setSelectedMonth}
+          comparisonMonths={comparisonMonths}
+          onComparisonMonthsChange={setComparisonMonths}
+        />
+      )}
+
+      {/* Visual Charts */}
+      <FinancialYearCharts
+        data={data}
+        selectedMonth={selectedMonth}
+        comparisonMonths={comparisonMonths}
+      />
+
+      {/* Financial Year Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Detailed Financial Statement</CardTitle>
+          <CardDescription>Complete financial breakdown by month</CardDescription>
         </CardHeader>
         <CardContent className="overflow-x-auto">
           <FinancialYearTable data={data} />
