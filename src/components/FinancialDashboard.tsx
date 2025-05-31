@@ -211,12 +211,13 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
   const expensesData = processExpensesData();
   const availableMonths = revenueTrendData.map(item => item.month);
 
-  // Set default selected month if not set - fix the infinite loop by removing selectedMonth from dependencies
-  React.useEffect(() => {
-    if (availableMonths.length > 0 && !selectedMonth) {
-      setSelectedMonth(availableMonths[availableMonths.length - 1]); // Select the latest month
-    }
-  }, [availableMonths.length]); // Only depend on the length, not the actual selectedMonth
+  // // Set default selected month if not set - fix the infinite loop by removing selectedMonth from dependencies
+  // React.useEffect(() => {
+  //   if (availableMonths.length > 0 && !selectedMonth) {
+  //     setSelectedMonth(availableMonths[availableMonths.length - 1]); // Select the latest month
+  //   }
+  // }, [availableMonths.length]); // Only depend on the length, not the actual selectedMonth
+
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
@@ -311,192 +312,15 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
     );
   };
 
-  const RevenueTrendChart = ({ data }: { data: any[] }) => {
-    if (data.length === 0) return null;
-
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">Revenue Trend</CardTitle>
-          <CardDescription>Last 6 months revenue</CardDescription>
-        </CardHeader>
-        <CardContent className="h-[300px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis tickFormatter={(value) => formatCurrency(value)} />
-              <Tooltip formatter={(value) => formatCurrency(value as number)} />
-              <Area 
-                type="monotone" 
-                dataKey="revenue" 
-                stroke="#3b82f6" 
-                fill="#93c5fd" 
-                activeDot={{ r: 8 }} 
-              />
-              <Legend 
-                content={renderRevenueTrendLegend}
-                align="center" 
-                verticalAlign="bottom"
-                wrapperStyle={{ 
-                  position: "absolute" as CSSPosition, 
-                  left: 0,
-                  right: 0,
-                  bottom: -20,
-                  zIndex: 100
-                }}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className=" bg-slate-50">
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-6 md:py-8">
         <div className="space-y-6">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-center space-x-2">
-              <BarChart3 className="h-5 w-5 text-green-600" />
-              <h2 className="text-lg md:text-xl font-semibold text-slate-800">Financial Dashboard</h2>
-            </div>
             
-            <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-              <div className="flex items-end gap-2">
-                <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor="from-date">From Date</Label>
-                  <div className="flex">
-                    <Input
-                      id="from-date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      className="rounded-r-none"
-                    />
-                    <Popover open={fromDateOpen} onOpenChange={setFromDateOpen}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="rounded-l-none border-l-0">
-                          <CalendarIcon className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={startDate ? new Date(startDate) : undefined}
-                          onSelect={handleFromDateChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-                
-                <div className="grid w-full max-w-sm items-center gap-1.5">
-                  <Label htmlFor="to-date">To Date</Label>
-                  <div className="flex">
-                    <Input 
-                      id="to-date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      className="rounded-r-none"
-                    />
-                    <Popover open={toDateOpen} onOpenChange={setToDateOpen}>
-                      <PopoverTrigger asChild>
-                        <Button variant="outline" className="rounded-l-none border-l-0">
-                          <CalendarIcon className="h-4 w-4" />
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0">
-                        <Calendar
-                          mode="single"
-                          selected={endDate ? new Date(endDate) : undefined}
-                          onSelect={handleToDateChange}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </div>
-                
-                <Button onClick={handleRefresh} className="mb-1">
-                  <RefreshCcw className="mr-2 h-4 w-4" />
-                  Refresh
-                </Button>
-              </div>
-            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="bg-blue-50/50 border border-blue-100">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center text-blue-900">
-                  <DollarSign className="mr-2 h-5 w-5 text-blue-600" />
-                  Revenue
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-blue-900">
-                  {formatCurrency(summaryData.totalRevenue)}
-                </div>
-                <div className="text-sm text-blue-600">Total Income</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-red-50/50 border border-red-100">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center text-red-900">
-                  <TrendingDown className="mr-2 h-5 w-5 text-red-600" />
-                  Expenses
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-900">
-                  {formatCurrency(summaryData.totalExpenses)}
-                </div>
-                <div className="text-sm text-red-600">Total Expenses</div>
-              </CardContent>
-            </Card>
-
-            <Card className="bg-green-50/50 border border-green-100">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center text-green-900">
-                  <TrendingUp className="mr-2 h-5 w-5 text-green-600" />
-                  Net Profit
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-900">
-                  {formatCurrency(summaryData.netProfit)}
-                </div>
-                <div className="text-sm text-green-600">
-                  Margin: {summaryData.grossMargin.toFixed(1)}%
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {availableMonths.length > 0 && (
-            <MonthSelector
-              availableMonths={availableMonths}
-              selectedMonth={selectedMonth}
-              onMonthSelect={setSelectedMonth}
-              comparisonMonths={comparisonMonths}
-              onComparisonMonthsChange={setComparisonMonths}
-            />
-          )}
-
-          <RevenueTrendChart data={revenueTrendData} />
-
-          {selectedMonth && (
-            <MonthComparisonChart
-              data={revenueTrendData}
-              selectedMonth={selectedMonth}
-              comparisonMonths={comparisonMonths}
-            />
-          )}
-
-          <TopExpensesChart data={expensesData} />
+          
         </div>
       </div>
     </div>
