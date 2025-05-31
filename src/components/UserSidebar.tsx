@@ -127,11 +127,29 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
     return activePath.startsWith(path);
   };
 
+  console.log("navItems", navItems);
+
   const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="p-6 border-b border-navy-100">
-        <h2 className="font-bold text-2xl text-navy-700 tracking-tight">Client Portal</h2>
-        <p className="text-sm text-navy-500/80 mt-1 font-medium">User Dashboard</p>
+        <div className={`flex`}>
+          <div>
+            <h2 className="font-bold text-2xl text-navy-700 tracking-tight">Client Portal</h2>
+            <p className="text-sm text-navy-500/80 mt-1 font-medium">User Dashboard</p>
+          </div>
+          <div>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleCollapsed}
+              className="ml-auto text-navy-400 hover:text-navy-600"
+            >
+              <ChevronLeft size={20} />
+            </Button>
+          </div>
+        </div>
+        
+        
       </div>
       
       <div className="px-3 py-4 flex-1 overflow-y-auto">
@@ -264,11 +282,19 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
           isCollapsed ? "w-[70px]" : "w-64"
         )}
       >
-        {isCollapsed ? (
+        {/* {isCollapsed ? (
           <div className="p-4 flex justify-center border-b border-navy-100">
             <Badge className="bg-navy-100 text-navy-700 uppercase font-semibold">
               CP
             </Badge>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              onClick={toggleCollapsed}
+              className="ml-auto text-navy-400 hover:text-navy-600"
+            >
+              <ChevronRight size={20} />
+            </Button>
           </div>
         ) : (
           <div className="p-4 border-b flex justify-between items-center">
@@ -285,26 +311,65 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
               <ChevronLeft size={20} />
             </Button>
           </div>
-        )}
+        )} */}
+
+        {isCollapsed && 
+        <>
+          <div className="p-4 flex justify-center border-b border-navy-100">
+            <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={toggleCollapsed}
+                className="ml-auto text-navy-400 hover:text-navy-600"
+              >
+                <ChevronRight size={20} />
+              </Button>
+          </div>
+          
+        </>}
         
         {isCollapsed ? (
           <div className="flex-1 p-2 space-y-4 overflow-y-auto">
-            {navItems.map((item, index) => (
-              <Link key={index} to={item.path} onClick={closeSidebarOnMobile}>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className={cn(
-                    "w-full h-10",
-                    isActive(item.path) 
-                      ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
-                      : "text-navy-600 hover:bg-navy-50"
-                  )}
-                >
-                  {item.icon}
-                </Button>
-              </Link>
-            ))}
+            {navItems.map((item, index) => {
+
+              if (item.submenu) {
+                const firstsubmenuItem = item.submenu[0];
+                return <>
+                  <Link key={index} to={firstsubmenuItem.path} onClick={closeSidebarOnMobile}>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className={cn(
+                        "w-full h-10",
+                        isActive(firstsubmenuItem.path) 
+                          ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                          : "text-navy-600 hover:bg-navy-50"
+                      )}
+                    >
+                      {item.icon}
+                    </Button>
+                  </Link>
+                </>
+              }
+
+              return <>
+                <Link key={index} to={item.path} onClick={closeSidebarOnMobile}>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className={cn(
+                      "w-full h-10",
+                      isActive(item.path) 
+                        ? "bg-navy-50 text-navy-700 hover:bg-navy-100" 
+                        : "text-navy-600 hover:bg-navy-50"
+                    )}
+                  >
+                    {item.icon}
+                  </Button>
+                </Link>
+              </>
+              
+            })}
           </div>
         ) : (
           renderSidebarContent()
