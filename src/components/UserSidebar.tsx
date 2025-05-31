@@ -1,5 +1,5 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
@@ -37,25 +37,67 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
   const [isFinancialSubmenuOpen, setIsFinancialSubmenuOpen] = useState(
     activePath.includes("/user/financial")
   );
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
-    getSelectedClientBusinessId()
-  );
+  // const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(
+  //   getSelectedClientBusinessId()
+  // );
+
+  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
+
+  const { 
+      data: clientBusinesses,
+      isLoading: isLoadingBusinesses,
+      isError: isBusinessError,
+      refetch: refetchBusinesses
+    } = useQuery({
+      queryKey: ["user-client-businesses", user?.id],
+      queryFn: () => getUserClientBusinesses(user?.id || ""),
+      enabled: !!user?.id,
+    });
+
+  
+
+  // FUnctions
+  // const handleBusinessSelect = (businessId: string) => {
+  //   setSelectedBusinessId(businessId);
+  //   saveSelectedClientBusinessId(businessId);
+  // };
 
   React.useEffect(() => {
     setIsOpen(!isMobile);
     setIsCollapsed(false);
   }, [isMobile]);
 
-  const { data: clientBusinesses = [] } = useQuery({
-    queryKey: ['clientBusinesses', user?.id],
-    queryFn: () => getUserClientBusinesses(user?.id || ''),
-    enabled: !!user?.id,
-  });
+  
+
+  // const { data: clientBusinesses = [] } = useQuery({
+  //   queryKey: ['clientBusinesses', user?.id],
+  //   queryFn: () => getUserClientBusinesses(user?.id || ''),
+  //   enabled: !!user?.id,
+  // });
+
+  const validBusinesses = clientBusinesses?.filter(business => business !== null) || [];
 
   const handleBusinessSelect = (businessId: string) => {
+    console.log('handleBusinessSelect businessId', businessId);
     setSelectedBusinessId(businessId);
     saveSelectedClientBusinessId(businessId);
   };
+
+  useEffect(() => {
+    if (clientBusinesses?.length && !selectedBusinessId) {
+      const validBusinesses = clientBusinesses.filter(business => business !== null);
+      if (validBusinesses.length > 0) {
+        const firstBusinessId = validBusinesses[0].id;
+        setSelectedBusinessId(firstBusinessId);
+        saveSelectedClientBusinessId(firstBusinessId);
+      }
+    }
+  }, [clientBusinesses, selectedBusinessId]);
+  
+  // const handleBusinessSelect = (businessId: string) => {
+  //   setSelectedBusinessId(businessId);
+  //   saveSelectedClientBusinessId(businessId);
+  // };
 
   const handleLogout = async () => {
     await logout();
@@ -116,6 +158,29 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
     return activePath.startsWith(path);
   };
 
+  // Hooks
+  // useEffect(() => {
+  //   if (clientBusinesses?.length && !selectedBusinessId) {
+  //     const validBusinesses = clientBusinesses.filter(business => business !== null);
+  //     if (validBusinesses.length > 0) {
+  //       const firstBusinessId = validBusinesses[0].id;
+  //       setSelectedBusinessId(firstBusinessId);
+  //       saveSelectedClientBusinessId(firstBusinessId);
+  //     }
+  //   }
+  // }, [clientBusinesses, selectedBusinessId]);
+
+  // useEffect(() => {
+  //     if (clientBusinesses?.length && !selectedBusinessId) {
+  //       const validBusinesses = clientBusinesses.filter(business => business !== null);
+  //       if (validBusinesses.length > 0) {
+  //         const firstBusinessId = validBusinesses[0].id;
+  //         setSelectedBusinessId(firstBusinessId);
+  //         saveSelectedClientBusinessId(firstBusinessId);
+  //       }
+  //     }
+  //   }, [clientBusinesses, selectedBusinessId]);
+
   const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="p-6 border-b border-navy-100">
@@ -124,13 +189,23 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
       </div>
       
       <div className="px-3 py-4 flex-1 overflow-y-auto">
-        <div className="mb-4">
+        {/* <div className="mb-4">
           <ClientBusinessSelector 
             clientBusinesses={clientBusinesses}
             selectedBusinessId={selectedBusinessId}
             onBusinessSelect={handleBusinessSelect}
           />
-        </div>
+        </div> */}
+
+        {validBusinesses.length > 0 && (
+          <div className="w-full md:w-auto">
+            <ClientBusinessSelector 
+              clientBusinesses={validBusinesses}
+              selectedBusinessId={selectedBusinessId}
+              onBusinessSelect={handleBusinessSelect}
+            />
+          </div>
+        )}
 
         <div className="space-y-1">
           {navItems.map((item) =>
@@ -221,6 +296,17 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
       </div>
     </div>
   );
+
+  // const selectedBusiness = selectedBusinessId 
+  //     ? validBusinesses.find(b => b && b.id === selectedBusinessId) 
+  //     : validBusinesses[0];
+    
+  // if (!selectedBusiness) {
+  //   const firstBusinessId = validBusinesses[0].id;
+  //   setSelectedBusinessId(firstBusinessId);
+  //   saveSelectedClientBusinessId(firstBusinessId);
+  //   return null;
+  // }
 
   if (isMobile) {
     return (

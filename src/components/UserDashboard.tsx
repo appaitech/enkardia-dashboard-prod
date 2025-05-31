@@ -37,6 +37,8 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
   selectedBusiness, 
   monthlyStats 
 }) => {
+  console.log('user', user);
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-navy-50/50 to-slate-50">
       <div className="max-w-[1400px] mx-auto px-4 md:px-8 py-6 md:py-8">
