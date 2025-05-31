@@ -23,6 +23,8 @@ import FinancialDashboard from "@/components/FinancialDashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SarsRequestTimer from '@/components/SarsRequestTimer';
 
+import StoreDemo from "@/components/StoreDemo";
+
 const UserDashboard = () => {
   const { user } = useAuth();
   const location = useLocation();
@@ -184,7 +186,14 @@ const UserDashboard = () => {
             {selectedBusiness.tenant_id ? (
               <div className={isMobile ? "overflow-x-auto" : ""}>
                 <div className={isMobile ? "min-w-[600px]" : ""}>
-                  <FinancialDashboard businessId={selectedBusiness.id} />
+                  {/* <FinancialDashboard businessId={selectedBusiness.id} /> */}
+                    <div>
+                      Nothing to see here yet.
+                    </div>
+
+                    <div>
+                      <StoreDemo />
+                    </div>
                 </div>
               </div>
             ) : (

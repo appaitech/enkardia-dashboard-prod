@@ -124,14 +124,14 @@ const FinancialDashboard: React.FC<FinancialDashboardProps> = ({ businessId }) =
   const isLoading = isLoadingMonthly || isLoadingVisual || isLoadingSummary;
   const isError = isMonthlyError || isVisualError || isSummaryError;
 
-  if (isLoading) {
-    return (
-      <div className="flex flex-col items-center justify-center p-8">
-        <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
-        <p className="mt-4 text-slate-500">Loading financial data...</p>
-      </div>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <div className="flex flex-col items-center justify-center p-8">
+  //       <Loader2 className="h-12 w-12 animate-spin text-blue-600" />
+  //       <p className="mt-4 text-slate-500">Loading financial data...</p>
+  //     </div>
+  //   );
+  // }
 
   if (isError) {
     return (
