@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
@@ -26,9 +25,10 @@ import {
 import { format } from "date-fns";
 import { useAuth } from "@/contexts/AuthContext";
 import UserSidebar from "@/components/UserSidebar";
-import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
+import { getUserClientBusinesses, saveSelectedClientBusinessId } from "@/services/userService";
 import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useSelectedBusiness } from "@/hooks/useSelectedBusiness";
 
 interface Task {
   id: string;
@@ -58,7 +58,7 @@ const fetchClientTasks = async (businessId: string): Promise<Task[]> => {
 const TasksPage: React.FC = () => {
   const { user } = useAuth();
   const location = useLocation();
-  const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
+  const { selectedBusinessId, handleBusinessSelect } = useSelectedBusiness();
   const isMobile = useIsMobile();
   
   const { 
@@ -88,16 +88,10 @@ const TasksPage: React.FC = () => {
       const validBusinesses = clientBusinesses.filter(business => business !== null);
       if (validBusinesses.length > 0) {
         const firstBusinessId = validBusinesses[0].id;
-        setSelectedBusinessId(firstBusinessId);
-        saveSelectedClientBusinessId(firstBusinessId);
+        handleBusinessSelect(firstBusinessId);
       }
     }
-  }, [clientBusinesses, selectedBusinessId]);
-
-  const handleBusinessSelect = (businessId: string) => {
-    setSelectedBusinessId(businessId);
-    saveSelectedClientBusinessId(businessId);
-  };
+  }, [clientBusinesses, selectedBusinessId, handleBusinessSelect]);
 
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
@@ -164,8 +158,7 @@ const TasksPage: React.FC = () => {
   
   if (!selectedBusiness) {
     const firstBusinessId = validBusinesses[0].id;
-    setSelectedBusinessId(firstBusinessId);
-    saveSelectedClientBusinessId(firstBusinessId);
+    handleBusinessSelect(firstBusinessId);
     return null;
   }
 
