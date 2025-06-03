@@ -22,6 +22,7 @@ import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import FinancialDashboard from "@/components/FinancialDashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SarsRequestTimer from '@/components/SarsRequestTimer';
+import { DataModel, useFinancialStore } from '@/store/financialStore'
 
 import StoreDemo from "@/components/StoreDemo";
 
@@ -61,6 +62,24 @@ const UserDashboard = () => {
   const isLoading = isLoadingBusinesses;
   
   const isError = isBusinessError;
+
+  // Test browser state START
+  const { data, setData } = useFinancialStore();
+  
+  console.log('data', data);    
+
+  useEffect(() => {
+    if (selectedBusinessId) {
+
+      const dataModel: DataModel = {
+        selectedClientId: selectedBusinessId
+      };
+      console.log('dataModel', dataModel);
+      setData(dataModel);
+    }
+  }, [selectedBusinessId]);
+  // Test browser state END
+
 
   // Add SARS requests data (later this would come from your backend)
   const sarsRequests = [
@@ -192,7 +211,7 @@ const UserDashboard = () => {
                     </div>
 
                     <div>
-                      <StoreDemo />
+                      {/* <StoreDemo /> */}
                     </div>
                 </div>
               </div>

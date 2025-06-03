@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Badge } from "@/components/ui/badge";
 import { useSelectedBusiness } from "@/hooks/useSelectedBusiness";
+import { DataModel, useFinancialStore } from "@/store/financialStore";
 
 interface UserSidebarProps {
   activePath: string;
@@ -37,6 +38,8 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
   const [isFinancialSubmenuOpen, setIsFinancialSubmenuOpen] = useState(
     activePath.includes("/user/financial")
   );
+
+  const { data: dataModel, setData } = useFinancialStore();
 
   const { selectedBusinessId, handleBusinessSelect } = useSelectedBusiness();
 
@@ -129,6 +132,22 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
 
   console.log("navItems", navItems);
 
+  // functions
+  const selectBusiness = (businessId: string) => {
+    const dataModel: DataModel = {
+      selectedClientId: businessId
+    };
+    setData(dataModel);
+  }
+
+  //Hooks
+  // useEffect(() => {
+
+  // }, []);
+  useEffect(() => {
+    console.log('dataModel.selectedClientId', dataModel?.selectedClientId);
+  }, [dataModel?.selectedClientId]);
+
   const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
       <div className="p-6 border-b border-navy-100">
@@ -157,8 +176,8 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
           <div className="w-full md:w-auto">
             <ClientBusinessSelector 
               clientBusinesses={validBusinesses}
-              selectedBusinessId={selectedBusinessId}
-              onBusinessSelect={handleBusinessSelect}
+              selectedBusinessId={dataModel?.selectedClientId}
+              onBusinessSelect={selectBusiness}
             />
           </div>
         )}

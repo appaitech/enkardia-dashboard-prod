@@ -1,11 +1,13 @@
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { getFinancialYearData } from "@/services/financialService";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, AlertTriangle } from "lucide-react";
+
+import { DataModel, useFinancialStore } from '@/store/financialStore'
 
 import FinancialDashboardView from "@/components/ProfitAndLoss/FinancialDashboardView";
 
@@ -14,22 +16,48 @@ interface FinancialYearViewProps {
 }
 
 const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => {
+  const { data: dataModel, setData } = useFinancialStore();
+
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(2026);
-  
+
+  console.log('dataModel', dataModel);
   const {
     data,
     isLoading,
     isError,
+    refetch,
   } = useQuery({
-    queryKey: ["financial-year", businessId, selectedYear],
-    queryFn: () => getFinancialYearData(businessId, selectedYear),
-    enabled: !!businessId,
+    queryKey: ["financial-year", dataModel?.selectedClientId, selectedYear],
+    queryFn: () => getFinancialYearData(dataModel?.selectedClientId, selectedYear),
+    enabled: !!dataModel?.selectedClientId,
   });
+
+  // const { data, refetch, isFetching } = useQuery({
+  //   queryKey: ['financials', orgId],
+  //   queryFn: () => fetchFinancials(orgId),
+  //   enabled: false, // don’t fetch automatically
+  // })
+
+  // later in your code
+  useEffect(() => {
+    console.log('businessId 111111', businessId);
+    if (businessId) {
+      console.log('businessId 2222222', businessId);
+      refetch();
+    }
+  }, [businessId])
+
+
 
   const handleYearChange = (value: string) => {
     setSelectedYear(parseInt(value));
   };
+
+  // HOoks
+  useEffect(() => {
+      console.log('dataModel?.selectedClientId', dataModel?.selectedClientId);
+    }, [dataModel?.selectedClientId]);
 
   const renderYearOptions = () => {
     // Add FY 2026 to the years array
