@@ -8,4 +8,4 @@ enabled = true
 # Invoke URLs:
 # Local: http://localhost:54321/functions/v1/delete-user
 # Internal: http://host.docker.internal:54321/functions/v1/delete-user
-# Production: https://itkpwdlqlfymxzjzymya.supabase.co/functions/v1/delete-user
+# Production: https://lhaomnngwozbfzsurrag.supabase.co/functions/v1/delete-user
