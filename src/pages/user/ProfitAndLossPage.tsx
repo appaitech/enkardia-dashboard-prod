@@ -199,6 +199,8 @@ const ProfitAndLossPage: React.FC = () => {
     }
   }, [clientBusinesses, selectedBusinessId]);
 
+  console.log('selectedBusinessId', selectedBusinessId);
+
   const handleBusinessSelect = (businessId: string) => {
     setSelectedBusinessId(businessId);
     saveSelectedClientBusinessId(businessId);
@@ -816,7 +818,7 @@ const ProfitAndLossPage: React.FC = () => {
 
               <TabsContent value="financial-year" className="mt-6">
                 {financialYearData ? (
-                  <FinancialYearView businessId={selectedBusinessId} />
+                  <FinancialYearView  businessId={selectedBusinessId} />
                 ) : (
                   noDataMessage("Financial Year")
                 )}

@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, AlertTriangle } from "lucide-react";
+import { useQueryClient } from '@tanstack/react-query';
 
 import { DataModel, useFinancialStore } from '@/store/financialStore'
 
@@ -17,20 +18,43 @@ interface FinancialYearViewProps {
 
 const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => {
   const { data: dataModel, setData } = useFinancialStore();
+  const queryClient = useQueryClient();
 
   const currentYear = new Date().getFullYear();
   const [selectedYear, setSelectedYear] = useState<number>(2026);
 
   console.log('dataModel', dataModel);
+  // const {
+  //   data,
+  //   isLoading,
+  //   isError,
+  //   refetch,
+  // } = useQuery({
+  //   queryKey: ["financial-year", dataModel?.selectedClientId, selectedYear],
+  //   queryFn: () => getFinancialYearData(dataModel?.selectedClientId, selectedYear),
+  //   enabled: !!dataModel?.selectedClientId,
+  // });
+
+  // const {
+  //   data,
+  //   isLoading,
+  //   isError,
+  //   refetch,
+  // } = useQuery({
+  //   queryKey: ["financial-year", businessId, selectedYear],
+  //   queryFn: () => getFinancialYearData(businessId, selectedYear),
+  //   enabled: !!businessId,
+  // });
+
   const {
     data,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["financial-year", dataModel?.selectedClientId, selectedYear],
-    queryFn: () => getFinancialYearData(dataModel?.selectedClientId, selectedYear),
-    enabled: !!dataModel?.selectedClientId,
+    queryKey: ["financial-year", businessId, selectedYear],
+    queryFn: () => getFinancialYearData(businessId, selectedYear),
+    enabled: false, // ⛔ disable auto-fetching
   });
 
   // const { data, refetch, isFetching } = useQuery({
@@ -39,16 +63,31 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
   //   enabled: false, // don’t fetch automatically
   // })
 
-  // later in your code
+  // // later in your code
+  // useEffect(() => {
+  //   console.log('businessId 111111', businessId);
+  //   if (businessId) {
+  //     console.log('businessId 2222222', businessId);
+  //     //refetch();
+
+  //     const cachedData = queryClient.getQueryData(["financial-year", businessId, selectedYear]);
+
+  //     if (!cachedData) {
+  //       refetch(); // only fetch from backend if nothing in cache
+  //     }
+  //   }
+  // }, [businessId])
+
   useEffect(() => {
-    console.log('businessId 111111', businessId);
-    if (businessId) {
-      console.log('businessId 2222222', businessId);
-      refetch();
+    if (!businessId) return;
+
+    const cachedData = queryClient.getQueryData(["financial-year", businessId, selectedYear]);
+
+    if (!cachedData) {
+      refetch(); // ❗Only fetch if no cache
     }
-  }, [businessId])
-
-
+    // else: cached data is already available via `data`
+  }, [businessId, selectedYear]); // You likely want selectedYear as a dep too
 
   const handleYearChange = (value: string) => {
     setSelectedYear(parseInt(value));
@@ -58,6 +97,11 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
   useEffect(() => {
       console.log('dataModel?.selectedClientId', dataModel?.selectedClientId);
     }, [dataModel?.selectedClientId]);
+
+  // useEffect(() => {
+  //   console.log('dataModel?.selectedClientId', dataModel?.selectedClientId);
+  //   //TODO
+  // }, [dataModel?.selectedClientId]);
 
   const renderYearOptions = () => {
     // Add FY 2026 to the years array

@@ -34,6 +34,8 @@ function ClientDetail() {
   const [directorId, setDirectorId] = useState<string>("");
   const [isEditingClient, setIsEditingClient] = useState(false);
 
+  console.log('');
+
   // Load client details
   const { data: client, isLoading, isError, refetch } = useQuery({
     queryKey: ["client", id],
