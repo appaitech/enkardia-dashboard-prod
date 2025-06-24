@@ -259,14 +259,14 @@ const LoginForm = () => {
         <div className="space-y-3">
           <div className="flex justify-between items-center">
             <Label htmlFor="password" className="text-sm font-medium text-gray-700">Password</Label>
-            <Button 
+            {/* <Button 
               type="button" 
               variant="link" 
               className="text-sm text-navy-600 p-0 h-auto"
               onClick={() => setIsForgotPassword(true)}
             >
               Forgot password?
-            </Button>
+            </Button> */}
           </div>
           <div className="relative">
             <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
