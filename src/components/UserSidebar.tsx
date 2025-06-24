@@ -116,11 +116,11 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
       ],
       icon: <BarChart4 className="w-5 h-5" />,
     },
-    {
-      name: "Account Settings",
-      path: "/user/account/linking",
-      icon: <Settings className="w-5 h-5" />,
-    },
+    // {
+    //   name: "Account Settings",
+    //   path: "/user/account/linking",
+    //   icon: <Settings className="w-5 h-5" />,
+    // },
   ];
 
   const isActive = (path: string) => {
@@ -172,7 +172,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
       </div>
       
       <div className="px-3 py-4 flex-1 overflow-y-auto">
-        {validBusinesses.length > 0 && (
+        {/* {validBusinesses.length > 0 && (
           <div className="w-full md:w-auto">
             <ClientBusinessSelector 
               clientBusinesses={validBusinesses}
@@ -180,7 +180,7 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
               onBusinessSelect={selectBusiness}
             />
           </div>
-        )}
+        )} */}
 
         <div className="space-y-1">
           {navItems.map((item) =>
