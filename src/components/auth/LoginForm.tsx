@@ -305,7 +305,15 @@ const LoginForm = () => {
           </Button>
         </div>
 
-        <div className="relative flex items-center justify-center mt-4">
+        
+      </CardContent>
+    </Card>
+  );
+};
+
+export default LoginForm;
+
+{/* <div className="relative flex items-center justify-center mt-4">
           <div className="border-t border-gray-200 flex-grow"></div>
           <div className="mx-4 text-gray-500 text-sm">or</div>
           <div className="border-t border-gray-200 flex-grow"></div>
@@ -336,10 +344,4 @@ const LoginForm = () => {
               </>
             )}
           </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-export default LoginForm;
+        </div> */}
