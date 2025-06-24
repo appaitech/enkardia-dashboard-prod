@@ -138,13 +138,13 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
             href="/admin/xero-connections" 
             onClick={closeSidebarOnMobile}
           />
-          <SidebarItem 
+          {/* <SidebarItem 
             icon={<Settings size={20} />} 
             label="Settings" 
             href="/admin/settings" 
             adminOnly={true}
             onClick={closeSidebarOnMobile}
-          />
+          /> */}
         </div>
       </div>
       
