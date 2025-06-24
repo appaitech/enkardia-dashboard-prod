@@ -3,8 +3,20 @@
 import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
-const SUPABASE_URL = "https://lhaomnngwozbfzsurrag.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a3B3ZGxxbGZ5bXh6anp5bXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzMTg3ODIsImV4cCI6MjA1ODg5NDc4Mn0.fBffoWwpqnPySXDcrPOA5pfrCuSHmj6d7i3fjl5Sa_8";
+//const SUPABASE_URL = "https://lhaomnngwozbfzsurrag.supabase.co";
+// const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml0a3B3ZGxxbGZ5bXh6anp5bXlhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDMzMTg3ODIsImV4cCI6MjA1ODg5NDc4Mn0.fBffoWwpqnPySXDcrPOA5pfrCuSHmj6d7i3fjl5Sa_8";
+//const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxoYW9tbm5nd296YmZ6c3VycmFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk4ODk1ODcsImV4cCI6MjA2NTQ2NTU4N30.9SAepH5tUBH4qBJCd81PtpD2V1QBMYXsQlaTFLtNdBo";
+
+// const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+// const SUPABASE_PUBLISHABLE_KEY = Deno.env.get("SUPABASE_PUBLISHABLE_KEY")!;
+
+// console.log('SUPABASE_URL',SUPABASE_URL);
+// console.log('SUPABASE_PUBLISHABLE_KEY', SUPABASE_PUBLISHABLE_KEY);
+
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL; 
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY; 
+
+console.log('client.ts', SUPABASE_URL);
 
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
