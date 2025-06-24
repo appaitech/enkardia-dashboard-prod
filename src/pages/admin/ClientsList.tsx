@@ -47,7 +47,7 @@ const ClientsList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddClientOpen, setIsAddClientOpen] = useState(false);
-  const itemsPerPage = 5;
+  const itemsPerPage = 100;
 
   const { data: clients, isLoading, isError, refetch } = useQuery({
     queryKey: ["clients", searchQuery],
@@ -115,7 +115,7 @@ const ClientsList = () => {
             </div>
             
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              {/* <Button variant="outline" size="sm">
                 All
               </Button>
               <Button variant="outline" size="sm" className="text-green-600">
@@ -125,7 +125,7 @@ const ClientsList = () => {
               <Button variant="outline" size="sm" className="text-amber-600">
                 <XCircle className="mr-1 h-4 w-4" />
                 Not Connected
-              </Button>
+              </Button> */}
             </div>
           </div>
 

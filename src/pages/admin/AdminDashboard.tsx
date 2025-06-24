@@ -24,7 +24,8 @@ import {
 const AdminDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: isLoadingUser } = useAuth();
   
   const isAdmin = user?.role === "ADMIN";
   
@@ -44,7 +45,7 @@ const AdminDashboard = () => {
           <div className="flex justify-between items-center mb-8">
             <div>
               <h1 className="text-3xl font-bold text-slate-800">Console Dashboard</h1>
-              <p className="text-slate-500">Welcome back, {user?.name}</p>
+              <p className="text-slate-500">Welcome back, {user?.user_metadata?.name || 'User'}</p>
             </div>
             <div className="flex gap-2">
               <Badge className="bg-blue-500">{user?.accountType}</Badge>
@@ -63,7 +64,7 @@ const AdminDashboard = () => {
             </Alert>
           )}
           
-          <Card className="mb-8">
+          {/* <Card className="mb-8">
             <CardHeader className="pb-3">
               <div className="flex justify-between items-start">
                 <div>
@@ -168,9 +169,9 @@ const AdminDashboard = () => {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
           
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
+          {/* <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
             <Card>
               <CardContent className="p-6 flex items-center justify-between">
                 <div>
@@ -230,9 +231,9 @@ const AdminDashboard = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </div> */}
           
-          <div className="grid md:grid-cols-3 gap-6">
+          {/* <div className="grid md:grid-cols-3 gap-6">
             <Card className="md:col-span-2">
               <CardHeader>
                 <CardTitle className="text-xl font-semibold flex items-center justify-between">
@@ -347,9 +348,9 @@ const AdminDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </div>
+          </div> */}
           
-          {isAdmin && (
+          {/* {isAdmin && (
             <div className="mt-6">
               <Card className="border-purple-200">
                 <CardHeader className="bg-purple-50 border-b border-purple-100">
@@ -379,7 +380,7 @@ const AdminDashboard = () => {
                 </CardContent>
               </Card>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
