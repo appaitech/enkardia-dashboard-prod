@@ -27,7 +27,8 @@ import { DataModel, useFinancialStore } from '@/store/financialStore'
 import StoreDemo from "@/components/StoreDemo";
 
 const UserDashboard = () => {
-  const { user } = useAuth();
+  // const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: isLoadingUser } = useAuth();
   const location = useLocation();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
   const isMobile = useIsMobile();
@@ -162,6 +163,10 @@ const UserDashboard = () => {
     return null;
   }
 
+  console.log('UserDashboard pages isLoadingUser', isLoadingUser);
+  console.log('UserDashboard pages user', user);
+
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <UserSidebar activePath={location.pathname} />
@@ -170,17 +175,23 @@ const UserDashboard = () => {
         <div className="p-4 md:p-8">
           <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
             <div>
-              <div className="flex items-center space-x-3">
-                <UserCircle className="h-8 w-8 text-blue-600" />
-                <h1 className="text-xl md:text-2xl font-bold text-slate-800">
-                  Welcome, {user?.name || 'User'}
-                </h1>
-              </div>
-              <p className="text-slate-500 mt-2 text-sm">
-                {user?.accountType === 'CONSOLE' 
-                  ? 'Console Administrator Dashboard' 
-                  : `${user?.role === 'ADMIN' ? 'Client Business Admin' : 'Client User'} Dashboard`}
-              </p>
+              {
+                isLoadingUser === false && 
+                <>
+                  <div className="flex items-center space-x-3">
+                    <UserCircle className="h-8 w-8 text-blue-600" />
+                    <h1 className="text-xl md:text-2xl font-bold text-slate-800">
+                      Welcome, {user?.user_metadata?.name || 'User'}
+                    </h1>
+                  </div>
+                  <p className="text-slate-500 mt-2 text-sm">
+                    {user?.accountType === 'CONSOLE' 
+                      ? 'Console Administrator Dashboard' 
+                      : `${user?.role === 'ADMIN' ? 'Client Business Admin' : 'Client User'} Dashboard`}
+                  </p>
+                </>
+              }
+              
             </div>
             
             {validBusinesses.length > 0 && (
@@ -201,17 +212,12 @@ const UserDashboard = () => {
             </div>
           </div>
           
-          <div className="mb-8">
+          {/* <div className="mb-8">
             {selectedBusiness.tenant_id ? (
               <div className={isMobile ? "overflow-x-auto" : ""}>
                 <div className={isMobile ? "min-w-[600px]" : ""}>
-                  {/* <FinancialDashboard businessId={selectedBusiness.id} /> */}
                     <div>
                       Nothing to see here yet.
-                    </div>
-
-                    <div>
-                      {/* <StoreDemo /> */}
                     </div>
                 </div>
               </div>
@@ -226,10 +232,10 @@ const UserDashboard = () => {
                 </div>
               </Card>
             )}
-          </div>
+          </div> */}
           
-          {/* SARS Document Requests Section */}
-          <div className="mb-8">
+
+          {/* <div className="mb-8">
             <h2 className="text-lg font-semibold text-slate-800 mb-4">SARS Document Requests</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {sarsRequests.map((request) => (
@@ -242,9 +248,9 @@ const UserDashboard = () => {
                 />
               ))}
             </div>
-          </div>
+          </div> */}
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-lg flex items-center">
@@ -307,7 +313,7 @@ const UserDashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>

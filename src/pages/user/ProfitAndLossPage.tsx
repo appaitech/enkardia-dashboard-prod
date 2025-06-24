@@ -705,7 +705,7 @@ const ProfitAndLossPage: React.FC = () => {
             )}
           </div>
 
-          {selectedBusinessId && (
+          {/* {selectedBusinessId && (
             <Card className="mb-8 bg-white border-navy-100">
               <CardContent className="pt-6">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -724,7 +724,7 @@ const ProfitAndLossPage: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-          )}
+          )} */}
           
           <div className="w-full overflow-x-auto">
             <Tabs 

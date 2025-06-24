@@ -14,10 +14,16 @@ import {
   PieChart
 } from 'lucide-react';
 
+
+interface UserMetaDataProps {
+  name: string;
+}
+
 interface UserDashboardProps {
   user: {
     name: string;
     email: string;
+    user_metadata: UserMetaDataProps;
   };
   selectedBusiness: {
     name: string;
@@ -37,7 +43,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
   selectedBusiness, 
   monthlyStats 
 }) => {
-  console.log('user', user);
+  console.log('UserDashboard components user', user);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-navy-50/50 to-slate-50">
@@ -57,7 +63,7 @@ const UserDashboard: React.FC<UserDashboardProps> = ({
                   <UserCircle className="h-6 w-6 text-white" />
                 </div>
                 <h1 className="text-2xl md:text-3xl font-bold text-navy-900">
-                  Welcome, {user?.name || 'Guest'}
+                  Welcome, {user?.user_metadata?.name || 'Guest'}
                 </h1>
               </div>
               <p className="text-navy-600 text-lg">
