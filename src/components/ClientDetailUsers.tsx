@@ -288,10 +288,10 @@ const ClientDetailUsers: React.FC<ClientDetailUsersProps> = ({ clientId, clientN
             </CardDescription>
           </div>
           <div className="flex space-x-2">
-            <Button variant="outline" onClick={handleInviteUser}>
+            {/* <Button variant="outline" onClick={handleInviteUser}>
               <Mail className="h-4 w-4 mr-2" />
               Invite User
-            </Button>
+            </Button> */}
             <Button onClick={() => setIsAssignUserDialogOpen(true)}>
               <UserPlus className="h-4 w-4 mr-2" />
               Assign User
