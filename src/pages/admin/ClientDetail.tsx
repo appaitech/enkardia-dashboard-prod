@@ -242,7 +242,7 @@ function ClientDetail() {
             </div>
             
             <div className="flex gap-2">
-              <Button 
+              {/* <Button 
                 variant="outline" 
                 size="sm" 
                 onClick={handleRefresh}
@@ -257,7 +257,7 @@ function ClientDetail() {
               >
                 <Edit className="mr-2 h-3.5 w-3.5" />
                 Edit Details
-              </Button>
+              </Button> */}
             </div>
           </div>
 
