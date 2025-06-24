@@ -9,10 +9,11 @@ import {
 } from "@/types/customField";
 
 // Field Definition functions
-export async function getFieldDefinitions(): Promise<ClientFieldDefinition[]> {
+export async function getFieldDefinitions(clientId: string): Promise<ClientFieldDefinition[]> {
   const { data, error } = await supabase
     .from('client_field_definitions')
     .select('*')
+    .eq('client_business_id', clientId)
     .order('name');
   
   if (error) {
@@ -22,6 +23,7 @@ export async function getFieldDefinitions(): Promise<ClientFieldDefinition[]> {
   
   return data.map(item => ({
     id: item.id,
+    client_business_id: item.client_business_id,
     name: item.name,
     field_type: item.field_type as "text" | "number" | "date" | "boolean" | "select",
     created_at: item.created_at,
@@ -35,6 +37,7 @@ export async function createFieldDefinition(fieldDef: NewClientFieldDefinition):
     .insert({
       name: fieldDef.name,
       field_type: fieldDef.field_type,
+      client_business_id: fieldDef.client_business_id
     })
     .select('*')
     .single();
@@ -47,6 +50,7 @@ export async function createFieldDefinition(fieldDef: NewClientFieldDefinition):
   return {
     id: data.id,
     name: data.name,
+    client_business_id: data.client_business_id,
     field_type: data.field_type as "text" | "number" | "date" | "boolean" | "select",
     created_at: data.created_at,
     updated_at: data.updated_at
@@ -68,7 +72,9 @@ export async function deleteFieldDefinition(id: string): Promise<void> {
 // Field Value functions
 export async function getClientFieldValues(clientId: string): Promise<CustomField[]> {
   // First get all field definitions
-  const definitions = await getFieldDefinitions();
+  const definitions = await getFieldDefinitions(clientId);
+
+  console.log('getClientFieldValues clientId', clientId);
   
   // Get existing values for this client
   const { data: values, error } = await supabase

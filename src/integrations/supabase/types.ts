@@ -228,6 +228,7 @@ export type Database = {
         Row: {
           created_at: string
           field_type: string
+          client_business_id: string
           id: string
           name: string
           updated_at: string
@@ -235,6 +236,7 @@ export type Database = {
         Insert: {
           created_at?: string
           field_type: string
+          client_business_id: string
           id?: string
           name: string
           updated_at?: string

@@ -1,6 +1,7 @@
 
 export interface ClientFieldDefinition {
   id: string;
+  client_business_id: string;
   name: string;
   field_type: 'text' | 'number' | 'date' | 'boolean' | 'select';
   created_at: string;
@@ -24,6 +25,7 @@ export interface CustomField {
 export interface NewClientFieldDefinition {
   name: string;
   field_type: 'text' | 'number' | 'date' | 'boolean' | 'select';
+  client_business_id: string;
 }
 
 export interface ClientFieldValueUpdate {

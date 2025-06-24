@@ -47,7 +47,10 @@ export function CustomFieldsManager({ clientId }: CustomFieldsManagerProps) {
   const [newField, setNewField] = useState<NewClientFieldDefinition>({
     name: "",
     field_type: "text",
+    client_business_id: clientId
   });
+
+  console.log('CustomFieldsManager clientId', clientId);
 
   // Get all custom fields with the client's values
   const { data: customFields, isLoading: isLoadingFields } = useQuery({
@@ -65,7 +68,7 @@ export function CustomFieldsManager({ clientId }: CustomFieldsManagerProps) {
         description: "Custom field created successfully",
       });
       setIsAddingField(false);
-      setNewField({ name: "", field_type: "text" });
+      setNewField({ name: "", field_type: "text", client_business_id: clientId });
     },
     onError: (error: Error) => {
       toast({
