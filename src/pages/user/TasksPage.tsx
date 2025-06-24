@@ -222,9 +222,10 @@ const TasksPage: React.FC = () => {
                       <TableRow>
                         <TableHead>Title</TableHead>
                         <TableHead className="hidden md:table-cell">Description</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="hidden md:table-cell">Start Date</TableHead>
-                        <TableHead>Due Date</TableHead>
+                        <TableHead className="hidden md:table-cell">Type</TableHead>
+                        <TableHead className="hidden md:table-cell">Status</TableHead>
+                        {/* <TableHead className="hidden md:table-cell">Start Date</TableHead>
+                        <TableHead>Due Date</TableHead> */}
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -232,12 +233,13 @@ const TasksPage: React.FC = () => {
                         <TableRow key={task.id}>
                           <TableCell className="font-medium">{task.title}</TableCell>
                           <TableCell className="hidden md:table-cell">{task.description}</TableCell>
+                          <TableCell className="hidden md:table-cell">{task.task_type}</TableCell>
                           <TableCell>
                             <Badge variant={getStatusBadgeVariant(task.status)}>
                               {task.status}
                             </Badge>
                           </TableCell>
-                          <TableCell className="hidden md:table-cell">
+                          {/* <TableCell className="hidden md:table-cell">
                             {task.start_date 
                               ? format(new Date(task.start_date), 'MMM dd, yyyy') 
                               : 'Not set'}
@@ -246,7 +248,7 @@ const TasksPage: React.FC = () => {
                             {task.due_date 
                               ? format(new Date(task.due_date), 'MMM dd, yyyy') 
                               : 'Not set'}
-                          </TableCell>
+                          </TableCell> */}
                         </TableRow>
                       ))}
                     </TableBody>

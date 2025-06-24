@@ -327,6 +327,7 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
             <TableHeader>
               <TableRow>
                 <TableHead>Title</TableHead>
+                <TableHead>Description</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
                 {/* <TableHead>Created By</TableHead> */}
@@ -339,6 +340,7 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
               {tasks.map((task) => (
                 <TableRow key={task.id}>
                   <TableCell className="font-medium">{task.title}</TableCell>
+                  <TableCell>{task.description}</TableCell>
                   <TableCell>{task.task_type}</TableCell>
                   <TableCell>
                     <Badge variant={getStatusBadgeVariant(task.status)}>
