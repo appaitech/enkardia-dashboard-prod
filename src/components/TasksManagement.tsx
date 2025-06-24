@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { useAuth } from "@/contexts/AuthContext";
 import { 
   Table, 
   TableBody, 
@@ -71,8 +72,8 @@ interface Task {
   updated_at: string | null;
   status: string;
   task_type: string;
-  start_date: string | null;
-  due_date: string | null;
+  // start_date: string | null;
+  // due_date: string | null;
   completed_at: string | null;
   created_by: string | null;
 }
@@ -82,8 +83,8 @@ interface TaskFormData {
   description: string;
   status: string;
   task_type: string;
-  start_date: string;
-  due_date: string;
+  //start_date: string;
+  //due_date: string;
 }
 
 interface TasksManagementProps {
@@ -102,6 +103,7 @@ const fetchClientTasks = async (clientId: string): Promise<Task[]> => {
 
 const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
   const { toast } = useToast();
+  const { user, isAuthenticated, isLoading: isLoadingUser } = useAuth();
   const queryClient = useQueryClient();
   const [isAddTaskOpen, setIsAddTaskOpen] = useState(false);
   const [isEditTaskOpen, setIsEditTaskOpen] = useState(false);
@@ -120,8 +122,8 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
       description: '',
       status: 'pending',
       task_type: 'Document Request',
-      start_date: '',
-      due_date: '',
+      //start_date: '',
+      //due_date: '',
     },
   });
 
@@ -131,8 +133,8 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
       description: '',
       status: 'pending',
       task_type: 'Document Request',
-      start_date: '',
-      due_date: '',
+      //start_date: '',
+      //due_date: '',
     },
   });
 
@@ -143,6 +145,8 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
         .insert([{
           ...newTask,
           client_business_id: clientId,
+
+          created_by: user.id,
         }])
         .select();
 
@@ -176,8 +180,8 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
           description: updatedTask.description,
           status: updatedTask.status,
           task_type: updatedTask.task_type,
-          start_date: updatedTask.start_date,
-          due_date: updatedTask.due_date,
+          // start_date: updatedTask.start_date,
+          // due_date: updatedTask.due_date,
           updated_at: new Date().toISOString(),
         })
         .eq('id', updatedTask.id)
@@ -258,8 +262,8 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
       description: task.description || '',
       status: task.status,
       task_type: task.task_type,
-      start_date: task.start_date || '',
-      due_date: task.due_date || '',
+      //start_date: task.start_date || '',
+      //due_date: task.due_date || '',
     });
     setIsEditTaskOpen(true);
   };
@@ -325,8 +329,9 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
                 <TableHead>Title</TableHead>
                 <TableHead>Type</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead>Start Date</TableHead>
-                <TableHead>Due Date</TableHead>
+                {/* <TableHead>Created By</TableHead> */}
+                <TableHead>Created At</TableHead>
+                <TableHead>Updated At</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -340,14 +345,17 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
                       {task.status}
                     </Badge>
                   </TableCell>
+                  {/* <TableCell>
+                    {task.created_by}
+                  </TableCell> */}
                   <TableCell>
-                    {task.start_date 
-                      ? format(new Date(task.start_date), 'MMM dd, yyyy') 
+                    {task.created_at 
+                      ? format(new Date(task.created_at), 'MMM dd, yyyy') 
                       : 'Not set'}
                   </TableCell>
                   <TableCell>
-                    {task.due_date 
-                      ? format(new Date(task.due_date), 'MMM dd, yyyy') 
+                    {task.updated_at 
+                      ? format(new Date(task.updated_at), 'MMM dd, yyyy') 
                       : 'Not set'}
                   </TableCell>
                   <TableCell className="text-right space-x-2">
@@ -481,7 +489,7 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              {/* <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={addTaskForm.control}
                   name="start_date"
@@ -509,7 +517,7 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
                     </FormItem>
                   )}
                 />
-              </div>
+              </div> */}
               
               <DialogFooter>
                 <DialogClose asChild>
@@ -625,7 +633,7 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
                 />
               </div>
               
-              <div className="grid grid-cols-2 gap-4">
+              {/* <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={editTaskForm.control}
                   name="start_date"
@@ -653,7 +661,7 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
                     </FormItem>
                   )}
                 />
-              </div>
+              </div> */}
               
               <DialogFooter>
                 <DialogClose asChild>

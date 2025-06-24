@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import { Bell, Loader2, RefreshCcw, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
+import React, { useState, useEffect } from 'react';
+
 import { useAuth } from "@/contexts/AuthContext";
 import { CallToAction } from "@/types/callToAction";
 import UserSidebar from "@/components/UserSidebar";
@@ -14,23 +16,42 @@ import {
   markCallToActionAsViewed 
 } from "@/services/callToActionService";
 import { toast } from "sonner";
+import { useSelectedBusiness } from "@/hooks/useSelectedBusiness";
+import { getUserClientBusinesses, saveSelectedClientBusinessId } from "@/services/userService";
+import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 
 function CallToActionsPage() {
   const location = useLocation();
   const { user } = useAuth();
+  const { selectedBusinessId, handleBusinessSelect } = useSelectedBusiness();
+
   
+  
+  const { 
+      data: clientBusinesses,
+      isLoading: isLoadingBusinesses,
+      isError: isErrorBusinesses,
+      refetch: refetchBusinesses
+    } = useQuery({
+      queryKey: ["user-client-businesses", user?.id],
+      queryFn: () => getUserClientBusinesses(user?.id || ""),
+      enabled: !!user?.id,
+    });
+
+  const validBusinesses = clientBusinesses?.filter(business => business !== null) || [];
+
   const {
     data: callToActions,
     isLoading,
     isError,
     refetch,
   } = useQuery({
-    queryKey: ["user-call-to-actions", user?.id],
+    queryKey: ["user-call-to-actions", selectedBusinessId],
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const businessIds = await getUserClientBusinessIds(user.id);
-      return fetchCallToActionsWithViewStatus(businessIds, user.id);
+      // const businessIds = await getUserClientBusinessIds(user.id);
+      return fetchCallToActionsWithViewStatus([selectedBusinessId], user.id);
     },
     enabled: !!user?.id,
   });
@@ -44,6 +65,17 @@ function CallToActionsPage() {
       refetch();
     }
   };
+
+  // Hooks
+  useEffect(() => {
+      if (clientBusinesses?.length && !selectedBusinessId) {
+        const validBusinesses = clientBusinesses.filter(business => business !== null);
+        if (validBusinesses.length > 0) {
+          const firstBusinessId = validBusinesses[0].id;
+          handleBusinessSelect(firstBusinessId);
+        }
+      }
+    }, [clientBusinesses, selectedBusinessId, handleBusinessSelect]);
   
   return (
     <div className="flex min-h-screen bg-slate-50">
@@ -51,7 +83,7 @@ function CallToActionsPage() {
       
       <div className="flex-1">
         <div className="p-4 md:p-8">
-          <div className="mb-6">
+          {/* <div className="mb-6">
             <div className="flex items-center gap-2">
               <Bell className="h-5 w-5 text-navy-600" />
               <h1 className="text-2xl font-bold text-slate-800">Call To Actions</h1>
@@ -59,6 +91,38 @@ function CallToActionsPage() {
             <p className="text-slate-500 mt-1">
               View important actions and updates from your accountant
             </p>
+
+            {validBusinesses.length > 0 && (
+              <div className="w-full md:w-auto">
+                <ClientBusinessSelector 
+                  clientBusinesses={validBusinesses}
+                  selectedBusinessId={selectedBusinessId}
+                  onBusinessSelect={handleBusinessSelect}
+                />
+              </div>
+            )}
+          </div> */}
+
+          <div className="mb-6 flex flex-col space-y-4 md:flex-row md:items-center md:justify-between md:space-y-0">
+            <div>
+              <div className="flex items-center space-x-3">
+                <Bell className="h-5 w-5 text-navy-600" />
+                <h1 className="text-2xl md:text-3xl font-bold text-slate-800">Call To Actions</h1>
+              </div>
+              <p className="text-slate-500 mt-2">
+                View important actions and updates from your accountant
+              </p>
+            </div>
+            
+            {validBusinesses.length > 0 && (
+              <div className="w-full md:w-auto">
+                <ClientBusinessSelector 
+                  clientBusinesses={validBusinesses}
+                  selectedBusinessId={selectedBusinessId}
+                  onBusinessSelect={handleBusinessSelect}
+                />
+              </div>
+            )}
           </div>
           
           {isLoading ? (
