@@ -61,6 +61,59 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
 
   const validBusinesses = clientBusinesses?.filter(business => business !== null) || [];
 
+  // let navItems = [];
+
+  // if () {
+
+  // }
+
+  const navItemsDashBoardOnly = [
+    {
+      name: "Dashboard",
+      path: "/user/dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+    },
+  ];
+
+  const navItemsDashBoardPlus = [
+    {
+      name: "Dashboard",
+      path: "/user/dashboard",
+      icon: <LayoutDashboard className="w-5 h-5" />,
+    },
+    {
+      name: "Tasks",
+      path: "/user/tasks",
+      icon: <ClipboardList className="w-5 h-5" />,
+    },
+    {
+      name: "Call To Actions",
+      path: "/user/call-to-actions",
+      icon: <Bell className="w-5 h-5" />,
+    },
+    {
+      name: "Financial",
+      submenu: [
+        {
+          name: "Profit & Loss",
+          path: "/user/financial/profit-loss",
+        },
+      ],
+      icon: <BarChart4 className="w-5 h-5" />,
+    },
+  ];
+
+  const [navItems, setNavItems] = useState([]);
+
+  useEffect(() => {
+    if (clientBusinesses?.length > 0) {
+      setNavItems(navItemsDashBoardPlus);
+    }
+    else {
+      setNavItems(navItemsDashBoardOnly);
+    }
+  }, [clientBusinesses]);
+
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
       const validBusinesses = clientBusinesses.filter(business => business !== null);
@@ -90,38 +143,9 @@ const UserSidebar: React.FC<UserSidebarProps> = ({ activePath }) => {
     }
   };
 
-  const navItems = [
-    {
-      name: "Dashboard",
-      path: "/user/dashboard",
-      icon: <LayoutDashboard className="w-5 h-5" />,
-    },
-    {
-      name: "Tasks",
-      path: "/user/tasks",
-      icon: <ClipboardList className="w-5 h-5" />,
-    },
-    {
-      name: "Call To Actions",
-      path: "/user/call-to-actions",
-      icon: <Bell className="w-5 h-5" />,
-    },
-    {
-      name: "Financial",
-      submenu: [
-        {
-          name: "Profit & Loss",
-          path: "/user/financial/profit-loss",
-        },
-      ],
-      icon: <BarChart4 className="w-5 h-5" />,
-    },
-    // {
-    //   name: "Account Settings",
-    //   path: "/user/account/linking",
-    //   icon: <Settings className="w-5 h-5" />,
-    // },
-  ];
+
+
+  
 
   const isActive = (path: string) => {
     if (path === "/user/dashboard") {
