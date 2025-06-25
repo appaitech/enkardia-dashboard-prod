@@ -46,48 +46,37 @@ const FinancialYearView: React.FC<FinancialYearViewProps> = ({ businessId }) => 
   //   enabled: !!businessId,
   // });
 
+  // const {
+  //   data,
+  //   isLoading,
+  //   isError,
+  //   refetch,
+  // } = useQuery({
+  //   queryKey: ["financial-year", businessId, selectedYear],
+  //   queryFn: () => getFinancialYearData(businessId, selectedYear),
+  //   enabled: false, // ⛔ disable auto-fetching
+  // });
+
+  // useEffect(() => {
+  //   if (!businessId) return;
+
+  //   const cachedData = queryClient.getQueryData(["financial-year", businessId, selectedYear]);
+
+  //   if (!cachedData) {
+  //     refetch(); 
+  //   }
+  // }, [businessId, selectedYear]); 
+
   const {
     data,
     isLoading,
     isError,
-    refetch,
   } = useQuery({
     queryKey: ["financial-year", businessId, selectedYear],
     queryFn: () => getFinancialYearData(businessId, selectedYear),
-    enabled: false, // ⛔ disable auto-fetching
+    enabled: !!businessId && !queryClient.getQueryData(["financial-year", businessId, selectedYear]),
+    staleTime: Infinity, // mark cache as fresh forever
   });
-
-  // const { data, refetch, isFetching } = useQuery({
-  //   queryKey: ['financials', orgId],
-  //   queryFn: () => fetchFinancials(orgId),
-  //   enabled: false, // don’t fetch automatically
-  // })
-
-  // // later in your code
-  // useEffect(() => {
-  //   console.log('businessId 111111', businessId);
-  //   if (businessId) {
-  //     console.log('businessId 2222222', businessId);
-  //     //refetch();
-
-  //     const cachedData = queryClient.getQueryData(["financial-year", businessId, selectedYear]);
-
-  //     if (!cachedData) {
-  //       refetch(); // only fetch from backend if nothing in cache
-  //     }
-  //   }
-  // }, [businessId])
-
-  useEffect(() => {
-    if (!businessId) return;
-
-    const cachedData = queryClient.getQueryData(["financial-year", businessId, selectedYear]);
-
-    if (!cachedData) {
-      refetch(); // ❗Only fetch if no cache
-    }
-    // else: cached data is already available via `data`
-  }, [businessId, selectedYear]); // You likely want selectedYear as a dep too
 
   const handleYearChange = (value: string) => {
     setSelectedYear(parseInt(value));
