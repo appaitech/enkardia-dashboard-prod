@@ -101,10 +101,10 @@ const AdminSidebar = ({ activePath }: AdminSidebarProps) => {
 
   const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
-      <div className="p-6 border-b border-navy-100">
+      {/* <div className="p-6 border-b border-navy-100">
         <h2 className="font-bold text-2xl text-navy-700 tracking-tight">Console Portal</h2>
         <p className="text-sm text-navy-500/80 mt-1 font-medium">Admin Dashboard</p>
-      </div>
+      </div> */}
       
       <div className="flex-1 px-3 py-4 overflow-y-auto">
         <div className="space-y-1">
