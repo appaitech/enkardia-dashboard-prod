@@ -5,6 +5,8 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer
 } from "recharts";
 
+import { formatNumberWithThousandSeparator } from "@/utils/formatters";
+
 // const headings = [
 //   "Mar 24", "Apr 24", "May 24", "Jun 24", "Jul 24", "Aug 24",
 //   "Sep 24", "Oct 24", "Nov 24", "Dec 24", "Jan 25", "Feb 25"
@@ -157,6 +159,24 @@ export default function FinancialDashboardView({
 
   console.log(data);
 
+  // Renders
+  // Custom tooltip formatter
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-3 border border-gray-300 rounded shadow">
+          <p className="font-semibold">{`Month: ${label}`}</p>
+          {payload.map((entry, index) => (
+            <p key={index} style={{ color: entry.color }}>
+              {`${entry.name}: ${formatNumberWithThousandSeparator(entry.value)}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="p-6 space-y-12 max-w-screen-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">📊 Financial Dashboard</h1>
@@ -169,7 +189,8 @@ export default function FinancialDashboardView({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            {/* <Tooltip /> */}
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Line type="monotone" dataKey="sales" stroke="#4f46e5" name="Sales" />
             <Line type="monotone" dataKey="grossProfit" stroke="#10b981" name="Gross Profit" />
@@ -186,7 +207,8 @@ export default function FinancialDashboardView({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            {/* <Tooltip /> */}
+            <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Bar dataKey="income" fill="#3b82f6" name="Income" />
             <Bar dataKey="costOfSales" fill="#f59e0b" name="Cost of Sales" />
@@ -202,7 +224,8 @@ export default function FinancialDashboardView({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            {/* <Tooltip /> */}
+            <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="netProfit" name="Net Profit" fill="#22c55e" />
           </BarChart>
         </ResponsiveContainer>
