@@ -27,3 +27,20 @@ export function formatDate(date: Date): string {
     dateStyle: 'medium'
   }).format(date);
 }
+
+export function formatNumberWithThousandSeparator(input): string {
+  if (input === "-") {
+    return "-";
+  }
+  
+  const num = typeof input === 'string' ? parseFloat(input) : input;
+  
+  if (isNaN(num)) {
+    return input;
+  }
+  
+  return num.toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
+}

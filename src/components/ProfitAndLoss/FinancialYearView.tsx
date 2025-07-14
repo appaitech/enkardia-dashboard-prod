@@ -7,6 +7,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, AlertTriangle } from "lucide-react";
 import { useQueryClient } from '@tanstack/react-query';
+import { formatNumberWithThousandSeparator } from "@/utils/formatters";
 
 import { DataModel, useFinancialStore } from '@/store/financialStore'
 
@@ -201,7 +202,7 @@ const FinancialYearTable = ({ data }: { data: any }) => {
                 <TableCell>{row.rowTitle}</TableCell>
                 {row.rowData.map((cell, cellIndex) => (
                   <TableCell key={`gross-cell-${sectionIndex}-${rowIndex}-${cellIndex}`} className="text-right">
-                    {cell}
+                    {formatNumberWithThousandSeparator(cell)}
                   </TableCell>
                 ))}
               </TableRow>
@@ -211,7 +212,7 @@ const FinancialYearTable = ({ data }: { data: any }) => {
         <TableRow className="bg-navy-50/30 font-semibold">
           <TableCell>Gross Profit</TableCell>
           {data.grossProfitDataRow.map((value, index) => (
-            <TableCell key={`gross-profit-${index}`} className="text-right">{value}</TableCell>
+            <TableCell key={`gross-profit-${index}`} className="text-right">{formatNumberWithThousandSeparator(value)}</TableCell>
           ))}
         </TableRow>
       </>
@@ -236,7 +237,7 @@ const FinancialYearTable = ({ data }: { data: any }) => {
                 <TableCell>{row.rowTitle}</TableCell>
                 {row.rowData.map((cell, cellIndex) => (
                   <TableCell key={`net-cell-${sectionIndex}-${rowIndex}-${cellIndex}`} className="text-right">
-                    {cell}
+                    {formatNumberWithThousandSeparator(cell)}
                   </TableCell>
                 ))}
               </TableRow>
@@ -246,12 +247,14 @@ const FinancialYearTable = ({ data }: { data: any }) => {
         <TableRow className="bg-navy-50/30 font-semibold">
           <TableCell>Net Profit</TableCell>
           {data.netProfitDataRow.map((value, index) => (
-            <TableCell key={`net-profit-${index}`} className="text-right">{value}</TableCell>
+            <TableCell key={`net-profit-${index}`} className="text-right">{formatNumberWithThousandSeparator(value)}</TableCell>
           ))}
         </TableRow>
       </>
     );
   };
+
+  console.log('FinancialYearView data', data);
 
   return (
     <>
