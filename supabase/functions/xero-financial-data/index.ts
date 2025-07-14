@@ -39,9 +39,11 @@ interface RequestBody {
 }
 
 serve(async (req) => {
+  const origin = req.headers.get('origin');
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeaders(origin) });
   }
 
   try {
@@ -240,7 +242,7 @@ serve(async (req) => {
             paymentsOnly
           }
         }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        { headers: { ...corsHeaders(origin), "Content-Type": "application/json" } }
       );
     }
     
@@ -368,7 +370,7 @@ serve(async (req) => {
           paymentsOnly
         }
       }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { headers: { ...corsHeaders(origin), "Content-Type": "application/json" } }
     );
   } catch (error) {
     console.error("Error in Xero financial data function:", error.message);
@@ -380,7 +382,7 @@ serve(async (req) => {
       }),
       { 
         status: error.status || 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" } 
+        headers: { ...corsHeaders(origin), "Content-Type": "application/json" } 
       }
     );
   }
