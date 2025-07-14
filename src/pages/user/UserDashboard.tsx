@@ -28,8 +28,11 @@ import TaskDashboard from "@/components/dashboard/TaskDashboard";
 
 import StoreDemo from "@/components/StoreDemo";
 
+import { useNavigate } from "react-router-dom";
+
 const UserDashboard = () => {
   // const { user } = useAuth();
+  const navigate = useNavigate();
   const { user, isAuthenticated, isLoading: isLoadingUser } = useAuth();
   const location = useLocation();
   const [selectedBusinessId, setSelectedBusinessId] = useState<string | null>(getSelectedClientBusinessId());
@@ -234,6 +237,13 @@ const UserDashboard = () => {
             refetchTasks={refetchTasks}
           />
           
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => navigate('/user/financial/profit-loss')}
+          >
+            View Profit & Loss
+          </Button>
           
         </div>
       </div>
