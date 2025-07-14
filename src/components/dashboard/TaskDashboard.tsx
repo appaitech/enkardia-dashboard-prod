@@ -16,6 +16,8 @@ import { useNavigate } from "react-router-dom";
 const TaskDashboard = ({ tasks, isLoadingTasks, isErrorTasks, refetchTasks }) => {
 const navigate = useNavigate();
 
+    console.log('TaskDashboard tasks', tasks);
+
     // Functions
     const navigateToTasksPage = () => {
         navigate('/user/tasks');
@@ -27,7 +29,7 @@ const navigate = useNavigate();
       return {
         total: 0,
         pending: 0,
-        inProgress: 0,
+        in_progress: 0,
         completed: 0,
         byType: {}
       };
@@ -36,7 +38,7 @@ const navigate = useNavigate();
     const stats = {
       total: tasks.length,
       pending: 0,
-      inProgress: 0,
+      in_progress: 0,
       completed: 0,
       byType: {}
     };
@@ -49,7 +51,7 @@ const navigate = useNavigate();
           break;
         case 'in_progress':
         case 'in progress':
-          stats.inProgress++;
+          stats.in_progress++;
           break;
         case 'completed':
           stats.completed++;
@@ -76,11 +78,11 @@ const navigate = useNavigate();
       icon: Clock,
       count: stats.pending
     },
-    inProgress: {
+    in_progress: {
       label: 'In Progress',
       color: 'bg-blue-100 text-blue-800',
       icon: TrendingUp,
-      count: stats.inProgress
+      count: stats.in_progress
     },
     completed: {
       label: 'Completed',

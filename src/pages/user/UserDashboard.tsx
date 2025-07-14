@@ -25,10 +25,20 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import SarsRequestTimer from '@/components/SarsRequestTimer';
 import { DataModel, useFinancialStore } from '@/store/financialStore';
 import TaskDashboard from "@/components/dashboard/TaskDashboard";
+import DashboardCallToAction from "@/components/dashboard/DashboardCallToAction";
+import { CallToAction } from "@/types/callToAction";
 
 import StoreDemo from "@/components/StoreDemo";
 
 import { useNavigate } from "react-router-dom";
+
+import { 
+  fetchCallToActionsWithViewStatus, 
+  getUserClientBusinessIds, 
+  markCallToActionAsViewed 
+} from "@/services/callToActionService";
+
+import { toast } from "sonner";
 
 const UserDashboard = () => {
   // const { user } = useAuth();
@@ -60,7 +70,23 @@ const UserDashboard = () => {
     enabled: !!selectedBusinessId
   });
 
-  console.log('tasks', tasks)
+  console.log('tasks', tasks);
+
+  const {
+      data: callToActions,
+      isLoading: isLoadingCallToActions,
+      isError: isErrorCalllToActions,
+      refetch,
+    } = useQuery({
+      queryKey: ["user-call-to-actions", selectedBusinessId],
+      queryFn: async () => {
+        if (!user?.id) return [];
+        
+        // const businessIds = await getUserClientBusinessIds(user.id);
+        return fetchCallToActionsWithViewStatus([selectedBusinessId], user.id);
+      },
+      enabled: !!user?.id,
+    });
 
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
@@ -98,6 +124,16 @@ const UserDashboard = () => {
     }
   }, [selectedBusinessId]);
   // Test browser state END
+
+  const handleViewCallToAction = async (cta: CallToAction) => {
+    if (!user) return;
+    
+    const success = await markCallToActionAsViewed(cta.id);
+    if (success) {
+      toast.success("Marked as viewed");
+      refetch();
+    }
+  };
 
 
   // Add SARS requests data (later this would come from your backend)
@@ -237,6 +273,13 @@ const UserDashboard = () => {
             refetchTasks={refetchTasks}
           />
           
+          <div className={`mb-10`}>
+             <DashboardCallToAction 
+              callToActions={callToActions}
+              onViewCallToAction={handleViewCallToAction}/>
+          </div>
+         
+
           <Button 
             variant="outline" 
             size="sm" 
