@@ -121,7 +121,7 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
       title: '',
       description: '',
       status: 'pending',
-      task_type: 'Document Request',
+      task_type: 'General',
       //start_date: '',
       //due_date: '',
     },
@@ -132,7 +132,7 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
       title: '',
       description: '',
       status: 'pending',
-      task_type: 'Document Request',
+      task_type: 'General',
       //start_date: '',
       //due_date: '',
     },
@@ -479,10 +479,8 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Document Request">Document Request</SelectItem>
-                          <SelectItem value="Review">Review</SelectItem>
-                          <SelectItem value="Meeting">Meeting</SelectItem>
-                          <SelectItem value="Follow-up">Follow-up</SelectItem>
+                          <SelectItem value="General">General</SelectItem>
+                          <SelectItem value="Tax">Tax</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
@@ -623,10 +621,8 @@ const TasksManagement: React.FC<TasksManagementProps> = ({ clientId }) => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="Document Request">Document Request</SelectItem>
-                          <SelectItem value="Review">Review</SelectItem>
-                          <SelectItem value="Meeting">Meeting</SelectItem>
-                          <SelectItem value="Follow-up">Follow-up</SelectItem>
+                          <SelectItem value="General">General</SelectItem>
+                          <SelectItem value="Tax">Tax</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />

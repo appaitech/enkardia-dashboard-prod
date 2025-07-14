@@ -13,7 +13,8 @@ import {
   LineChart,
   PieChart
 } from 'lucide-react';
-
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserMetaDataProps {
   name: string;
@@ -38,12 +39,50 @@ interface UserDashboardProps {
   };
 }
 
+interface Task {
+  id: string;
+  title: string;
+  description: string | null;
+  client_business_id: string;
+  created_at: string;
+  updated_at: string | null;
+  status: string;
+  task_type: string;
+  start_date: string | null;
+  due_date: string | null;
+  completed_at: string | null;
+  created_by: string | null;
+}
+
 const UserDashboard: React.FC<UserDashboardProps> = ({ 
   user, 
   selectedBusiness, 
   monthlyStats 
 }) => {
   console.log('UserDashboard components user', user);
+
+  const fetchClientTasks = async (businessId: string): Promise<Task[]> => {
+    const { data, error } = await supabase
+      .from('tasks')
+      .select('*')
+      .eq('client_business_id', businessId);
+  
+    if (error) throw error;
+    return data || [];
+  };
+
+  console.log('UserDashboard selectedBusiness 111', selectedBusiness);
+
+  // const { 
+  //   data: tasks, 
+  //   isLoading: isLoadingTasks, 
+  //   isError: isErrorTasks, 
+  //   refetch: refetchTasks 
+  // } = useQuery({
+  //   queryKey: ['tasks', selectedBusiness],
+  //   queryFn: () => fetchClientTasks(selectedBusiness || ''),
+  //   enabled: !!selectedBusiness
+  // });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-navy-50/50 to-slate-50">

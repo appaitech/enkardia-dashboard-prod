@@ -6,6 +6,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import UserSidebar from "@/components/UserSidebar";
 import { getUserClientBusinesses, getSelectedClientBusinessId, saveSelectedClientBusinessId } from "@/services/userService";
+import { fetchClientTasks } from "@/services/taskService";
 import { 
   Building, 
   Boxes, 
@@ -22,7 +23,8 @@ import ClientBusinessSelector from "@/components/ClientBusinessSelector";
 import FinancialDashboard from "@/components/FinancialDashboard";
 import { useIsMobile } from "@/hooks/use-mobile";
 import SarsRequestTimer from '@/components/SarsRequestTimer';
-import { DataModel, useFinancialStore } from '@/store/financialStore'
+import { DataModel, useFinancialStore } from '@/store/financialStore';
+import TaskDashboard from "@/components/dashboard/TaskDashboard";
 
 import StoreDemo from "@/components/StoreDemo";
 
@@ -42,7 +44,20 @@ const UserDashboard = () => {
     queryKey: ["user-client-businesses", user?.id],
     queryFn: () => getUserClientBusinesses(user?.id || ""),
     enabled: !!user?.id,
+  });  
+  
+  const { 
+    data: tasks, 
+    isLoading: isLoadingTasks, 
+    isError: isErrorTasks, 
+    refetch: refetchTasks 
+  } = useQuery({
+    queryKey: ['tasks', selectedBusinessId],
+    queryFn: () => fetchClientTasks(selectedBusinessId || ''),
+    enabled: !!selectedBusinessId
   });
+
+  console.log('tasks', tasks)
 
   useEffect(() => {
     if (clientBusinesses?.length && !selectedBusinessId) {
@@ -211,109 +226,15 @@ const UserDashboard = () => {
               <span>{selectedBusiness.industry || "No industry specified"}</span>
             </div>
           </div>
-          
-          {/* <div className="mb-8">
-            {selectedBusiness.tenant_id ? (
-              <div className={isMobile ? "overflow-x-auto" : ""}>
-                <div className={isMobile ? "min-w-[600px]" : ""}>
-                    <div>
-                      Nothing to see here yet.
-                    </div>
-                </div>
-              </div>
-            ) : (
-              <Card className="p-6 text-center">
-                <div className="flex flex-col items-center justify-center py-6">
-                  <AlertTriangle className="h-12 w-12 text-slate-300" />
-                  <p className="mt-2 text-slate-500">No financial data available</p>
-                  <p className="text-sm text-slate-400 text-center mt-1">
-                    This client isn't connected to Xero yet. Connect to Xero to see financial data.
-                  </p>
-                </div>
-              </Card>
-            )}
-          </div> */}
-          
 
-          {/* <div className="mb-8">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">SARS Document Requests</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {sarsRequests.map((request) => (
-                <SarsRequestTimer
-                  key={request.id}
-                  requestDate={request.requestDate}
-                  status={request.status}
-                  documentType={request.documentType}
-                  reference={request.reference}
-                />
-              ))}
-            </div>
-          </div> */}
+          <TaskDashboard 
+            tasks={tasks}
+            isLoadingTasks={isLoadingTasks}
+            isErrorTasks={isErrorTasks}
+            refetchTasks={refetchTasks}
+          />
           
-          {/* <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <FileText className="mr-2 h-5 w-5" />
-                  Documents
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center text-slate-500 py-4">
-                No documents available
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full">
-                  Browse Documents
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Calendar className="mr-2 h-5 w-5" />
-                  Recent Activity
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="text-center text-slate-500 py-4">
-                No recent activity to display
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full">
-                  View Activity
-                </Button>
-              </CardFooter>
-            </Card>
-            
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg flex items-center">
-                  <Building className="mr-2 h-5 w-5" />
-                  Business Details
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                {selectedBusiness && (
-                  <div className="space-y-2">
-                    <div>
-                      <span className="text-xs text-slate-500">Contact Name</span>
-                      <p className="text-sm">{selectedBusiness.contact_name}</p>
-                    </div>
-                    <div>
-                      <span className="text-xs text-slate-500">Email</span>
-                      <p className="text-sm break-words">{selectedBusiness.email}</p>
-                    </div>
-                    {selectedBusiness.phone && (
-                      <div>
-                        <span className="text-xs text-slate-500">Phone</span>
-                        <p className="text-sm">{selectedBusiness.phone}</p>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div> */}
+          
         </div>
       </div>
     </div>
