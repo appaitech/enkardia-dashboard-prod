@@ -6,6 +6,7 @@ import {
 } from "recharts";
 
 import { formatNumberWithThousandSeparator } from "@/utils/formatters";
+import { areAllZeros } from "@/utils/globalFunctions";
 
 // const headings = [
 //   "Mar 24", "Apr 24", "May 24", "Jun 24", "Jul 24", "Aug 24",
@@ -45,6 +46,31 @@ import { formatNumberWithThousandSeparator } from "@/utils/formatters";
 //   costOfSales: +costOfSales[i],
 // }));
 
+// CORE FINANCIAL METRICS (consistent across all charts)
+const colors = {
+  // Revenue/Income - Blue family
+  sales: "#3b82f6",        // Blue
+  income: "#3b82f6",       // Same blue (they're the same concept)
+  
+  // Profitability - Green family
+  grossProfit: "#10b981",  // Emerald
+  netProfit: "#059669",    // Darker emerald (for consistency)
+  
+  // Costs/Expenses - Warm colors
+  costOfSales: "#f59e0b",  // Amber (primary cost)
+  advertising: "#f97316",  // Orange (marketing expense)
+  entertainment: "#ef4444", // Red (discretionary expense)
+};
+
+// Color Logic:
+// 🔵 Blue (#3b82f6) - Income/Sales (revenue)
+// 🟢 Green Family - Profitability
+//    • Gross Profit: #10b981 (emerald)
+//    • Net Profit: #059669 (darker emerald)
+// 🟡 Amber (#f59e0b) - Cost of Sales (primary cost)
+// 🟠 Orange (#f97316) - Advertising (marketing expense)
+// 🔴 Red (#ef4444) - Entertainment (discretionary expense)
+
 export default function FinancialDashboardView({
   inputData
 }) {
@@ -57,6 +83,11 @@ export default function FinancialDashboardView({
 
   const salesReal = [];
   const incomeReal = [];
+
+  const advertisingReal = [];
+  const entertainmentReal = [];
+
+  const netProfitSectionsLessOperatingExpenses = inputData.netProfitSections.find(x => x.title === "Less Operating Expenses");
   
   if (incomeDataRowObject !== undefined) {
     const totalSalesRow = incomeDataRowObject.dataRowObjects.find(x => x.rowType === "Row" && x.rowTitle === "Sales");
@@ -89,6 +120,44 @@ export default function FinancialDashboardView({
         incomeReal.push(0);
       }
     }
+
+    console.log('incomeDataRowObject', incomeDataRowObject);
+    console.log('inputData', inputData);
+
+    // advertising
+    const advertisingRow = netProfitSectionsLessOperatingExpenses.dataRowObjects.find(x => x.rowType === "Row" && x.rowTitle === "Advertising");
+    if (advertisingRow !== undefined)
+    {
+      const advertisingRowRowData = advertisingRow.rowData;
+    
+      advertisingRowRowData.forEach(x => {
+        const arrayValue = x === "-" ? 0 : x;
+        advertisingReal.push(arrayValue);
+      });
+    }
+    else {
+      for (let k = 0; k < 12; k++) {
+        advertisingReal.push(0);
+      }
+    }
+
+    // entertainment
+    const entertainmentRow = netProfitSectionsLessOperatingExpenses.dataRowObjects.find(x => x.rowType === "Row" && x.rowTitle === "Entertainment");
+    if (entertainmentRow !== undefined)
+    {
+      const entertainmentRowRowData = entertainmentRow.rowData;
+    
+      entertainmentRowRowData.forEach(x => {
+        const arrayValue = x === "-" ? 0 : x;
+        entertainmentReal.push(arrayValue);
+      });
+    }
+    else {
+      for (let k = 0; k < 12; k++) {
+        entertainmentReal.push(0);
+      }
+    }
+
   }
   else {
     for (let k = 0; k < 12; k++) {
@@ -100,6 +169,9 @@ export default function FinancialDashboardView({
   }
   console.log('salesReal', salesReal);
   console.log('incomeReal', incomeReal);
+
+  console.log('advertisingReal', advertisingReal);
+  console.log('entertainmentReal', entertainmentReal);
 
   //grossProfitReal
   const grossProfitDataRow = inputData.grossProfitDataRow;
@@ -148,6 +220,44 @@ export default function FinancialDashboardView({
 
   // console.log('modData', modData);
 
+  // // advertising
+  // const advertisingReal = [];
+  // const advertisingDataRowObject = inputData.grossProfitSections.find(x => x.title === "Less Cost of Sales");
+  // if (lessCostOfSalesDataRowObject !== undefined) {
+  //   const costOfSalesSummaryRow = lessCostOfSalesDataRowObject.dataRowObjects.find(x => x.rowType === "SummaryRow" && x.rowTitle === "Total Cost of Sales");
+  //   const costOfSalesSummaryRowRowData = costOfSalesSummaryRow.rowData;
+    
+  //   costOfSalesSummaryRowRowData.forEach(x => {
+  //     const arrayValue = x === "-" ? 0 : x;
+  //     costOfSalessReal.push(arrayValue);
+  //   });
+  // }
+  // else {
+  //   for (let k = 0; k < 12; k++) {
+  //     costOfSalessReal.push(0);
+  //   }
+  // }
+  // console.log('costOfSalessReal', costOfSalessReal);
+
+  // // entertainment
+  // const costOfSalessReal = [];
+  // const lessCostOfSalesDataRowObject = inputData.grossProfitSections.find(x => x.title === "Less Cost of Sales");
+  // if (lessCostOfSalesDataRowObject !== undefined) {
+  //   const costOfSalesSummaryRow = lessCostOfSalesDataRowObject.dataRowObjects.find(x => x.rowType === "SummaryRow" && x.rowTitle === "Total Cost of Sales");
+  //   const costOfSalesSummaryRowRowData = costOfSalesSummaryRow.rowData;
+    
+  //   costOfSalesSummaryRowRowData.forEach(x => {
+  //     const arrayValue = x === "-" ? 0 : x;
+  //     costOfSalessReal.push(arrayValue);
+  //   });
+  // }
+  // else {
+  //   for (let k = 0; k < 12; k++) {
+  //     costOfSalessReal.push(0);
+  //   }
+  // }
+  // console.log('costOfSalessReal', costOfSalessReal);
+
   const data = headingsReal.map((month, i) => ({
     month,
     sales: +salesReal[i],
@@ -155,7 +265,18 @@ export default function FinancialDashboardView({
     netProfit: +netProfitReal[i],
     income: +incomeReal[i],
     costOfSales: +costOfSalessReal[i],
+
+    advertising: +advertisingReal[i],
+    entertainment: +entertainmentReal[i],
   }));
+
+  const shouldShowIncomeVsOperatingExpensesGraph = () => {
+    const advertisingExists = !areAllZeros(data.advertising);
+    const entertainmentExists = !areAllZeros(data.entertainment);
+
+    return advertisingExists || entertainmentExists;
+    //return false;
+  }
 
   console.log(data);
 
@@ -180,7 +301,7 @@ export default function FinancialDashboardView({
   return (
     <div className="p-6 space-y-12 max-w-screen-xl mx-auto">
       <h1 className="text-2xl font-bold mb-4">📊 Financial Dashboard</h1>
-
+      
       {/* Sales, Gross Profit & Net Profit */}
       <div>
         <h2 className="text-xl font-semibold mb-2">Trends: Sales, Gross Profit & Net Profit</h2>
@@ -189,15 +310,37 @@ export default function FinancialDashboardView({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            {/* <Tooltip /> */}
             <Tooltip content={<CustomTooltip />} />
             <Legend />
-            <Line type="monotone" dataKey="sales" stroke="#4f46e5" name="Sales" />
+            <Line type="monotone" dataKey="sales" stroke="#3b82f6" name="Sales" />
             <Line type="monotone" dataKey="grossProfit" stroke="#10b981" name="Gross Profit" />
-            <Line type="monotone" dataKey="netProfit" stroke="#ef4444" name="Net Profit" />
+            <Line type="monotone" dataKey="netProfit" stroke="#059669" name="Net Profit" />
           </LineChart>
         </ResponsiveContainer>
       </div>
+
+      {/* Income vs Operating Expenses */}
+      {shouldShowIncomeVsOperatingExpensesGraph() && (
+        <div>
+          <h2 className="text-xl font-semibold mb-2">Income vs Operating Expenses</h2>
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" />
+              <YAxis />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar dataKey="income" fill="#3b82f6" name="Income" />
+              {!areAllZeros(advertisingReal) && (
+                <Bar dataKey="advertising" fill="#f97316" name="Advertising" />
+              )}
+              {!areAllZeros(entertainmentReal) && (
+                <Bar dataKey="entertainment" fill="#ef4444" name="Entertainment" />
+              )}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      )}
 
       {/* Income vs Cost of Sales */}
       <div>
@@ -207,7 +350,6 @@ export default function FinancialDashboardView({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            {/* <Tooltip /> */}
             <Tooltip content={<CustomTooltip />} />
             <Legend />
             <Bar dataKey="income" fill="#3b82f6" name="Income" />
@@ -224,9 +366,8 @@ export default function FinancialDashboardView({
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            {/* <Tooltip /> */}
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="netProfit" name="Net Profit" fill="#22c55e" />
+            <Bar dataKey="netProfit" name="Net Profit" fill="#059669" />
           </BarChart>
         </ResponsiveContainer>
       </div>
