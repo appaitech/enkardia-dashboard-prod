@@ -39,7 +39,7 @@ export function formatNumberWithThousandSeparator(input): string {
     return input;
   }
   
-  return num.toLocaleString(undefined, {
+  return num.toLocaleString("en-US", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2
   });

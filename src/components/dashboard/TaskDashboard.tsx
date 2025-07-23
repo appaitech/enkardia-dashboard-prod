@@ -13,7 +13,7 @@ import {
 import { useNavigate } from "react-router-dom";
 
 
-const TaskDashboard = ({ tasks, isLoadingTasks, isErrorTasks, refetchTasks }) => {
+const TaskDashboard = ({ tasks = [], isLoadingTasks, isErrorTasks, refetchTasks }) => {
 const navigate = useNavigate();
 
     console.log('TaskDashboard tasks', tasks);

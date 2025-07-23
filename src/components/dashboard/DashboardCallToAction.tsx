@@ -13,7 +13,7 @@ interface DashboardCallToActionProps {
   onViewCallToAction: (callToAction: CallToAction) => void;
 }
 
-export default function DashboardCallToAction({ callToActions, onViewCallToAction }: DashboardCallToActionProps) {
+export default function DashboardCallToAction({ callToActions = [], onViewCallToAction }: DashboardCallToActionProps) {
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
   
   // Calculate stats
